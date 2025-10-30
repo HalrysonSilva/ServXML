@@ -884,7 +884,7 @@ procedure Tfrmmenu.BtnconsultarClick(Sender: TObject);
 
 begin
 
-   // CarregarXML;
+    CarregarXML;
 
     ConsultarVendasPendentes;
 end;
