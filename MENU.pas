@@ -2593,27 +2593,37 @@ begin
     EsperaForm.Show;
     Application.ProcessMessages; // Força a exibição imediata do form.
 
-    EsperaForm.Label1.Caption := 'Corrigindo dados...';
+    // --- 2. Execução das ações de banco (Execução Síncrona e Sequencial) ---
+
+    // A. Criação da Tabela
+    EsperaForm.Label1.Caption := 'Criando tabela SERVXML...';
     Application.ProcessMessages;
+    CriarTabelaSERVXML; // A próxima linha só será executada após esta concluir.
 
-
-
-
-    // 2. Execução das ações de banco
-    EsperaForm.Label1.Caption := 'Atualizando registros...';
+    // B. Correção Inicial de Dados
+    EsperaForm.Label1.Caption := 'Corrigindo dados gerais...';
     Application.ProcessMessages;
-   CriarTabelaSERVXML;
-   corrigirdados;
-   ForcarMigracaoXMLTemp;
-   UPDATEBANCO;
-   CorrigirPendenciasBaseadoEmServxml;
-   ExecutarUpdateNotasFiscais;
-  
+    corrigirdados; // A próxima linha só será executada após esta concluir.
 
+    // C. Atualização e Migração
+    EsperaForm.Label1.Caption := 'Atualizando registros e forçando migração XML...';
+    Application.ProcessMessages;
+    UPDATEBANCO;
+    ForcarMigracaoXMLTemp;
 
+    // D. Correção de Pendências
+    EsperaForm.Label1.Caption := 'Corrigindo pendências baseado em SERVXML...';
+    Application.ProcessMessages;
+    CorrigirPendenciasBaseadoEmServxml;
 
+    // E. Execução Final de Update
+    EsperaForm.Label1.Caption := 'Finalizando atualização de Notas Fiscais...';
+    Application.ProcessMessages;
+    ExecutarUpdateNotasFiscais;
 
-
+    // F. Finalização (Opcional, para indicar que acabou antes de fechar)
+    EsperaForm.Label1.Caption := 'Atualizações concluídas!';
+    Application.ProcessMessages;
 
   finally
     // 3. Fecha e libera o Form de Espera
@@ -2621,7 +2631,6 @@ begin
       FreeAndNil(EsperaForm);
   end;
 end;
-
 
 
 procedure Tfrmmenu.btnbuscarClick(Sender: TObject);
