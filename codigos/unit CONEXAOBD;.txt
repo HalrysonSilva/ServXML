@@ -12,7 +12,7 @@ uses
 
 type
   TDatamodule1 = class(TDataModule)
-    ConDados: TUniConnection; // Componente de conex„o
+    ConDados: TUniConnection; // Componente de conex√£o
 
     SQLServerUniProvider1: TSQLServerUniProvider;
     UniSQLMonitor1: TUniSQLMonitor;
@@ -67,6 +67,7 @@ type
     CDSCONSULTACHAVE: TClientDataSet;
     QRYNUMNOTASEFAZ: TUniQuery;
     DSCDSCONSULTACHAVE: TDataSource;
+    QRYCORRIGEPENDENCIA: TUniQuery;
 
 
 
@@ -86,11 +87,13 @@ type
   end;
 
 var
-  Datamodule1: TDatamodule1; // Inst‚ncia global do DataModule
+  Datamodule1: TDatamodule1; // Inst√¢ncia global do DataModule
 
 implementation
 
 {%CLASSGROUP 'Vcl.Controls.TControl'}
+
+uses uDMNFCe;
 
 {$R *.dfm}
 
@@ -107,11 +110,11 @@ begin
   Connection := TUniConnection(FindComponent(NomeConnection));
   if not Assigned(Connection) then
   begin
-    ShowMessage('Componente ' + NomeConnection + ' n„o encontrado!');
+    ShowMessage('Componente ' + NomeConnection + ' n√£o encontrado!');
     Exit;
   end;
 
-  // Verifica se o arquivo de conex„o existe
+  // Verifica se o arquivo de conex√£o existe
   if FileExists(CaminhoArquivo) then
   begin
     ConnStr := Trim(TFile.ReadAllText(CaminhoArquivo, TEncoding.UTF8));
@@ -136,14 +139,14 @@ begin
   end
   else
   begin
-    // Se n„o existe, abre o di·logo de conex„o
+    // Se n√£o existe, abre o di√°logo de conex√£o
     if Assigned(UniConnectDialog) and UniConnectDialog.Execute then
     begin
       Connection.Connected := True;
       TFile.WriteAllText(CaminhoArquivo, Connection.ConnectString, TEncoding.UTF8);
     end
     else
-      ShowMessage('Arquivo de conex„o n„o encontrado e usu·rio cancelou a configuraÁ„o.');
+      ShowMessage('Arquivo de conex√£o n√£o encontrado e usu√°rio cancelou a configura√ß√£o.');
   end;
 end;
 
@@ -182,7 +185,7 @@ begin
   try
     sConfiguracao := TStringlist.Create;
     cfg_PathSistema := ExtractFilePath(Application.ExeName);
-    // BuscaPrimeiro Arquivo Raiz do ServSic, caso n„o exista, ent„o usa do Raiz NFetop
+    // BuscaPrimeiro Arquivo Raiz do ServSic, caso n√£o exista, ent√£o usa do Raiz NFetop
     // sArqConexao := cfg_PathSistema + 'Servcom.dll';
 
    // sArqConexao := '..\Servsicx\ServCom.dll';
@@ -206,7 +209,7 @@ begin
         if not conDados.ConnectDialog.Execute then
         begin
           ShowMessage
-            ('ConfiguraÁ„o da conex„o com Banco de Dados SQL "CANCELADA PELO USUARIO"!');
+            ('Configura√ß√£o da conex√£o com Banco de Dados SQL "CANCELADA PELO USUARIO"!');
           Application.Terminate;
           Exit;
         end;
@@ -218,7 +221,7 @@ begin
         ELSE
         begin
           ShowMessage
-            ('FALHA na ConfiguraÁ„o da conex„o com Banco de Dados SQL!');
+            ('FALHA na Configura√ß√£o da conex√£o com Banco de Dados SQL!');
           Application.Terminate;
         end;
 
@@ -245,7 +248,7 @@ begin
 
       end;
 
-      // Conex„o SDac
+      // Conex√£o SDac
       if sParamServer > ' ' then
       begin
         conDados.Server := sParamServer;
@@ -315,7 +318,7 @@ begin
   else
     sArquivo := PChar(ExtractFilePath(Application.ExeName) + sNomeArquivo);
 
-  // Caso seja um Arquivo sem SESS√O [] OU SEJA UM TXT
+  // Caso seja um Arquivo sem SESS√ÉO [] OU SEJA UM TXT
   if Topico <= ' ' then
   begin
     iPos := 0;
@@ -332,7 +335,7 @@ begin
       begin
         // iTamLinha := Length(sLinha);
         sLinha := Alltrim(Copy(sLinha, (iPos + iTam), 100));
-        // Ler AtÈ a PosiÁ„o Ponto e Virgula (;)
+        // Ler At√© a Posi√ß√£o Ponto e Virgula (;)
         iPos := Pos(';', UpperCase(sLinha));
         if iPos > 0 then
         begin
@@ -384,4 +387,3 @@ end;
 
 
 end.
-

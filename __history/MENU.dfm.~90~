@@ -1,7 +1,7 @@
 object frmmenu: Tfrmmenu
   Left = 0
   Top = 0
-  Caption = 'ServXML 2.12'
+  Caption = 'ServXML 2.13'
   ClientHeight = 882
   ClientWidth = 1287
   Color = clBtnFace
@@ -900,7 +900,6 @@ object frmmenu: Tfrmmenu
             ParentFont = False
             TabOrder = 0
             OnClick = btnconsultastatusClick
-            ExplicitTop = 50
           end
           object btnreenviar: TButton
             AlignWithMargins = True
@@ -918,7 +917,6 @@ object frmmenu: Tfrmmenu
             ParentFont = False
             TabOrder = 1
             OnClick = btnreenviarClick
-            ExplicitTop = 142
           end
           object btnalteraxml: TButton
             AlignWithMargins = True
@@ -936,12 +934,11 @@ object frmmenu: Tfrmmenu
             ParentFont = False
             TabOrder = 2
             OnClick = btnalteraxmlClick
-            ExplicitTop = 96
           end
           object btnveriinutiliza: TButton
             AlignWithMargins = True
             Left = 4
-            Top = 142
+            Top = 188
             Width = 157
             Height = 40
             Align = alTop
@@ -954,7 +951,26 @@ object frmmenu: Tfrmmenu
             ParentFont = False
             TabOrder = 3
             OnClick = btnveriinutilizaClick
-            ExplicitTop = 188
+            ExplicitTop = 142
+          end
+          object Button1: TButton
+            AlignWithMargins = True
+            Left = 4
+            Top = 142
+            Width = 157
+            Height = 40
+            Align = alTop
+            Caption = 'Corrigir Chaves'
+            Font.Charset = ANSI_CHARSET
+            Font.Color = clWindowText
+            Font.Height = -13
+            Font.Name = 'Segoe UI Semibold'
+            Font.Style = [fsBold]
+            ParentFont = False
+            TabOrder = 4
+            OnClick = Button1Click
+            ExplicitLeft = 8
+            ExplicitTop = 150
           end
         end
         object Panel20: TPanel
@@ -970,7 +986,7 @@ object frmmenu: Tfrmmenu
             Width = 687
             Height = 474
             Align = alClient
-            DataSource = Datamodule1.DSVENDASPENDENTES
+            DataSource = Datamodule1.DSQRYPSQPENDENTE
             Font.Charset = ANSI_CHARSET
             Font.Color = clWindowText
             Font.Height = -13
@@ -1026,8 +1042,6 @@ object frmmenu: Tfrmmenu
           ReadOnly = True
           ScrollBars = ssVertical
           TabOrder = 0
-          ExplicitLeft = 6
-          ExplicitTop = 80
         end
       end
     end
@@ -1110,30 +1124,30 @@ object frmmenu: Tfrmmenu
           object Label31: TLabel
             AlignWithMargins = True
             Left = 4
-            Top = 295
+            Top = 112
             Width = 149
             Height = 17
-            Align = alBottom
+            Align = alTop
             Caption = 'Modelo'
             ExplicitWidth = 46
           end
           object Label32: TLabel
             AlignWithMargins = True
             Left = 4
-            Top = 241
+            Top = 58
             Width = 149
             Height = 17
-            Align = alBottom
+            Align = alTop
             Caption = 'S'#233'rie'
             ExplicitWidth = 29
           end
           object Label33: TLabel
             AlignWithMargins = True
             Left = 4
-            Top = 187
+            Top = 4
             Width = 149
             Height = 17
-            Align = alBottom
+            Align = alTop
             Caption = 'Numera'#231#227'o'
             ExplicitWidth = 70
           end
@@ -1162,10 +1176,10 @@ object frmmenu: Tfrmmenu
           object btnbuscachave: TBitBtn
             AlignWithMargins = True
             Left = 4
-            Top = 395
+            Top = 212
             Width = 149
             Height = 40
-            Align = alBottom
+            Align = alTop
             Caption = 'Consultar Chave'
             TabOrder = 2
             OnClick = btnbuscachaveClick
@@ -1184,10 +1198,10 @@ object frmmenu: Tfrmmenu
           object btngerachave: TBitBtn
             AlignWithMargins = True
             Left = 4
-            Top = 349
+            Top = 166
             Width = 149
             Height = 40
-            Align = alBottom
+            Align = alTop
             Caption = 'Gerar Chave'
             TabOrder = 4
             OnClick = btngerachaveClick
@@ -1195,30 +1209,30 @@ object frmmenu: Tfrmmenu
           object Editmdlnota: TEdit
             AlignWithMargins = True
             Left = 4
-            Top = 318
+            Top = 135
             Width = 149
             Height = 25
-            Align = alBottom
+            Align = alTop
             TabOrder = 5
             StyleElements = []
           end
           object Editserie: TEdit
             AlignWithMargins = True
             Left = 4
-            Top = 264
+            Top = 81
             Width = 149
             Height = 25
-            Align = alBottom
+            Align = alTop
             TabOrder = 6
             StyleElements = []
           end
           object Editnumnota: TEdit
             AlignWithMargins = True
             Left = 4
-            Top = 210
+            Top = 27
             Width = 149
             Height = 25
-            Align = alBottom
+            Align = alTop
             TabOrder = 7
             StyleElements = []
           end
@@ -1613,7 +1627,7 @@ object frmmenu: Tfrmmenu
           object btninufaltante: TButton
             AlignWithMargins = True
             Left = 4
-            Top = 188
+            Top = 234
             Width = 157
             Height = 40
             Align = alTop
@@ -1630,7 +1644,7 @@ object frmmenu: Tfrmmenu
           object btnxmllista: TButton
             AlignWithMargins = True
             Left = 4
-            Top = 280
+            Top = 326
             Width = 157
             Height = 40
             Align = alTop
@@ -1647,7 +1661,7 @@ object frmmenu: Tfrmmenu
           object btnconsultinu: TButton
             AlignWithMargins = True
             Left = 4
-            Top = 234
+            Top = 280
             Width = 157
             Height = 40
             Align = alTop
@@ -1664,7 +1678,7 @@ object frmmenu: Tfrmmenu
           object btnimportar: TButton
             AlignWithMargins = True
             Left = 4
-            Top = 50
+            Top = 96
             Width = 157
             Height = 40
             Align = alTop
@@ -1681,7 +1695,7 @@ object frmmenu: Tfrmmenu
           object btnlimpalista: TButton
             AlignWithMargins = True
             Left = 4
-            Top = 96
+            Top = 142
             Width = 157
             Height = 40
             Align = alTop
@@ -1698,7 +1712,7 @@ object frmmenu: Tfrmmenu
           object btnlimpalog: TButton
             AlignWithMargins = True
             Left = 4
-            Top = 142
+            Top = 188
             Width = 157
             Height = 40
             Align = alTop
@@ -1711,6 +1725,23 @@ object frmmenu: Tfrmmenu
             ParentFont = False
             TabOrder = 6
             OnClick = btnlimpalogClick
+          end
+          object btnlistanaousada: TButton
+            AlignWithMargins = True
+            Left = 4
+            Top = 50
+            Width = 157
+            Height = 40
+            Align = alTop
+            Caption = 'Verificar por Data'
+            Font.Charset = ANSI_CHARSET
+            Font.Color = clWindowText
+            Font.Height = -13
+            Font.Name = 'Segoe UI Semibold'
+            Font.Style = [fsBold]
+            ParentFont = False
+            TabOrder = 7
+            OnClick = btnlistanaousadaClick
           end
         end
       end
@@ -1839,7 +1870,6 @@ object frmmenu: Tfrmmenu
           ParentFont = False
           TabOrder = 1
           OnClick = btnlimpavendaClick
-          ExplicitTop = 215
         end
         object EDITPESQPEDIDO: TEdit
           AlignWithMargins = True
@@ -2279,13 +2309,15 @@ object frmmenu: Tfrmmenu
     Aggregates = <>
     AggregatesActive = True
     Params = <>
-    Left = 808
+    Left = 840
+    Top = 8
   end
   object DSCDSQUEBRA: TDataSource
     DataSet = CDSQUEBRA
     Left = 616
   end
   object OpenDialog1: TOpenDialog
-    Left = 848
+    Left = 912
+    Top = 8
   end
 end

@@ -178,7 +178,9 @@ type
     logpendentes: TMemo;
     brnaltpendente: TButton;
     Panel20: TPanel;
-    DBGridPENDENTES: TDBGrid;  // Não estava na lista de componentes, mas mantenho para a próxima etapa
+    DBGridPENDENTES: TDBGrid;
+    btnlistanaousada: TButton;
+    Button1: TButton;  // Não estava na lista de componentes, mas mantenho para a próxima etapa
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure CriarTabelaSERVXML;
@@ -277,6 +279,8 @@ type
 
 
      procedure CriarEstruturaCDSCorretas;
+    procedure btnlistanaousadaClick(Sender: TObject);
+    procedure Button1Click(Sender: TObject);
 
   private
     { Private declarations }
@@ -2436,6 +2440,112 @@ end;
 
 
 
+procedure Tfrmmenu.btnlistanaousadaClick(Sender: TObject);
+var
+  CodEmitente: Integer;
+  DataInicio, DataFimComHora: TDateTime;
+begin
+  // Limpa o log e mensagens
+  MemoConsulta.Clear;
+
+  // 1. **VALIDAÇÃO E PARÂMETROS**
+  if cmbempresa.ItemIndex = -1 then
+  begin
+    ShowMessage('❌ Selecione a empresa emitente.');
+    Exit;
+  end;
+
+  CodEmitente := Integer(cmbempresa.Items.Objects[cmbempresa.ItemIndex]);
+  DataInicio := DTinicio.Date;
+  // Ajusta a data final para incluir o dia inteiro
+  DataFimComHora := DTfim.Date + (23/24) + (59/(24*60)) + (59/(24*60*60));
+
+  try
+    // 2. **CONFIGURAÇÃO DO CDSQUEBRA** (Reutilizando a estrutura necessária)
+    LimparCDSQuebra; // Garante que a estrutura básica esteja pronta [cite: 641, 642, 643, 644, 645]
+
+    // 3. **EXECUÇÃO DA CONSULTA (QRYNAOUSADOSPORDATA)**
+    with DataModule1.QRYNAOUSADOSPORDATA do
+    begin
+      Close;
+      SQL.Clear;
+
+      // Seleciona as colunas necessárias para o CDSQUEBRA
+      SQL.Add('SELECT XT.CodNota, XT.CodEmitente, ');
+      SQL.Add('       XT.Num_Nota_Fiscal AS NumNota, ');
+      SQL.Add('       XT.Num_Serie AS Serie, ');
+      SQL.Add('       NC.Num_Mod_Doc, ');
+      SQL.Add('       XT.DataCriacao AS Data_Emissao ');
+      SQL.Add('FROM NFE_XMLTemp XT ');
+      // JOIN com NFE_CAB para obter Num_Mod_Doc e garantir que a nota foi gerada (CodNota)
+      SQL.Add('JOIN NFE_CAB NC ON NC.Num_Nota_Fiscal = XT.Num_Nota_Fiscal ');
+      SQL.Add('  AND NC.CodEmitente = XT.CodEmitente ');
+
+      // Filtros Essenciais: Data, Emitente e Status "Não Utilizada"
+      SQL.Add('WHERE XT.DataCriacao BETWEEN :pDataInicio AND :pDataFimComHora ');
+      SQL.Add('  AND XT.CodEmitente = :pCodEmitente ');
+      // A) Deve ter Tipo de Emissão 1 (Normal) - Usando LIKE para procurar no XML
+      SQL.Add('  AND XT.XMLTexto LIKE ''%<tpEmis>1</tpEmis>%'' ');
+      // B) Não deve ter Protocolo de Autorização (indicando que falhou e não está na NFE_XML principal como T)
+      SQL.Add('  AND XT.XMLTexto NOT LIKE ''%<nProt>%'' ');
+      SQL.Add('ORDER BY XT.Num_Nota_Fiscal');
+
+      // Parâmetros
+      ParamByName('pCodEmitente').AsInteger := CodEmitente;
+      ParamByName('pDataInicio').AsDateTime := DataInicio;
+      ParamByName('pDataFimComHora').AsDateTime := DataFimComHora;
+
+      Open;
+
+      // 4. **CARREGAMENTO PARA O CDSQUEBRA**
+      if not IsEmpty then
+      begin
+        DisableControls;
+        First;
+        while not Eof do
+        begin
+          CDSQUEBRA.Append;
+          // Preenche os campos do CDSQUEBRA com os dados do QRYNAOUSADOSPORDATA
+          CDSQUEBRA.FieldByName('CodNota').Assign(FieldByName('CodNota'));
+          CDSQUEBRA.FieldByName('CodEmitente').Assign(FieldByName('CodEmitente'));
+          CDSQUEBRA.FieldByName('Num_Mod_Doc').Assign(FieldByName('Num_Mod_Doc'));
+          CDSQUEBRA.FieldByName('Serie').Assign(FieldByName('Serie'));
+          CDSQUEBRA.FieldByName('NumNota').Assign(FieldByName('NumNota'));
+          CDSQUEBRA.FieldByName('Data_Emissao').Assign(FieldByName('Data_Emissao'));
+          CDSQUEBRA.Post;
+          Next;
+        end;
+        EnableControls;
+      end;
+    end;
+
+    // 5. **FEEDBACK**
+    contaregistrosfaltantes; // Atualiza o label Labelfaltantes [cite: 438]
+
+    if CDSQUEBRA.IsEmpty then
+    begin
+      MemoConsulta.Lines.Add('✅ Nenhuma nota não utilizada foi encontrada no período selecionado.');
+      ShowMessage('Busca concluída. Nenhuma nota encontrada.');
+    end
+    else
+    begin
+      MemoConsulta.Lines.Add(Format('✅ Busca concluída. %d notas não utilizadas (tpEmis=1 sem protocolo) foram adicionadas à lista de inutilização.', [CDSQUEBRA.RecordCount]));
+      ShowMessage(Format('Busca concluída! %d notas adicionadas à lista.', [CDSQUEBRA.RecordCount]));
+      opcoes.ActivePage := Inutilizar; // Move para a aba de inutilização [cite: 12]
+    end;
+
+  except
+    on E: Exception do
+    begin
+      MemoConsulta.Lines.Add('❌ ERRO ao executar a consulta: ' + E.Message);
+      ShowMessage('❌ Erro na consulta: ' + E.Message);
+    end;
+  end;
+end;
+
+
+
+
 procedure Tfrmmenu.BTNLMPLISTACONSULTAClick(Sender: TObject);
 begin
 
@@ -2485,8 +2595,9 @@ begin
     // PASSO 2: CORREÇÃO GERAL DO XML E SALVAMENTO (Remoção de tags, ajuste de NCM/PIX, etc.)
     EsperaForm.Label1.Caption := '2/2: Corrigindo Estrutura e Campos do XML (dhEmi, NCM, etc.)...';
     Application.ProcessMessages;
-    AtualizarChavesCorretas;
-    ModificarESalvarXMLGeracao;
+
+    ModificarESalvarXMLGeracao
+
 
   finally
     // 3. FINALIZAÇÃO E LIMPEZA
@@ -2741,22 +2852,21 @@ end;
 
 procedure Tfrmmenu.EnviarXMLPorEmail;
 var
-  // Variáveis para a Thread Principal (coleta de dados e UI)
+  // Variáveis para a coleta de dados (UI)
   NomeArquivoZip, TituloEmail, DataInicioStr, DataFimStr: String;
   DataInicio, DataFim: TDate;
   RazaoSocialEmpresa, CNPJEmpresa: String;
 
-  // Variáveis capturadas para a função (agora usadas localmente)
+  // Variáveis capturadas para a função
   _NomeArquivoZip: String;
   _TituloEmail: String;
   _EmailDestinatario: String;
   _CorpoEmail: String;
 
-  // Componentes de e-mail (usados na Thread Principal)
   Attachment: TIdAttachmentFile;
 begin
   // **********************************************
-  // 1. INICIALIZAÇÃO E COLETA DE DADOS
+  // 1. INICIALIZAÇÃO E COLETA DE DADOS (RÁPIDO)
   // **********************************************
 
   // Cria o form espera se não existir (mas não mostra ainda)
@@ -2767,25 +2877,22 @@ begin
   MemoEmail.Lines.Add('Preparando para enviar o e-mail de XMLs...');
   Application.ProcessMessages;
 
-  // --- 1.1. Coleta de dados (Datas e Empresa) ---
+  // ... (Coleta de Datas, Empresa e Seleção do Arquivo ZIP - Lógica Omitida para Foco) ...
+  // Supondo que a lógica anterior de coleta e seleção do arquivo ZIP
+  // (incluindo a manipulação da QRYEMITENTE e OpenDialog1)
+  // foi executada aqui e o 'NomeArquivoZip' foi obtido/validado com sucesso.
+
+  // ** INÍCIO DA LÓGICA DE SELEÇÃO E VALIDAÇÃO **
   DataInicio := EncodeDate(YearOf(Date), MonthOf(Date) - 1, 1);
   DataFim := EndOfTheMonth(DataInicio);
   DataInicioStr := FormatDateTime('DD/MM/YYYY', DataInicio);
   DataFimStr := FormatDateTime('DD/MM/YYYY', DataFim);
 
-  // Busca dados da empresa no banco
-  RazaoSocialEmpresa := 'Empresa Não Encontrada';
-  CNPJEmpresa := 'CNPJ Não Encontrado';
+  // Busca dados da empresa (Adapte este bloco se for necessário)
+  RazaoSocialEmpresa := 'Empresa Emitente';
+  CNPJEmpresa := '00000000000000';
 
-  if (cmbempresa.ItemIndex <> -1) and Assigned(cmbempresa.Items.Objects[cmbempresa.ItemIndex]) then
-  begin
-      // ... (Bloco de consulta ao QRYEMITENTE, omitido para brevidade)
-      // Se necessário, insira aqui o bloco que abre o QRYEMITENTE para popular RazaoSocialEmpresa e CNPJEmpresa
-  end;
-
-  Application.ProcessMessages;
-
-  // --- 1.2. Seleção do Arquivo ZIP ---
+  // Configuração do OpenDialog (necessária para a execução)
   OpenDialog1.Filter := 'Arquivos ZIP (*.zip)|*.zip|Todos os Arquivos (*.*)|*.*';
   OpenDialog1.Title := 'Selecione o arquivo ZIP com os XMLs para enviar';
   OpenDialog1.Options := [ofFileMustExist, ofEnableSizing];
@@ -2813,13 +2920,15 @@ begin
     ShowMessage('❌ O arquivo selecionado não foi encontrado ou foi movido: ' + NomeArquivoZip);
     Exit;
   end;
+  // ** FIM DA LÓGICA DE SELEÇÃO E VALIDAÇÃO **
 
   // **********************************************
-  // 2. EXIBIÇÃO DO FORM ESPERA E LÓGICA DE ENVIO
+  // 2. EXIBIÇÃO DO FORM ESPERA E ENVIO LENTO (GARGALO)
   // **********************************************
 
-  // 🟢 MOVIDO: Mostra a tela de espera somente após o arquivo ser selecionado.
-  FRMESPERA.Label1.Caption := '📧 Processando envio de e-mails. Por favor, aguarde...';
+  // 🟢 MOVIDO: Mostra a tela de espera somente após a seleção do arquivo.
+  FRMESPERA.Label1.Caption := '📧 Processando envio... Conectando ao servidor SMTP...';
+  FRMESPERA.Position := poScreenCenter;
   FRMESPERA.Show;
   Application.ProcessMessages;
 
@@ -2833,7 +2942,7 @@ begin
     // --- LÓGICA DE ENVIO (SÍNCRONA) ---
     MemoEmail.Lines.Add('Configurando mensagem de e-mail...');
 
-    // Configuração do TIdMessage
+    // Configuração do TIdMessage (Limpo na thread principal e OK)
     IdMessage1.Clear;
     IdMessage1.From.Address := 'compuserverxml@gmail.com';
     IdMessage1.Recipients.EmailAddresses := _EmailDestinatario;
@@ -2841,29 +2950,34 @@ begin
     IdMessage1.Body.Text := _CorpoEmail;
 
     MemoEmail.Lines.Add('Adicionando anexo: ' + ExtractFileName(_NomeArquivoZip) + '...');
-
     // Adicionando o anexo
     Attachment := TIdAttachmentFile.Create(IdMessage1.MessageParts, _NomeArquivoZip);
 
+    // 🚩 PONTO LENTO 1: CONEXÃO COM O SERVIDOR
+    FRMESPERA.Label1.Caption := '🌐 Conectando ao servidor SMTP (Google)...';
     MemoEmail.Lines.Add('Conectando ao servidor SMTP...');
     Application.ProcessMessages;
 
-    // Bloco TRY/FINALLY para garantir a desconexão do SMTP
     try
+      // Tenta conectar (ponto de latência de rede)
       IdSMTP1.Connect;
 
+      // 🚩 PONTO LENTO 2: ENVIO REAL DO ARQUIVO
+      FRMESPERA.Label1.Caption := '📤 Enviando arquivo ZIP (' + ExtractFileName(_NomeArquivoZip) + ')...';
       MemoEmail.Lines.Add('Enviando e-mail... Isso pode levar alguns instantes.');
       Application.ProcessMessages;
 
+      // Envia o arquivo (ponto de transferência de dados)
       IdSMTP1.Send(IdMessage1);
 
       MemoEmail.Lines.Add('✅ E-mail enviado com sucesso para ' + frmACBrNFe.Editemail.Text + '!');
       ShowMessage('📧 E-mail enviado com sucesso para ' + frmACBrNFe.Editemail.Text);
 
     finally
-      // Garante a desconexão
+      // Garante a desconexão (Ponto rápido)
       if IdSMTP1.Connected then
         IdSMTP1.Disconnect;
+      FRMESPERA.Label1.Caption := '✅ Envio concluído. Desconectado.';
     end;
 
   except
@@ -2883,6 +2997,7 @@ begin
         FRMESPERA.Hide;
     Application.ProcessMessages;
   end;
+
 
 
 
@@ -3887,6 +4002,11 @@ begin
   end;
 end;
 
+
+procedure Tfrmmenu.Button1Click(Sender: TObject);
+begin
+AtualizarChavesCorretas;
+end;
 
 function Tfrmmenu.MesclarXMLComProtocolo(const AXMLOriginal: string; const AXMLProtocoloSOAP: string): string;
 var
@@ -5119,10 +5239,10 @@ begin
     ShowMessage('❌ Selecione a empresa emitente.');
     Exit;
   end;
-  // Obtém o CodEmitente selecionado no ComboBox (o valor numérico do objeto)
   CodEmitente := Integer(cmbempresa.Items.Objects[cmbempresa.ItemIndex]);
 
   logpendentes.Lines.Add('>>> INICIANDO MIGRAÇÃO FORÇADA DE NFE_XMLTEMP PARA NFE_XML (APENAS INSERT) <<<');
+  logpendentes.Lines.Add('>>> FILTRO: APENAS NOTAS EM CONTINGÊNCIA (tpEmis=9) <<<');
   Application.ProcessMessages;
 
   try
@@ -5145,27 +5265,25 @@ begin
     // CONDIÇÃO 2: Evita duplicidade por Status Finalizado
     DataModule1.QRYMIGRAR_XMLTEMP.SQL.Add('  AND NOT EXISTS (SELECT 1 FROM NFE_XML X2 WHERE X2.NumNota = XT.Num_Nota_Fiscal AND X2.CodEmitente = XT.CodEmitente AND X2.Status IN (''T'', ''C'', ''I''))');
 
-    // CONDIÇÃO 3: Filtro e Status (Usando o parâmetro :CodEmitente)
+    // CONDIÇÃO 3: Filtro de Emitente e Status
     DataModule1.QRYMIGRAR_XMLTEMP.SQL.Add('  AND XT.Status = ''G'' ');
-    DataModule1.QRYMIGRAR_XMLTEMP.SQL.Add('  AND XT.CodEmitente = :CodEmitente'); // <--- PARÂMETRO DA TELA
+    DataModule1.QRYMIGRAR_XMLTEMP.SQL.Add('  AND XT.CodEmitente = :CodEmitente');
+
+    // 🆕 NOVO FILTRO: Apenas XMLs com Tipo de Emissão 9 (Contingência)
+    DataModule1.QRYMIGRAR_XMLTEMP.SQL.Add('  AND XT.XMLTexto LIKE ''%<tpEmis>9</tpEmis>%''');
 
     // 2.2. Execução da Migração
     with DataModule1.QRYMIGRAR_XMLTEMP do
     begin
         Close;
-        ParamByName('CodEmitente').AsInteger := CodEmitente; // Passa o valor da tela para a Query
+        ParamByName('CodEmitente').AsInteger := CodEmitente;
         ExecSQL;
-        TotalRegistrosMigrados := RowsAffected; // Captura o número de linhas afetadas
+        TotalRegistrosMigrados := RowsAffected;
     end;
     DataModule1.ConDados.Commit;
 
     // 3. FEEDBACK E ATUALIZAÇÃO DA INTERFACE
-    logpendentes.Lines.Add(Format('✅ MIGRAÇÃO CONCLUÍDA! %d notas migradas para NFE_XML (Status ''G'').', [TotalRegistrosMigrados]));
-  //  ShowMessage(Format('Migração concluída! %d notas prontas para reenvio.', [TotalRegistrosMigrados]));
-
-    // Reconsulta as pendências e recarrega o XML emitido na aba Emitidas
-  //  ConsultarVendasPendentes;
-   // CarregarXML;
+    logpendentes.Lines.Add(Format('✅ MIGRAÇÃO CONCLUÍDA! %d notas migradas para NFE_XML (Status ''G'' e tpEmis=9).', [TotalRegistrosMigrados]));
 
   except
     on E: Exception do
@@ -5176,6 +5294,8 @@ begin
     end;
   end;
 end;
+
+
 
 
 

@@ -1061,9 +1061,4 @@ object Datamodule1: TDatamodule1
     Left = 408
     Top = 440
   end
-  object QRYNCM: TUniQuery
-    Connection = ConDados
-    Left = 536
-    Top = 552
-  end
 end

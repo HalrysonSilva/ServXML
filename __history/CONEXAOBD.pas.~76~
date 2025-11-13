@@ -93,7 +93,6 @@ type
     QRYBUSCAXMLValor: TFloatField;
     QRYBUSCAXMLTipo_Amb: TIntegerField;
     QRYBUSCAXMLNum_Mod_Doc: TIntegerField;
-    QRYNCM: TUniQuery;
 
 
 

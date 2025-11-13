@@ -178,7 +178,9 @@ type
     logpendentes: TMemo;
     brnaltpendente: TButton;
     Panel20: TPanel;
-    DBGridPENDENTES: TDBGrid;  // Não estava na lista de componentes, mas mantenho para a próxima etapa
+    DBGridPENDENTES: TDBGrid;
+    btnlistanaousada: TButton;
+    Button1: TButton;  // Não estava na lista de componentes, mas mantenho para a próxima etapa
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure CriarTabelaSERVXML;
@@ -277,6 +279,8 @@ type
 
 
      procedure CriarEstruturaCDSCorretas;
+    procedure btnlistanaousadaClick(Sender: TObject);
+    procedure Button1Click(Sender: TObject);
 
   private
     { Private declarations }
@@ -2436,6 +2440,112 @@ end;
 
 
 
+procedure Tfrmmenu.btnlistanaousadaClick(Sender: TObject);
+var
+  CodEmitente: Integer;
+  DataInicio, DataFimComHora: TDateTime;
+begin
+  // Limpa o log e mensagens
+  MemoConsulta.Clear;
+
+  // 1. **VALIDAÇÃO E PARÂMETROS**
+  if cmbempresa.ItemIndex = -1 then
+  begin
+    ShowMessage('❌ Selecione a empresa emitente.');
+    Exit;
+  end;
+
+  CodEmitente := Integer(cmbempresa.Items.Objects[cmbempresa.ItemIndex]);
+  DataInicio := DTinicio.Date;
+  // Ajusta a data final para incluir o dia inteiro
+  DataFimComHora := DTfim.Date + (23/24) + (59/(24*60)) + (59/(24*60*60));
+
+  try
+    // 2. **CONFIGURAÇÃO DO CDSQUEBRA** (Reutilizando a estrutura necessária)
+    LimparCDSQuebra; // Garante que a estrutura básica esteja pronta [cite: 641, 642, 643, 644, 645]
+
+    // 3. **EXECUÇÃO DA CONSULTA (QRYNAOUSADOSPORDATA)**
+    with DataModule1.QRYNAOUSADOSPORDATA do
+    begin
+      Close;
+      SQL.Clear;
+
+      // Seleciona as colunas necessárias para o CDSQUEBRA
+      SQL.Add('SELECT XT.CodNota, XT.CodEmitente, ');
+      SQL.Add('       XT.Num_Nota_Fiscal AS NumNota, ');
+      SQL.Add('       XT.Num_Serie AS Serie, ');
+      SQL.Add('       NC.Num_Mod_Doc, ');
+      SQL.Add('       XT.DataCriacao AS Data_Emissao ');
+      SQL.Add('FROM NFE_XMLTemp XT ');
+      // JOIN com NFE_CAB para obter Num_Mod_Doc e garantir que a nota foi gerada (CodNota)
+      SQL.Add('JOIN NFE_CAB NC ON NC.Num_Nota_Fiscal = XT.Num_Nota_Fiscal ');
+      SQL.Add('  AND NC.CodEmitente = XT.CodEmitente ');
+
+      // Filtros Essenciais: Data, Emitente e Status "Não Utilizada"
+      SQL.Add('WHERE XT.DataCriacao BETWEEN :pDataInicio AND :pDataFimComHora ');
+      SQL.Add('  AND XT.CodEmitente = :pCodEmitente ');
+      // A) Deve ter Tipo de Emissão 1 (Normal) - Usando LIKE para procurar no XML
+      SQL.Add('  AND XT.XMLTexto LIKE ''%<tpEmis>1</tpEmis>%'' ');
+      // B) Não deve ter Protocolo de Autorização (indicando que falhou e não está na NFE_XML principal como T)
+      SQL.Add('  AND XT.XMLTexto NOT LIKE ''%<nProt>%'' ');
+      SQL.Add('ORDER BY XT.Num_Nota_Fiscal');
+
+      // Parâmetros
+      ParamByName('pCodEmitente').AsInteger := CodEmitente;
+      ParamByName('pDataInicio').AsDateTime := DataInicio;
+      ParamByName('pDataFimComHora').AsDateTime := DataFimComHora;
+
+      Open;
+
+      // 4. **CARREGAMENTO PARA O CDSQUEBRA**
+      if not IsEmpty then
+      begin
+        DisableControls;
+        First;
+        while not Eof do
+        begin
+          CDSQUEBRA.Append;
+          // Preenche os campos do CDSQUEBRA com os dados do QRYNAOUSADOSPORDATA
+          CDSQUEBRA.FieldByName('CodNota').Assign(FieldByName('CodNota'));
+          CDSQUEBRA.FieldByName('CodEmitente').Assign(FieldByName('CodEmitente'));
+          CDSQUEBRA.FieldByName('Num_Mod_Doc').Assign(FieldByName('Num_Mod_Doc'));
+          CDSQUEBRA.FieldByName('Serie').Assign(FieldByName('Serie'));
+          CDSQUEBRA.FieldByName('NumNota').Assign(FieldByName('NumNota'));
+          CDSQUEBRA.FieldByName('Data_Emissao').Assign(FieldByName('Data_Emissao'));
+          CDSQUEBRA.Post;
+          Next;
+        end;
+        EnableControls;
+      end;
+    end;
+
+    // 5. **FEEDBACK**
+    contaregistrosfaltantes; // Atualiza o label Labelfaltantes [cite: 438]
+
+    if CDSQUEBRA.IsEmpty then
+    begin
+      MemoConsulta.Lines.Add('✅ Nenhuma nota não utilizada foi encontrada no período selecionado.');
+      ShowMessage('Busca concluída. Nenhuma nota encontrada.');
+    end
+    else
+    begin
+      MemoConsulta.Lines.Add(Format('✅ Busca concluída. %d notas não utilizadas (tpEmis=1 sem protocolo) foram adicionadas à lista de inutilização.', [CDSQUEBRA.RecordCount]));
+      ShowMessage(Format('Busca concluída! %d notas adicionadas à lista.', [CDSQUEBRA.RecordCount]));
+      opcoes.ActivePage := Inutilizar; // Move para a aba de inutilização [cite: 12]
+    end;
+
+  except
+    on E: Exception do
+    begin
+      MemoConsulta.Lines.Add('❌ ERRO ao executar a consulta: ' + E.Message);
+      ShowMessage('❌ Erro na consulta: ' + E.Message);
+    end;
+  end;
+end;
+
+
+
+
 procedure Tfrmmenu.BTNLMPLISTACONSULTAClick(Sender: TObject);
 begin
 
@@ -2485,8 +2595,9 @@ begin
     // PASSO 2: CORREÇÃO GERAL DO XML E SALVAMENTO (Remoção de tags, ajuste de NCM/PIX, etc.)
     EsperaForm.Label1.Caption := '2/2: Corrigindo Estrutura e Campos do XML (dhEmi, NCM, etc.)...';
     Application.ProcessMessages;
-    AtualizarChavesCorretas;
+
     ModificarESalvarXMLGeracao;
+
 
   finally
     // 3. FINALIZAÇÃO E LIMPEZA
@@ -2498,7 +2609,7 @@ begin
   end;
 
   // Após a correção, recarregamos a lista para refletir os ajustes.
-  ConsultarVendasPendentes;
+ // ConsultarVendasPendentes;
   ShowMessage('✅ Correção de XMLs concluída. Notas prontas para o reenvio.');
 end;
 
@@ -3892,6 +4003,11 @@ begin
 end;
 
 
+procedure Tfrmmenu.Button1Click(Sender: TObject);
+begin
+AtualizarChavesCorretas;
+end;
+
 function Tfrmmenu.MesclarXMLComProtocolo(const AXMLOriginal: string; const AXMLProtocoloSOAP: string): string;
 var
   XMLNFe_SemCabecalho: string;
@@ -4789,6 +4905,391 @@ end;
 
 
 
+
+
+
+
+
+
+
+
+
+
+procedure Tfrmmenu.CorrigirPendenciasBaseadoEmServxml;
+var
+  TotalPendencias, TotalCorrigido: Integer;
+begin
+  logpendentes.Lines.Add('>>> INICIANDO CORREÇÃO NFE_XML BASEADO EM SERVXML (INUTILIZAÇÕES) <<<');
+  Application.ProcessMessages;
+
+  TotalPendencias := 0;
+  TotalCorrigido := 0;
+
+  // Etapa 1: Contar pendências antes de iniciar
+  with DataModule1.QRYCORRIGEPENDENCIA do
+  begin
+    Close;
+    SQL.Clear;
+    SQL.Text :=
+      'SELECT COUNT(*) AS Total ' +
+      'FROM NFE_XML ' +
+      'JOIN SERVXML ON ' +
+      '  NFE_XML.NumNota = SERVXML.NumNota AND ' +
+      '  NFE_XML.CodEmitente = SERVXML.CodEmitente AND ' +
+      '  NFE_XML.Serie COLLATE Latin1_General_CI_AS = SERVXML.Serie ' +
+      'WHERE NFE_XML.CodNota > 0 AND SERVXML.Status = ''I''';
+    Open;
+    TotalPendencias := FieldByName('Total').AsInteger;
+  end;
+
+  logpendentes.Lines.Add(Format('🔍 Pendências encontradas: %d', [TotalPendencias]));
+
+  // Etapa 2: Buscar registros para correção
+  with DataModule1.QRYCORRIGEPENDENCIA do
+  begin
+    Close;
+    SQL.Clear;
+    SQL.Text :=
+      'SELECT NFE_XML.CodNota, NFE_XML.NumNota, NFE_XML.Serie, NFE_XML.CodEmitente ' +
+      'FROM NFE_XML ' +
+      'JOIN SERVXML ON ' +
+      '  NFE_XML.NumNota = SERVXML.NumNota AND ' +
+      '  NFE_XML.CodEmitente = SERVXML.CodEmitente AND ' +
+      '  NFE_XML.Serie COLLATE Latin1_General_CI_AS = SERVXML.Serie ' +
+      'WHERE NFE_XML.CodNota > 0 AND SERVXML.Status = ''I''';
+    Open;
+
+    if IsEmpty then
+    begin
+      logpendentes.Lines.Add('✅ Nenhuma inconsistência encontrada. NFE_XML está limpa.');
+      Exit;
+    end;
+
+    DisableControls;
+    First;
+
+    // Etapa 3: Corrigir registros
+    while not Eof do
+    begin
+      logpendentes.Lines.Add(Format('Corrigindo Nota %d...', [FieldByName('NumNota').AsInteger]));
+      Application.ProcessMessages;
+
+      mudanotaparanegativo(
+        FieldByName('CodNota').AsInteger,
+        FieldByName('NumNota').AsInteger
+      );
+
+      Inc(TotalCorrigido);
+      Next;
+    end;
+
+    EnableControls;
+  end;
+
+  // Etapa 4: Exibir resumo
+  logpendentes.Lines.Add(Format('✅ Corrigidas nesta execução: %d', [TotalCorrigido]));
+  logpendentes.Lines.Add(Format('⏳ Pendências restantes: %d', [TotalPendencias - TotalCorrigido]));
+  logpendentes.Lines.Add('✅ CORREÇÃO FINALIZADA.');
+
+  // Recarrega a grade de vendas pendentes
+
+end;
+
+
+
+
+procedure Tfrmmenu.ForcarMigracaoXMLTemp;
+var
+  CodEmitente: Integer;
+  TotalRegistrosMigrados: Integer;
+begin
+  // 1. VALIDAÇÃO E OBTENÇÃO DO EMITENTE
+  if cmbempresa.ItemIndex = -1 then
+  begin
+    ShowMessage('❌ Selecione a empresa emitente.');
+    Exit;
+  end;
+  CodEmitente := Integer(cmbempresa.Items.Objects[cmbempresa.ItemIndex]);
+
+  logpendentes.Lines.Add('>>> INICIANDO MIGRAÇÃO FORÇADA DE NFE_XMLTEMP PARA NFE_XML (APENAS INSERT) <<<');
+  logpendentes.Lines.Add('>>> FILTRO: APENAS NOTAS EM CONTINGÊNCIA (tpEmis=9) <<<');
+  Application.ProcessMessages;
+
+  try
+    // 2. PREPARAÇÃO E EXECUÇÃO DA TRANSAÇÃO
+    DataModule1.ConDados.StartTransaction;
+
+    // 2.1. Montagem do SQL testado e funcional
+    DataModule1.QRYMIGRAR_XMLTEMP.SQL.Clear;
+
+    // INSERT INTO NFE_XML
+    DataModule1.QRYMIGRAR_XMLTEMP.SQL.Add('INSERT INTO NFE_XML (CodNota, XMLChave, NumNota, Serie, DataGeracao, XMLGeracao, Status, CodEmitente, Pedido, Valor, Num_Serie) ');
+
+    // SELECT com JOIN NFE_CAB
+    DataModule1.QRYMIGRAR_XMLTEMP.SQL.Add('SELECT NC.CodNota, XT.ChaveNFe, XT.Num_Nota_Fiscal, XT.Num_Serie AS Serie, XT.DataCriacao AS DataGeracao, XT.XMLTexto AS XMLGeracao, ''G'' AS Status, XT.CodEmitente, XT.CodVenda AS Pedido, XT.Valor, XT.Num_Serie ');
+    DataModule1.QRYMIGRAR_XMLTEMP.SQL.Add('FROM NFE_XMLTemp XT INNER JOIN NFE_CAB NC ON NC.Num_Nota_Fiscal = XT.Num_Nota_Fiscal AND NC.CodEmitente = XT.CodEmitente ');
+
+    // CONDIÇÃO 1: Evita PK duplicada (CodNota)
+    DataModule1.QRYMIGRAR_XMLTEMP.SQL.Add('WHERE NOT EXISTS (SELECT 1 FROM NFE_XML X WHERE X.CodNota = NC.CodNota) ');
+
+    // CONDIÇÃO 2: Evita duplicidade por Status Finalizado
+    DataModule1.QRYMIGRAR_XMLTEMP.SQL.Add('  AND NOT EXISTS (SELECT 1 FROM NFE_XML X2 WHERE X2.NumNota = XT.Num_Nota_Fiscal AND X2.CodEmitente = XT.CodEmitente AND X2.Status IN (''T'', ''C'', ''I''))');
+
+    // CONDIÇÃO 3: Filtro de Emitente e Status
+    DataModule1.QRYMIGRAR_XMLTEMP.SQL.Add('  AND XT.Status = ''G'' ');
+    DataModule1.QRYMIGRAR_XMLTEMP.SQL.Add('  AND XT.CodEmitente = :CodEmitente');
+
+    // 🆕 NOVO FILTRO: Apenas XMLs com Tipo de Emissão 9 (Contingência)
+    DataModule1.QRYMIGRAR_XMLTEMP.SQL.Add('  AND XT.XMLTexto LIKE ''%<tpEmis>9</tpEmis>%''');
+
+    // 2.2. Execução da Migração
+    with DataModule1.QRYMIGRAR_XMLTEMP do
+    begin
+        Close;
+        ParamByName('CodEmitente').AsInteger := CodEmitente;
+        ExecSQL;
+        TotalRegistrosMigrados := RowsAffected;
+    end;
+    DataModule1.ConDados.Commit;
+
+    // 3. FEEDBACK E ATUALIZAÇÃO DA INTERFACE
+    logpendentes.Lines.Add(Format('✅ MIGRAÇÃO CONCLUÍDA! %d notas migradas para NFE_XML (Status ''G'' e tpEmis=9).', [TotalRegistrosMigrados]));
+
+  except
+    on E: Exception do
+    begin
+      DataModule1.ConDados.Rollback;
+      logpendentes.Lines.Add('❌ ERRO CRÍTICO na Migração (Rollback): ' + E.Message);
+      ShowMessage('❌ Erro na migração: ' + E.Message + ' (A transação foi desfeita)');
+    end;
+  end;
+end;
+
+
+
+
+
+ procedure Tfrmmenu.CriarEstruturaCDSCorretas;
+begin
+  with datamodule1.CDSCHAVESCORRETAS do
+  begin
+    if Active then
+      Close;
+
+    FieldDefs.Clear;
+    FieldDefs.Add('CodNota', ftInteger);      // PK no BD (Para futura referência)
+    FieldDefs.Add('NumNota', ftString, 10);    // Número da Nota
+    FieldDefs.Add('AntigaChave', ftString, 44); // Chave incorreta no BD
+    FieldDefs.Add('NovaChave', ftString, 44);   // Chave correta retornada pela SEFAZ
+    FieldDefs.Add('CodEmitente', ftInteger);
+    FieldDefs.Add('Serie', ftString, 3);
+
+    CreateDataSet;
+    Open;
+  end;
+end;
+
+
+
+
+
+
+
+
+
+function Tfrmmenu.ExtrairChaveCorreta(const AXMotivo: string): string;
+// Localiza a chave correta dentro do motivo da rejeição 613.
+const
+  TokenInicio = '['; // Início da chave
+  TokenFim = ']';   // Fim da chave
+var
+  PosInicio, PosFim: Integer;
+begin
+  Result := '';
+
+  // 1. Garante que o motivo contenha a parte do erro com a chave.
+  if Pos('Chave de Acesso difere', AXMotivo) > 0 then
+  begin
+    // 2. Localiza o início dos colchetes
+    PosInicio := Pos(TokenInicio, AXMotivo);
+
+    if PosInicio > 0 then
+    begin
+      // 3. O início do conteúdo é logo após o colchete de abertura
+      PosInicio := PosInicio + Length(TokenInicio);
+
+      // 4. Localiza o colchete de fechamento a partir do início do conteúdo
+      PosFim := PosEx(TokenFim, AXMotivo, PosInicio);
+
+      if PosFim > PosInicio then
+      begin
+        // 5. Extrai a chave de acesso (44 dígitos)
+        Result := Copy(AXMotivo, PosInicio, 44);
+        // O copy(..., 44) garante que apenas a chave de 44 dígitos seja copiada,
+        // mesmo que o final da string seja mais longo ou desformatado.
+      end;
+    end;
+  end;
+
+  // 6. Validação final: se a string tem 44 dígitos, ela é provavelmente a chave.
+  if Length(Result) <> 44 then
+    Result := '';
+end;
+
+
+procedure Tfrmmenu.SalvarChaveCorreta(const ACodNota: Integer; const ANovaChave: string);
+// Realiza o UPDATE na tabela NFE_XML para salvar a chave correta.
+begin
+  if (ACodNota = 0) or (Length(ANovaChave) <> 44) then
+  begin
+    logpendentes.Lines.Add('❌ Erro: Não é possível salvar chave correta com parâmetros inválidos.');
+    Exit;
+  end;
+
+  try
+    DataModule1.ConDados.StartTransaction;
+
+    with DataModule1.QRYCHAVEDIFERENTE do
+    begin
+      Close;
+      SQL.Clear;
+      // Atualiza a coluna 'chavecorreta' na NFE_XML
+      SQL.Add('UPDATE NFE_XML SET chavecorreta = :pNovaChave ');
+      // Atualiza o Status para 'G' (Gerada/Pendente) se não for Rejeição 613,
+      // para garantir que a rotina de reenvio tente novamente com a chave correta
+      SQL.Add('WHERE CodNota = :pCodNota AND ST_Retorno = 613');
+      // Se quiser que o reenvio tente com a chave correta, a condição deve ser mantida
+
+      ParamByName('pNovaChave').AsString := ANovaChave;
+      ParamByName('pCodNota').AsInteger := ACodNota;
+
+      ExecSQL;
+    end;
+
+    DataModule1.ConDados.Commit;
+    logpendentes.Lines.Add(Format('🔑 Chave Correta Salva! CodNota %d. Nova Chave: %s',
+      [ACodNota, ANovaChave]));
+  except
+    on E: Exception do
+    begin
+      DataModule1.ConDados.Rollback;
+      logpendentes.Lines.Add(Format('❌ Erro ao salvar chavecorreta (CodNota %d): %s',
+        [ACodNota, E.Message]));
+    end;
+  end;
+end;
+
+
+procedure Tfrmmenu.AtualizarChavesCorretas;
+var
+  TotalCorrigido: Integer;
+  ChaveAntiga, ChaveNova: string;
+  CodNotaAtual: Integer;
+begin
+  logpendentes.Lines.Add('>>> INICIANDO CORREÇÃO DE CHAVES DE ACESSO NO BANCO DE DADOS <<<');
+  Application.ProcessMessages;
+
+  // 1. Consulta as notas que precisam de correção (onde chavecorreta está preenchida)
+  with DataModule1.QRYPSQPENDENTE do
+  try
+    Close;
+    // Seleciona notas rejeitadas por 613 que já têm a chave correta salva.
+    SQL.Text := 'SELECT CodNota, XMLChave, chavecorreta, NumNota, Serie ' +
+                'FROM NFE_XML ' +
+                'WHERE ST_Retorno = 613 AND Status = ''G'' AND chavecorreta IS NOT NULL AND XMLChave <> chavecorreta';
+    Open;
+
+    TotalCorrigido := 0;
+
+    if IsEmpty then
+    begin
+      logpendentes.Lines.Add('✅ Nenhuma nota encontrada para correção de chave (Erro 613).');
+      Exit;
+    end;
+
+    DisableControls;
+    First;
+
+    // 2. Itera e aplica a correção por registro (transação por nota para isolamento)
+    while not Eof do
+    begin
+      CodNotaAtual := FieldByName('CodNota').AsInteger;
+      ChaveAntiga := FieldByName('XMLChave').AsString;
+      ChaveNova := FieldByName('chavecorreta').AsString;
+
+      logpendentes.Lines.Add(Format('🔄 Corrigindo Nota %d. Chave Antiga: %s -> Nova: %s', [CodNotaAtual, Copy(ChaveAntiga, 35, 10), Copy(ChaveNova, 35, 10)]));
+      Application.ProcessMessages;
+
+      // --- INÍCIO DA TRANSAÇÃO POR NOTA ---
+      try
+        DataModule1.ConDados.StartTransaction;
+
+        // 2.1. CORREÇÃO NA NFE_XML (Chave principal e texto do XML)
+        with DataModule1.QRYATUALIZACHAVE do
+        begin
+          Close;
+          SQL.Clear;
+          // Atualiza a XMLChave, corrige o status e limpa a coluna temporária
+          SQL.Add('UPDATE NFE_XML SET ');
+          SQL.Add('  XMLChave = :pNovaChave, ');
+          SQL.Add('  Status = ''G'', '); // Mantém 'G' para reenvio
+          SQL.Add('  ST_Retorno = NULL, ');
+          SQL.Add('  RejeicaoMotivo = ''AGUARDANDO REENVIO - CHAVE ATUALIZADA'', ');
+          SQL.Add('  chavecorreta = NULL, '); // Limpa a chave temporária
+          // Corrige o texto XML em XMLGeracao (substitui a chave antiga pela nova)
+          SQL.Add('  XMLGeracao = REPLACE(CAST(XMLGeracao AS VARCHAR(MAX)), :pChaveAntiga, :pNovaChave), ');
+          // Corrige o texto XML em XMLTransmissao (se houver, substitui a chave antiga pela nova)
+          SQL.Add('  XMLTransmissao = REPLACE(CAST(XMLTransmissao AS VARCHAR(MAX)), :pChaveAntiga, :pNovaChave) ');
+          SQL.Add('WHERE CodNota = :pCodNota');
+
+          ParamByName('pNovaChave').AsString := ChaveNova;
+          ParamByName('pChaveAntiga').AsString := ChaveAntiga;
+          ParamByName('pCodNota').AsInteger := CodNotaAtual;
+          ExecSQL;
+        end;
+
+        // 2.2. CORREÇÃO NA NFE_CAB (Atualiza o campo Chave_Acesso)
+        with DataModule1.QRYATUALIZACHAVE do
+        begin
+          Close;
+          SQL.Clear;
+          // Usa o CodNota para atualizar a NFE_CAB
+          SQL.Add('UPDATE NFE_CAB SET Chave_Acesso = :pNovaChave ');
+          SQL.Add('WHERE CodNota = :pCodNota');
+          // (NumNota=Num_Nota_Fiscal já é garantido pela integridade, o CodNota é a PK/ligação)
+
+          ParamByName('pNovaChave').AsString := ChaveNova;
+          ParamByName('pCodNota').AsInteger := CodNotaAtual;
+          ExecSQL;
+        end;
+
+        DataModule1.ConDados.Commit;
+        logpendentes.Lines.Add(Format('✅ Nota %d: Chaves (XML, CAB) e Conteúdo XML corrigidos com sucesso.', [CodNotaAtual]));
+        Inc(TotalCorrigido);
+
+      except // Captura erro da transação SQL
+        on E: Exception do
+        begin
+          DataModule1.ConDados.Rollback;
+          logpendentes.Lines.Add(Format('❌ Erro na transação da Nota %d: %s (Rollback executado)', [CodNotaAtual, E.Message]));
+        end;
+      end;
+      // --- FIM DA TRANSAÇÃO POR NOTA ---
+
+      Next;
+    end;
+  finally
+    EnableControls;
+  end;
+
+  // 3. Finalização
+  logpendentes.Lines.Add('---');
+  logpendentes.Lines.Add(Format('✅ PROCESSO CONCLUÍDO. Total de notas corrigidas: %d.', [TotalCorrigido]));
+ // ConsultarVendasPendentes; // Recarrega a lista
+end;
+
+
+
 procedure Tfrmmenu.ModificarESalvarXMLGeracao;
 var
   XMLGeracao: string;
@@ -5019,387 +5520,6 @@ begin
   DataModule1.QRYPSQPENDENTE.EnableControls;
   ConsultarVendasPendentes;
   logpendentes.Lines.Add('✅ Modificação de XMLs concluída. Notas prontas para o reenvio.');
-end;
-
-
-
-
-
-
-
-
-
-procedure Tfrmmenu.CorrigirPendenciasBaseadoEmServxml;
-var
-  TotalPendencias, TotalCorrigido: Integer;
-begin
-  logpendentes.Lines.Add('>>> INICIANDO CORREÇÃO NFE_XML BASEADO EM SERVXML (INUTILIZAÇÕES) <<<');
-  Application.ProcessMessages;
-
-  TotalPendencias := 0;
-  TotalCorrigido := 0;
-
-  // Etapa 1: Contar pendências antes de iniciar
-  with DataModule1.QRYCORRIGEPENDENCIA do
-  begin
-    Close;
-    SQL.Clear;
-    SQL.Text :=
-      'SELECT COUNT(*) AS Total ' +
-      'FROM NFE_XML ' +
-      'JOIN SERVXML ON ' +
-      '  NFE_XML.NumNota = SERVXML.NumNota AND ' +
-      '  NFE_XML.CodEmitente = SERVXML.CodEmitente AND ' +
-      '  NFE_XML.Serie COLLATE Latin1_General_CI_AS = SERVXML.Serie ' +
-      'WHERE NFE_XML.CodNota > 0 AND SERVXML.Status = ''I''';
-    Open;
-    TotalPendencias := FieldByName('Total').AsInteger;
-  end;
-
-  logpendentes.Lines.Add(Format('🔍 Pendências encontradas: %d', [TotalPendencias]));
-
-  // Etapa 2: Buscar registros para correção
-  with DataModule1.QRYCORRIGEPENDENCIA do
-  begin
-    Close;
-    SQL.Clear;
-    SQL.Text :=
-      'SELECT NFE_XML.CodNota, NFE_XML.NumNota, NFE_XML.Serie, NFE_XML.CodEmitente ' +
-      'FROM NFE_XML ' +
-      'JOIN SERVXML ON ' +
-      '  NFE_XML.NumNota = SERVXML.NumNota AND ' +
-      '  NFE_XML.CodEmitente = SERVXML.CodEmitente AND ' +
-      '  NFE_XML.Serie COLLATE Latin1_General_CI_AS = SERVXML.Serie ' +
-      'WHERE NFE_XML.CodNota > 0 AND SERVXML.Status = ''I''';
-    Open;
-
-    if IsEmpty then
-    begin
-      logpendentes.Lines.Add('✅ Nenhuma inconsistência encontrada. NFE_XML está limpa.');
-      Exit;
-    end;
-
-    DisableControls;
-    First;
-
-    // Etapa 3: Corrigir registros
-    while not Eof do
-    begin
-      logpendentes.Lines.Add(Format('Corrigindo Nota %d...', [FieldByName('NumNota').AsInteger]));
-      Application.ProcessMessages;
-
-      mudanotaparanegativo(
-        FieldByName('CodNota').AsInteger,
-        FieldByName('NumNota').AsInteger
-      );
-
-      Inc(TotalCorrigido);
-      Next;
-    end;
-
-    EnableControls;
-  end;
-
-  // Etapa 4: Exibir resumo
-  logpendentes.Lines.Add(Format('✅ Corrigidas nesta execução: %d', [TotalCorrigido]));
-  logpendentes.Lines.Add(Format('⏳ Pendências restantes: %d', [TotalPendencias - TotalCorrigido]));
-  logpendentes.Lines.Add('✅ CORREÇÃO FINALIZADA.');
-
-  // Recarrega a grade de vendas pendentes
-
-end;
-
-
-
-
-procedure Tfrmmenu.ForcarMigracaoXMLTemp;
-var
-  CodEmitente: Integer;
-  TotalRegistrosMigrados: Integer;
-begin
-  // 1. VALIDAÇÃO E OBTENÇÃO DO EMITENTE
-  if cmbempresa.ItemIndex = -1 then
-  begin
-    ShowMessage('❌ Selecione a empresa emitente.');
-    Exit;
-  end;
-  // Obtém o CodEmitente selecionado no ComboBox (o valor numérico do objeto)
-  CodEmitente := Integer(cmbempresa.Items.Objects[cmbempresa.ItemIndex]);
-
-  logpendentes.Lines.Add('>>> INICIANDO MIGRAÇÃO FORÇADA DE NFE_XMLTEMP PARA NFE_XML (APENAS INSERT) <<<');
-  Application.ProcessMessages;
-
-  try
-    // 2. PREPARAÇÃO E EXECUÇÃO DA TRANSAÇÃO
-    DataModule1.ConDados.StartTransaction;
-
-    // 2.1. Montagem do SQL testado e funcional
-    DataModule1.QRYMIGRAR_XMLTEMP.SQL.Clear;
-
-    // INSERT INTO NFE_XML
-    DataModule1.QRYMIGRAR_XMLTEMP.SQL.Add('INSERT INTO NFE_XML (CodNota, XMLChave, NumNota, Serie, DataGeracao, XMLGeracao, Status, CodEmitente, Pedido, Valor, Num_Serie) ');
-
-    // SELECT com JOIN NFE_CAB
-    DataModule1.QRYMIGRAR_XMLTEMP.SQL.Add('SELECT NC.CodNota, XT.ChaveNFe, XT.Num_Nota_Fiscal, XT.Num_Serie AS Serie, XT.DataCriacao AS DataGeracao, XT.XMLTexto AS XMLGeracao, ''G'' AS Status, XT.CodEmitente, XT.CodVenda AS Pedido, XT.Valor, XT.Num_Serie ');
-    DataModule1.QRYMIGRAR_XMLTEMP.SQL.Add('FROM NFE_XMLTemp XT INNER JOIN NFE_CAB NC ON NC.Num_Nota_Fiscal = XT.Num_Nota_Fiscal AND NC.CodEmitente = XT.CodEmitente ');
-
-    // CONDIÇÃO 1: Evita PK duplicada (CodNota)
-    DataModule1.QRYMIGRAR_XMLTEMP.SQL.Add('WHERE NOT EXISTS (SELECT 1 FROM NFE_XML X WHERE X.CodNota = NC.CodNota) ');
-
-    // CONDIÇÃO 2: Evita duplicidade por Status Finalizado
-    DataModule1.QRYMIGRAR_XMLTEMP.SQL.Add('  AND NOT EXISTS (SELECT 1 FROM NFE_XML X2 WHERE X2.NumNota = XT.Num_Nota_Fiscal AND X2.CodEmitente = XT.CodEmitente AND X2.Status IN (''T'', ''C'', ''I''))');
-
-    // CONDIÇÃO 3: Filtro e Status (Usando o parâmetro :CodEmitente)
-    DataModule1.QRYMIGRAR_XMLTEMP.SQL.Add('  AND XT.Status = ''G'' ');
-    DataModule1.QRYMIGRAR_XMLTEMP.SQL.Add('  AND XT.CodEmitente = :CodEmitente'); // <--- PARÂMETRO DA TELA
-
-    // 2.2. Execução da Migração
-    with DataModule1.QRYMIGRAR_XMLTEMP do
-    begin
-        Close;
-        ParamByName('CodEmitente').AsInteger := CodEmitente; // Passa o valor da tela para a Query
-        ExecSQL;
-        TotalRegistrosMigrados := RowsAffected; // Captura o número de linhas afetadas
-    end;
-    DataModule1.ConDados.Commit;
-
-    // 3. FEEDBACK E ATUALIZAÇÃO DA INTERFACE
-    logpendentes.Lines.Add(Format('✅ MIGRAÇÃO CONCLUÍDA! %d notas migradas para NFE_XML (Status ''G'').', [TotalRegistrosMigrados]));
-  //  ShowMessage(Format('Migração concluída! %d notas prontas para reenvio.', [TotalRegistrosMigrados]));
-
-    // Reconsulta as pendências e recarrega o XML emitido na aba Emitidas
-  //  ConsultarVendasPendentes;
-   // CarregarXML;
-
-  except
-    on E: Exception do
-    begin
-      DataModule1.ConDados.Rollback;
-      logpendentes.Lines.Add('❌ ERRO CRÍTICO na Migração (Rollback): ' + E.Message);
-      ShowMessage('❌ Erro na migração: ' + E.Message + ' (A transação foi desfeita)');
-    end;
-  end;
-end;
-
-
-
- procedure Tfrmmenu.CriarEstruturaCDSCorretas;
-begin
-  with datamodule1.CDSCHAVESCORRETAS do
-  begin
-    if Active then
-      Close;
-
-    FieldDefs.Clear;
-    FieldDefs.Add('CodNota', ftInteger);      // PK no BD (Para futura referência)
-    FieldDefs.Add('NumNota', ftString, 10);    // Número da Nota
-    FieldDefs.Add('AntigaChave', ftString, 44); // Chave incorreta no BD
-    FieldDefs.Add('NovaChave', ftString, 44);   // Chave correta retornada pela SEFAZ
-    FieldDefs.Add('CodEmitente', ftInteger);
-    FieldDefs.Add('Serie', ftString, 3);
-
-    CreateDataSet;
-    Open;
-  end;
-end;
-
-
-
-
-
-
-
-
-
-function Tfrmmenu.ExtrairChaveCorreta(const AXMotivo: string): string;
-// Localiza a chave correta dentro do motivo da rejeição 613.
-const
-  TokenInicio = '['; // Início da chave
-  TokenFim = ']';   // Fim da chave
-var
-  PosInicio, PosFim: Integer;
-begin
-  Result := '';
-
-  // 1. Garante que o motivo contenha a parte do erro com a chave.
-  if Pos('Chave de Acesso difere', AXMotivo) > 0 then
-  begin
-    // 2. Localiza o início dos colchetes
-    PosInicio := Pos(TokenInicio, AXMotivo);
-
-    if PosInicio > 0 then
-    begin
-      // 3. O início do conteúdo é logo após o colchete de abertura
-      PosInicio := PosInicio + Length(TokenInicio);
-
-      // 4. Localiza o colchete de fechamento a partir do início do conteúdo
-      PosFim := PosEx(TokenFim, AXMotivo, PosInicio);
-
-      if PosFim > PosInicio then
-      begin
-        // 5. Extrai a chave de acesso (44 dígitos)
-        Result := Copy(AXMotivo, PosInicio, 44);
-        // O copy(..., 44) garante que apenas a chave de 44 dígitos seja copiada,
-        // mesmo que o final da string seja mais longo ou desformatado.
-      end;
-    end;
-  end;
-
-  // 6. Validação final: se a string tem 44 dígitos, ela é provavelmente a chave.
-  if Length(Result) <> 44 then
-    Result := '';
-end;
-
-
-procedure Tfrmmenu.SalvarChaveCorreta(const ACodNota: Integer; const ANovaChave: string);
-// Realiza o UPDATE na tabela NFE_XML para salvar a chave correta.
-begin
-  if (ACodNota = 0) or (Length(ANovaChave) <> 44) then
-  begin
-    logpendentes.Lines.Add('❌ Erro: Não é possível salvar chave correta com parâmetros inválidos.');
-    Exit;
-  end;
-
-  try
-    DataModule1.ConDados.StartTransaction;
-
-    with DataModule1.QRYCHAVEDIFERENTE do
-    begin
-      Close;
-      SQL.Clear;
-      // Atualiza a coluna 'chavecorreta' na NFE_XML
-      SQL.Add('UPDATE NFE_XML SET chavecorreta = :pNovaChave ');
-      // Atualiza o Status para 'G' (Gerada/Pendente) se não for Rejeição 613,
-      // para garantir que a rotina de reenvio tente novamente com a chave correta
-      SQL.Add('WHERE CodNota = :pCodNota AND ST_Retorno = 613');
-      // Se quiser que o reenvio tente com a chave correta, a condição deve ser mantida
-
-      ParamByName('pNovaChave').AsString := ANovaChave;
-      ParamByName('pCodNota').AsInteger := ACodNota;
-
-      ExecSQL;
-    end;
-
-    DataModule1.ConDados.Commit;
-    logpendentes.Lines.Add(Format('🔑 Chave Correta Salva! CodNota %d. Nova Chave: %s',
-      [ACodNota, ANovaChave]));
-  except
-    on E: Exception do
-    begin
-      DataModule1.ConDados.Rollback;
-      logpendentes.Lines.Add(Format('❌ Erro ao salvar chavecorreta (CodNota %d): %s',
-        [ACodNota, E.Message]));
-    end;
-  end;
-end;
-
-
-procedure Tfrmmenu.AtualizarChavesCorretas;
-var
-  TotalCorrigido: Integer;
-  ChaveAntiga, ChaveNova: string;
-  CodNotaAtual: Integer;
-begin
-  logpendentes.Lines.Add('>>> INICIANDO CORREÇÃO DE CHAVES DE ACESSO NO BANCO DE DADOS <<<');
-  Application.ProcessMessages;
-
-  // 1. Consulta as notas que precisam de correção (onde chavecorreta está preenchida)
-  with DataModule1.QRYPSQPENDENTE do
-  try
-    Close;
-    // Seleciona notas rejeitadas por 613 que já têm a chave correta salva.
-    SQL.Text := 'SELECT CodNota, XMLChave, chavecorreta, NumNota, Serie ' +
-                'FROM NFE_XML ' +
-                'WHERE ST_Retorno = 613 AND Status = ''G'' AND chavecorreta IS NOT NULL AND XMLChave <> chavecorreta';
-    Open;
-
-    TotalCorrigido := 0;
-
-    if IsEmpty then
-    begin
-      logpendentes.Lines.Add('✅ Nenhuma nota encontrada para correção de chave (Erro 613).');
-      Exit;
-    end;
-
-    DisableControls;
-    First;
-
-    // 2. Itera e aplica a correção por registro (transação por nota para isolamento)
-    while not Eof do
-    begin
-      CodNotaAtual := FieldByName('CodNota').AsInteger;
-      ChaveAntiga := FieldByName('XMLChave').AsString;
-      ChaveNova := FieldByName('chavecorreta').AsString;
-
-      logpendentes.Lines.Add(Format('🔄 Corrigindo Nota %d. Chave Antiga: %s -> Nova: %s', [CodNotaAtual, Copy(ChaveAntiga, 35, 10), Copy(ChaveNova, 35, 10)]));
-      Application.ProcessMessages;
-
-      // --- INÍCIO DA TRANSAÇÃO POR NOTA ---
-      try
-        DataModule1.ConDados.StartTransaction;
-
-        // 2.1. CORREÇÃO NA NFE_XML (Chave principal e texto do XML)
-        with DataModule1.QRYATUALIZACHAVE do
-        begin
-          Close;
-          SQL.Clear;
-          // Atualiza a XMLChave, corrige o status e limpa a coluna temporária
-          SQL.Add('UPDATE NFE_XML SET ');
-          SQL.Add('  XMLChave = :pNovaChave, ');
-          SQL.Add('  Status = ''G'', '); // Mantém 'G' para reenvio
-          SQL.Add('  ST_Retorno = NULL, ');
-          SQL.Add('  RejeicaoMotivo = ''AGUARDANDO REENVIO - CHAVE ATUALIZADA'', ');
-          SQL.Add('  chavecorreta = NULL, '); // Limpa a chave temporária
-          // Corrige o texto XML em XMLGeracao (substitui a chave antiga pela nova)
-          SQL.Add('  XMLGeracao = REPLACE(CAST(XMLGeracao AS VARCHAR(MAX)), :pChaveAntiga, :pNovaChave), ');
-          // Corrige o texto XML em XMLTransmissao (se houver, substitui a chave antiga pela nova)
-          SQL.Add('  XMLTransmissao = REPLACE(CAST(XMLTransmissao AS VARCHAR(MAX)), :pChaveAntiga, :pNovaChave) ');
-          SQL.Add('WHERE CodNota = :pCodNota');
-
-          ParamByName('pNovaChave').AsString := ChaveNova;
-          ParamByName('pChaveAntiga').AsString := ChaveAntiga;
-          ParamByName('pCodNota').AsInteger := CodNotaAtual;
-          ExecSQL;
-        end;
-
-        // 2.2. CORREÇÃO NA NFE_CAB (Atualiza o campo Chave_Acesso)
-        with DataModule1.QRYATUALIZACHAVE do
-        begin
-          Close;
-          SQL.Clear;
-          // Usa o CodNota para atualizar a NFE_CAB
-          SQL.Add('UPDATE NFE_CAB SET Chave_Acesso = :pNovaChave ');
-          SQL.Add('WHERE CodNota = :pCodNota');
-          // (NumNota=Num_Nota_Fiscal já é garantido pela integridade, o CodNota é a PK/ligação)
-
-          ParamByName('pNovaChave').AsString := ChaveNova;
-          ParamByName('pCodNota').AsInteger := CodNotaAtual;
-          ExecSQL;
-        end;
-
-        DataModule1.ConDados.Commit;
-        logpendentes.Lines.Add(Format('✅ Nota %d: Chaves (XML, CAB) e Conteúdo XML corrigidos com sucesso.', [CodNotaAtual]));
-        Inc(TotalCorrigido);
-
-      except // Captura erro da transação SQL
-        on E: Exception do
-        begin
-          DataModule1.ConDados.Rollback;
-          logpendentes.Lines.Add(Format('❌ Erro na transação da Nota %d: %s (Rollback executado)', [CodNotaAtual, E.Message]));
-        end;
-      end;
-      // --- FIM DA TRANSAÇÃO POR NOTA ---
-
-      Next;
-    end;
-  finally
-    EnableControls;
-  end;
-
-  // 3. Finalização
-  logpendentes.Lines.Add('---');
-  logpendentes.Lines.Add(Format('✅ PROCESSO CONCLUÍDO. Total de notas corrigidas: %d.', [TotalCorrigido]));
- // ConsultarVendasPendentes; // Recarrega a lista
 end;
 
 

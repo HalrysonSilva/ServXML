@@ -741,7 +741,7 @@ object frmmenu: Tfrmmenu
     Top = 185
     Width = 1287
     Height = 611
-    ActivePage = Pendentes
+    ActivePage = Emitidas
     Align = alClient
     TabOrder = 2
     object Emitidas: TTabSheet
@@ -938,7 +938,7 @@ object frmmenu: Tfrmmenu
           object btnveriinutiliza: TButton
             AlignWithMargins = True
             Left = 4
-            Top = 142
+            Top = 188
             Width = 157
             Height = 40
             Align = alTop
@@ -951,6 +951,23 @@ object frmmenu: Tfrmmenu
             ParentFont = False
             TabOrder = 3
             OnClick = btnveriinutilizaClick
+          end
+          object Button1: TButton
+            AlignWithMargins = True
+            Left = 4
+            Top = 142
+            Width = 157
+            Height = 40
+            Align = alTop
+            Caption = 'Corrigir Chaves'
+            Font.Charset = ANSI_CHARSET
+            Font.Color = clWindowText
+            Font.Height = -13
+            Font.Name = 'Segoe UI Semibold'
+            Font.Style = [fsBold]
+            ParentFont = False
+            TabOrder = 4
+            OnClick = Button1Click
           end
         end
         object Panel20: TPanel
@@ -966,7 +983,7 @@ object frmmenu: Tfrmmenu
             Width = 687
             Height = 474
             Align = alClient
-            DataSource = Datamodule1.DSVENDASPENDENTES
+            DataSource = Datamodule1.DSQRYPSQPENDENTE
             Font.Charset = ANSI_CHARSET
             Font.Color = clWindowText
             Font.Height = -13

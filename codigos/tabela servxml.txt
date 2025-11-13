@@ -1,0 +1,10 @@
+COLUMN_NAME	DATA_TYPe
+Controle	int
+CodNota	int
+CodEmitente	int
+NumNota	int
+Num_Mod_Doc	int
+Serie	char
+XMLTransmissao	text
+Data_emissao	datetime
+Status	varchar
