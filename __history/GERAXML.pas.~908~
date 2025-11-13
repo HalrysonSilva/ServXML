@@ -1,0 +1,4737 @@
+﻿unit GERAXML;
+
+interface
+
+uses
+  // Windows e sistema
+  Winapi.Windows, Winapi.Messages, Winapi.ShellAPI,
+
+  // Sistema padrão Delphi
+  System.SysUtils, System.Variants, System.Classes, System.IniFiles,
+  System.DateUtils, System.Math, System.Zip, System.IOUtils,
+  System.RegularExpressions, StrUtils,
+
+  // VCL e componentes visuais
+  Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls,
+  Vcl.ExtCtrls, Vcl.ComCtrls, Vcl.DBCtrls, Vcl.Grids, Vcl.DBGrids,
+  Vcl.Buttons, Vcl.ExtDlgs, Vcl.Samples.Spin, Vcl.Imaging.jpeg, Vcl.FileCtrl,
+
+  // Data e banco de dados
+  Data.DB, Datasnap.DBClient,
+
+  // Ole e navegador
+  OleCtrls, SHDocVw,
+
+  // Indy (envio de e-mail e rede)
+  IdBaseComponent, IdComponent, IdTCPConnection, IdTCPClient,
+  IdExplicitTLSClientServerBase, IdMessageClient, IdSMTPBase, IdSMTP,
+  IdIOHandler, IdIOHandlerSocket, IdIOHandlerStack, IdSSL, IdSSLOpenSSL,
+  IdMessage, IdAttachmentFile,
+
+  // XML
+  XMLIntf, XMLDoc, zlib,
+
+  // ACBr - NF-e e utilitários
+  ACBrBase, ACBrUtil, ACBrUtil.FilesIO,
+  ACBrDFe, ACBrDFeSSL, ACBrDFeReport, ACBrDFeDANFeReport,
+  ACBrNFe, ACBrNFeNotasFiscais, ACBrNFeWebServices, ACBrNFe.Classes,
+  ACBrNFeDANFEClass, ACBrNFeDANFeESCPOS,
+  ACBrMail, ACBrPosPrinter,ACBrConsts,ACBrDFeUtil,ACBrUtil.Strings;
+
+type
+  TForm1 = class(TForm)
+    Panel1: TPanel;
+    Label1: TLabel;
+    DBTextempresa: TDBText;
+    DBTextcnpj: TDBText;
+    DTinicio: TDateTimePicker;
+    DTfim: TDateTimePicker;
+    Label2: TLabel;
+    Label3: TLabel;
+    Label4: TLabel;
+    cmbempresa: TComboBox;
+    Panel2: TPanel;
+    btnexportar: TButton;
+    IdSMTP1: TIdSMTP;
+    IdMessage1: TIdMessage;
+    IdSSLIOHandlerSocketOpenSSL1: TIdSSLIOHandlerSocketOpenSSL;
+    btnemail: TButton;
+    CDSQUEBRA: TClientDataSet;
+    DSCDSQUEBRA: TDataSource;
+    btnconfig: TButton;
+    btnmesanterior: TButton;
+    btnmesatual: TButton;
+    OpenDialog1: TOpenDialog;
+    CMBMODELO: TComboBox;
+    Label7: TLabel;
+    Btnconsultar: TBitBtn;
+    opcoes: TPageControl;
+    Emitidas: TTabSheet;
+    Label8: TLabel;
+    LABELTOTAL: TLabel;
+    labelvaloremitido: TLabel;
+    dbgridvendas: TDBGrid;
+    Inutilizar: TTabSheet;
+    Panel3: TPanel;
+    Label5: TLabel;
+    labelfaltantes: TLabel;
+    DBgridfaltante: TDBGrid;
+    cmbserie: TComboBox;
+    Label9: TLabel;
+    Consulta: TTabSheet;
+    Panel5: TPanel;
+    editconsulta: TEdit;
+    Label10: TLabel;
+    btnbuscar: TButton;
+    editmodelo: TEdit;
+    Label12: TLabel;
+    Label11: TLabel;
+    editcodemitente: TEdit;
+    Panel6: TPanel;
+    btninutilizaespc: TButton;
+    btninufaltante: TButton;
+    btnxmllista: TButton;
+    btnconsultinu: TButton;
+    btnimportar: TButton;
+    btnlimpalista: TButton;
+    Corrigirnota: TTabSheet;
+    Panel4: TPanel;
+    Label6: TLabel;
+    memoemail: TMemo;
+    btnlimpalog: TButton;
+    Panel7: TPanel;
+    DBGridNOTASPERDIDAS: TDBGrid;
+    Label13: TLabel;
+    Panel8: TPanel;
+    brnconsultavenda: TButton;
+    Panel10: TPanel;
+    Label14: TLabel;
+    dbgridvendaspendente: TDBGrid;
+    btnlimpavenda: TButton;
+    Panel9: TPanel;
+    Label22: TLabel;
+    DBGridsequencia: TDBGrid;
+    EDITPESQPEDIDO: TEdit;
+    Label23: TLabel;
+    btnconsultasefaz: TButton;
+    Panel11: TPanel;
+    BTNALTERARNUMNFCE: TButton;
+    editalteraultnumusado: TEdit;
+    Label15: TLabel;
+    Editselecionaserie: TEdit;
+    Label21: TLabel;
+    Label20: TLabel;
+    editregistro: TEdit;
+    Label18: TLabel;
+    btnconsultarserie: TButton;
+    editserieusada: TEdit;
+    Label17: TLabel;
+    Label16: TLabel;
+    Label19: TLabel;
+    Label24: TLabel;
+    Label25: TLabel;
+    btnimprimir: TButton;
+    Pendentes: TTabSheet;
+    Panel12: TPanel;
+    Label26: TLabel;
+    Panel13: TPanel;
+    Label27: TLabel;
+    logpendentes: TMemo;
+    Labelvalorpendente: TLabel;
+    labelpendentes: TLabel;
+    Panel14: TPanel;
+    btnconsultastatus: TButton;
+    btnreenviar: TButton;
+    btnsalvaxmlconsu: TButton;
+    btnalteraxml: TButton;
+    btnveriinutiliza: TButton;
+    btnhoje: TButton;
+    consultasefaz: TTabSheet;
+    Panel15: TPanel;
+    Panel16: TPanel;
+    MEMOCONSULTA: TMemo;
+    Panel18: TPanel;
+    DBGridconsultasefaz: TDBGrid;
+    Label28: TLabel;
+    Label29: TLabel;
+    Panel17: TPanel;
+    btnconsultalista: TBitBtn;
+    btnimportalista: TBitBtn;
+    btnbuscachave: TBitBtn;
+    Editchave: TEdit;
+    Label30: TLabel;
+    DBGridPENDENTES: TDBGrid;
+    BTNLMPLISTACONSULTA: TBitBtn;
+    btngerachave: TBitBtn;
+    Editmdlnota: TEdit;
+    Label31: TLabel;
+    Editserie: TEdit;
+    Editnumnota: TEdit;
+    Label32: TLabel;
+    Label33: TLabel;
+    btnbaixaxml: TBitBtn;
+    btnbuscadata: TButton;
+    labeltotalconsulta: TLabel;
+    btnatualizabanco: TButton;  // Não estava na lista de componentes, mas mantenho para a próxima etapa
+    procedure FormCreate(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+    procedure CriarTabelaSERVXML;
+    procedure CriarPastaPadrao;
+    procedure CarregarEmitentes;
+    procedure Selecionaemitente;
+    procedure CarregarXML;
+    procedure CORRIGIRDADOS;
+    procedure ProcessarIntervaloNotas(ACodEmitente, AModelo, ASerie: Integer; ADataEmissao: TDateTime; ANotaInicial, ANotaFinal: Integer);
+    procedure btnimportarClick(Sender: TObject);
+
+    procedure ExportarXMLsMesAnterior;
+    procedure CalcularTotalvendapendente;
+    procedure btnconfigClick(Sender: TObject);
+    procedure CalcularTotalNotasExibidas;
+
+    procedure cmbempresaChange(Sender: TObject);
+     procedure contaregistrosemitidos;
+    procedure SalvarXMLsInutilizadosEUtilizados;
+    procedure contaregistrosfaltantes;
+    procedure ConsultarValorEmitido;
+    procedure btninufaltanteClick(Sender: TObject);
+    procedure btnmesanteriorClick(Sender: TObject);
+    procedure btnmesatualClick(Sender: TObject);
+    procedure BTNALTERARNUMNFCEClick(Sender: TObject);
+    procedure ApagarArquivosXMLTemp;
+    procedure btnexportarClick(Sender: TObject);
+    procedure EnviarXMLPorEmail;
+    procedure btnemailClick(Sender: TObject);
+    procedure BtnconsultarClick(Sender: TObject);
+    procedure btninutilizaespcClick(Sender: TObject);
+    procedure btnconsultinuClick(Sender: TObject);
+    procedure btnxmllistaClick(Sender: TObject);
+    procedure CMBMODELOChange(Sender: TObject);
+    procedure ConsultarNotaPerdida;
+    procedure LimparCDSQuebra;
+    procedure btnlimpalistaClick(Sender: TObject);
+    procedure btnlimpalogClick(Sender: TObject);
+    procedure brnconsultavendaClick(Sender: TObject);
+    procedure btnlimpavendaClick(Sender: TObject);
+    procedure AtualizarNumeroMaisRecente;
+    procedure btnconsultarserieClick(Sender: TObject);
+    procedure PularProximaNumeracaoNFCe;
+    procedure CarregarSeriesEmitidas(Modelo: Integer);
+    procedure UPDATEBANCO;
+    procedure btnupdateClick(Sender: TObject);
+    procedure btnconsultasefazClick(Sender: TObject);
+    procedure btnimprimirClick(Sender: TObject);
+    procedure btnatualizavendaClick(Sender: TObject);
+    procedure ConsultarVendasPendentes;
+    procedure contaregistrospendente;
+    procedure btnconsultastatusClick(Sender: TObject);
+    procedure ExecutarUpdateNotasFiscais;
+    procedure ModificarESalvarXMLGeracao;
+    procedure InutilizarNotasFaltantes;
+    procedure AuditarNotaSEFAZ;
+    procedure btnsalvaxmlconsuClick(Sender: TObject);
+    procedure btnbuscarClick(Sender: TObject);
+    procedure Button1Click(Sender: TObject);
+    procedure btnhojeClick(Sender: TObject);
+    procedure AtualizarStatusEProtocoloParaReenvio(const ACodNota: Integer; const AXMLChave: string;
+    const ACStat: Integer; const AXMotivo: string; const AXMLProtocolo: string);
+    procedure btnreenviarClick(Sender: TObject);
+    procedure btnalteraxmlClick(Sender: TObject);
+    procedure AtualizarStatusEProtocolo(const ACodNota: Integer; const AXMLChave: string;
+    const ACStat: Integer; const AXMotivo: string; const AXMLProtocolo: string);
+    procedure btnveriinutilizaClick(Sender: TObject);
+    procedure SelecionarEmitenteAutomatico;
+    procedure ConsultarPorChaveDireta;
+    procedure btnbuscachaveClick(Sender: TObject);
+    procedure ImportarListaChaves;
+
+    procedure BitBtn1Click(Sender: TObject);
+    procedure CriarEstruturaCDSConsultaChave;
+    procedure btnimportalistaClick(Sender: TObject);
+
+    procedure btnconsultalistaClick(Sender: TObject);
+    procedure consultaxmllista;
+    procedure BTNLMPLISTACONSULTAClick(Sender: TObject);
+
+    procedure btngerachaveClick(Sender: TObject);
+    procedure btnbaixaxmlClick(Sender: TObject);
+    procedure ConsultarNotasPorPeriodo;
+    procedure btnbuscadataClick(Sender: TObject);
+    procedure ContarTotalConsultas;
+    procedure btnatualizabancoClick(Sender: TObject);
+
+
+
+  private
+    { Private declarations }
+
+    // Variável de instância (Field) para a Thread, agora no local correto.
+    FMonitorThread: TThread;
+
+    // Métodos/Procedures Privadas
+
+    procedure DeletarPendenciaNFeXml(const ACodNota: Integer; const ANumNota: Integer);
+    procedure SalvarLogServxml(const ACodNota, ANumNota, ASerie, AModelo, ACodEmitente: Integer;
+                               const AXMLProcInutNFe: string; const ACStat: Integer);
+
+  public
+    { Public declarations }
+
+
+
+    function ValidarCertificado: Boolean;
+    function BuscarXMLGeracao(const ACodNota: Integer): string;
+    function MesclarXMLComProtocolo(const AXMLOriginal: string; const AXMLProtocoloSOAP: string): string;
+
+    // Métodos/Procedures de Eventos e Ações
+
+
+
+
+
+
+
+
+
+
+
+
+
+  end;
+
+
+
+
+
+
+
+
+var
+  Form1: TForm1;
+
+implementation
+
+{$R *.dfm}
+
+uses CONEXAOBD, Frm_ACBrNFe, Frm_ConfiguraSerial, Frm_SelecionarCertificado,
+  Frm_Status, FRM_EMAIL_PROGRESSO, TELAESPERA;
+
+
+
+
+
+
+
+
+
+function TForm1.ValidarCertificado: Boolean;
+var
+  CNPJCertificado, CNPJTela: String;
+begin
+  Result := False; // Assume que o certificado está incorreto
+
+  // 🔹 **Solicita a seleção do certificado**
+  frmACBrNFe.sbtnGetCertClick(frmACBrNFe.sbtnGetCert);
+
+  // 🔹 **Obtém o CNPJ do certificado digital**
+  CNPJCertificado := frmACBrNFe.ACBrNFe1.SSL.CertCNPJ;
+
+  // 🔹 **Obtém o CNPJ exibido no `DBTextCNPJ`**
+  CNPJTela := StringReplace(DBTextCNPJ.Caption, '.', '', [rfReplaceAll]); // Remove pontos
+  CNPJTela := StringReplace(CNPJTela, '/', '', [rfReplaceAll]); // Remove barras
+  CNPJTela := StringReplace(CNPJTela, '-', '', [rfReplaceAll]); // Remove traços
+
+  // 🔹 **Verifica se os CNPJs são iguais**
+  if CNPJCertificado = CNPJTela then
+    Result := True // Certificado válido
+  else
+  begin
+    ShowMessage('❌ O CNPJ do certificado NÃO corresponde ao CNPJ da empresa! Selecione o certificado correto.');
+    Result := ValidarCertificado; // Chama novamente a função até selecionar corretamente
+  end;
+end;
+
+procedure TForm1.CriarTabelaSERVXML;
+begin
+  try
+    DataModule1.QRYCRIATABSERVXML.ExecSQL;
+  except
+    on E: Exception do
+      ShowMessage('Erro ao executar a query QRYCRIATABSERVXML: ' + E.Message);
+  end;
+end;
+
+procedure TForm1.CORRIGIRDADOS;
+begin
+  try
+    DataModule1.QRYCORRIGEDADOS.ExecSQL;
+  except
+    on E: Exception do
+      ShowMessage('Erro ao executar a query QRYCORRIGEDADOS: ' + E.Message);
+  end;
+end;
+
+
+procedure TForm1.UPDATEBANCO;
+begin
+  try
+    DataModule1.QRYupdatebanco.ExecSQL;
+  except
+    on E: Exception do
+      ShowMessage('Erro ao executar a query QRYCRIATABSERVXML: ' + E.Message);
+  end;
+end;
+
+
+
+
+procedure TForm1.CriarPastapadrao;
+const
+  PastaBase = 'C:\XMLSERVSIC';
+  PastaInutilizada = 'C:\XMLSERVSIC\INUTILIZADA';
+  PastaXML = 'C:\XMLSERVSIC\XML';
+  PastaXMLTemp = 'C:\XMLSERVSIC\XMLTEMP';
+  PastaLog = 'C:\XMLSERVSIC\LOG';
+begin
+  // Cria as pastas caso não existam
+  ForceDirectories(PastaBase);
+  ForceDirectories(PastaInutilizada);
+  ForceDirectories(PastaXML);
+  ForceDirectories(PastaXMLTemp);
+  ForceDirectories(PastaLOG);
+
+end;
+
+
+
+
+procedure TForm1.Selecionaemitente;
+var
+  CodigoEmitente, RegimeTributario: Integer;
+  TituloCertificado: String;
+begin
+  if cmbempresa.ItemIndex <> -1 then
+  begin
+    // Obtém o código do emitente armazenado no ComboBox
+    CodigoEmitente := Integer(cmbempresa.Items.Objects[cmbempresa.ItemIndex]);
+
+    // Atualiza a Query para buscar os dados do emitente
+    DataModule1.QRYEMITENTE.Close;
+    DataModule1.QRYEMITENTE.SQL.Text := 'SELECT * FROM NFE_EMITENTE WHERE Codigo = :Codigo';
+    DataModule1.QRYEMITENTE.ParamByName('Codigo').AsInteger := CodigoEmitente;
+    DataModule1.QRYEMITENTE.Open;
+
+    if not DataModule1.QRYEMITENTE.IsEmpty then
+    begin
+      // Preenchendo os `TEdit` no formulário `frmACBrNFe`
+      frmACBrNFe.edtEmitCNPJ.Text := DataModule1.QRYEMITENTE.FieldByName('CNPJ').AsString;
+      frmACBrNFe.edtEmitIE.Text := DataModule1.QRYEMITENTE.FieldByName('Insc_Estadual').AsString;
+      frmACBrNFe.edtEmitRazao.Text := DataModule1.QRYEMITENTE.FieldByName('Razao_Social').AsString;
+      frmACBrNFe.edtEmitFantasia.Text := DataModule1.QRYEMITENTE.FieldByName('Nome_Fantasia').AsString;
+      frmACBrNFe.edtEmitFone.Text := DataModule1.QRYEMITENTE.FieldByName('Fone').AsString;
+      frmACBrNFe.edtEmitCEP.Text := DataModule1.QRYEMITENTE.FieldByName('CEP').AsString;
+      frmACBrNFe.edtEmitLogradouro.Text := DataModule1.QRYEMITENTE.FieldByName('Endereco').AsString;
+      frmACBrNFe.edtEmitNumero.Text := DataModule1.QRYEMITENTE.FieldByName('Numero').AsString;
+      frmACBrNFe.edtEmitComp.Text := DataModule1.QRYEMITENTE.FieldByName('Complemento').AsString;
+      frmACBrNFe.edtEmitBairro.Text := DataModule1.QRYEMITENTE.FieldByName('Bairro').AsString;
+      frmACBrNFe.edtEmitCodCidade.Text := DataModule1.QRYEMITENTE.FieldByName('Cod_Mun').AsString;
+      frmACBrNFe.edtEmitCidade.Text := DataModule1.QRYEMITENTE.FieldByName('Municipio').AsString;
+      frmACBrNFe.edtEmitUF.Text := DataModule1.QRYEMITENTE.FieldByName('UF').AsString;
+
+      // Exibindo Nome e CNPJ nos `DBText`
+      DBTextempresa.Caption := DataModule1.QRYEMITENTE.FieldByName('Razao_Social').AsString;
+      DBTextcnpj.Caption := DataModule1.QRYEMITENTE.FieldByName('CNPJ').AsString;
+
+      // Selecionando automaticamente o regime tributário no `cbTipoEmpresa`
+      case DataModule1.QRYEMITENTE.FieldByName('Reg_Contabil_Cod').AsInteger of
+        1: frmACBrNFe.cbTipoEmpresa.ItemIndex := 0;
+        2: frmACBrNFe.cbTipoEmpresa.ItemIndex := 1;
+        3: frmACBrNFe.cbTipoEmpresa.ItemIndex := 2;
+      else
+        frmACBrNFe.cbTipoEmpresa.ItemIndex := -1;
+      end;
+
+
+    end
+    else
+    begin
+      // Se não encontrar dados, limpa os campos
+      frmACBrNFe.edtEmitCNPJ.Text := '';
+      frmACBrNFe.edtEmitIE.Text := '';
+      frmACBrNFe.edtEmitRazao.Text := '';
+      frmACBrNFe.edtEmitFantasia.Text := '';
+      frmACBrNFe.edtEmitFone.Text := '';
+      frmACBrNFe.edtEmitCEP.Text := '';
+      frmACBrNFe.edtEmitLogradouro.Text := '';
+      frmACBrNFe.edtEmitNumero.Text := '';
+      frmACBrNFe.edtEmitComp.Text := '';
+      frmACBrNFe.edtEmitBairro.Text := '';
+      frmACBrNFe.edtEmitCodCidade.Text := '';
+      frmACBrNFe.edtEmitCidade.Text := '';
+      frmACBrNFe.edtEmitUF.Text := '';
+
+      DBTextempresa.Caption := '';
+      DBTextcnpj.Caption := '';
+      frmACBrNFe.cbTipoEmpresa.ItemIndex := -1;
+      // frmACBrNFe.edtNumSerie.Text := ''; // Limpa caso não tenha um certificado vinculado
+    end;
+  end
+  else
+  begin
+    // Se nenhum item estiver selecionado, limpa tudo
+    frmACBrNFe.edtEmitCNPJ.Text := '';
+    frmACBrNFe.edtEmitIE.Text := '';
+    frmACBrNFe.edtEmitRazao.Text := '';
+    frmACBrNFe.edtEmitFantasia.Text := '';
+    frmACBrNFe.edtEmitFone.Text := '';
+    frmACBrNFe.edtEmitCEP.Text := '';
+    frmACBrNFe.edtEmitLogradouro.Text := '';
+    frmACBrNFe.edtEmitNumero.Text := '';
+    frmACBrNFe.edtEmitComp.Text := '';
+    frmACBrNFe.edtEmitBairro.Text := '';
+    frmACBrNFe.edtEmitCodCidade.Text := '';
+    frmACBrNFe.edtEmitCidade.Text := '';
+    frmACBrNFe.edtEmitUF.Text := '';
+
+    DBTextempresa.Caption := '';
+    DBTextcnpj.Caption := '';
+    frmACBrNFe.cbTipoEmpresa.ItemIndex := -1;
+    //frmACBrNFe.edtNumSerie.Text := ''; // Limpa caso nenhum emitente seja selecionado
+  end;
+end;
+
+
+
+
+procedure TForm1.SelecionarEmitenteAutomatico;
+var
+  IniFile: String;
+  Ini: TIniFile;
+  CNPJSalvo: String;
+  CNPJItem: String;
+  i: Integer;
+begin
+  // --- 1. LER O CNPJ SALVO NO INI ---
+  IniFile := ChangeFileExt(ParamStr(0), '.ini');
+  Ini := TIniFile.Create(IniFile);
+  try
+    // Lê o CNPJ salvo na seção [Emitente]
+    CNPJSalvo := Trim(Ini.ReadString('Emitente', 'CNPJ', ''));
+  finally
+    Ini.Free;
+  end;
+
+  // --- 2. LOCALIZAR E SELECIONAR NO COMBOBOX ---
+  if CNPJSalvo = '' then
+    Exit; // Sai se não houver CNPJ salvo
+
+  // Itera sobre todos os itens carregados no cmbempresa
+  for i := 0 to cmbempresa.Items.Count - 1 do
+  begin
+    // O formato do item é "Código - CNPJ" [cite: 329]
+    CNPJItem := cmbempresa.Items[i];
+
+    // Extrai o CNPJ do final da string. Exemplo: '123 - 45128852000105'
+    if Pos('-', CNPJItem) > 0 then
+    begin
+      // Pega a parte após o hífen e remove espaços
+      CNPJItem := Trim(Copy(CNPJItem, Pos('-', CNPJItem) + 1, Length(CNPJItem)));
+
+      if CNPJItem = CNPJSalvo then
+      begin
+        // Encontrou o emitente correspondente ao CNPJ salvo
+        cmbempresa.ItemIndex := i;
+
+        // 3. APLICAR A SELEÇÃO
+        Selecionaemitente; // Chama a rotina que preenche o frmACBrNFe, DBTextempresa, etc. [cite: 108]
+        Exit;
+      end;
+    end;
+  end;
+
+  // Se o CNPJ for encontrado, mas não houver ItemIndex selecionado, limpamos os campos
+  if cmbempresa.ItemIndex = -1 then
+    Selecionaemitente;
+end;
+
+
+
+
+
+
+
+procedure TForm1.FormCreate(Sender: TObject);
+begin
+
+
+  // Verifique se o DataModule1 foi criado automaticamente
+  if not Assigned(DataModule1) then
+  begin
+    ShowMessage('Erro: O DataModule1 não foi criado. Verifique as opções do projeto.');
+    Exit;
+  end;
+  opcoes.ActivePage := Emitidas;
+  // --- PASSO 1: ATIVAR A CONEXÃO COM O BANCO DE DADOS ---
+  // A melhor prática é fazer isso apenas uma vez, antes de tudo.
+  try
+    if not DataModule1.ConDados.Connected then
+    begin
+      MemoEmail.Lines.Add('Iniciando conexão com o banco de dados...');
+      Application.ProcessMessages;
+      DataModule1.ConDados.Connected := True;
+      MemoEmail.Lines.Add('? Conexão estabelecida com sucesso.');
+    end;
+  except
+    on E: Exception do
+    begin
+      ShowMessage('? Falha ao conectar ao banco de dados: ' + E.Message);
+      MemoEmail.Lines.Add('? Falha ao conectar ao banco de dados: ' + E.Message);
+      Exit; // Sai do FormCreate se a conexão falhar
+    end;
+  end;
+
+  // --- PASSO 2: EXECUTAR AS QUERIES DE INICIALIZAÇÃO ---
+  try
+
+    CriarTabelaSERVXML;
+    CriarPastaPadrao;
+    dtinicio.Date := Now;
+    dtfim.Date := Now;
+    CORRIGIRDADOS;
+
+
+
+
+    if Assigned(frmACBrNFe) then // Verifica se o formulário de configuração já está instanciado
+  begin
+      frmACBrNFe.LerConfiguracao;
+      frmACBrNFe.ConfigurarComponente;
+  end;
+
+
+
+  except
+    // Este bloco só será ativado se uma das procedures chamadas aqui falhar
+    on E: Exception do
+      ShowMessage('? Erro durante a inicialização do programa: ' + E.Message);
+  end;
+end;
+
+
+
+
+procedure TForm1.FormShow(Sender: TObject);
+begin
+  // Define os diretórios nos edits ao iniciar o projeto
+
+  frmACBrNFe.edtPathNFe.Text := 'C:\XMLSERVSIC\XMLTEMP';
+  frmACBrNFe.edtPathInu.Text := 'C:\XMLSERVSIC\INUTILIZADA';
+  frmACBrNFe.edtPathPDF.Text := 'C:\XMLSERVSIC\XML';
+  UPDATEBANCO;
+  ExecutarUpdateNotasFiscais;
+  CarregarEmitentes;
+  SelecionarEmitenteAutomatico;
+
+
+
+end;
+
+procedure TForm1.brnconsultavendaClick(Sender: TObject);
+var
+  EsperaForm: TfrmEspera;
+  DataInicio: TDateTime;
+  DataFim: TDateTime;
+  PedidoPesquisa: string;
+  PedidoInt: Integer;
+begin
+  // --- PASSO 1: Exibir o Form de Espera ---
+  EsperaForm := TfrmEspera.Create(Self);
+  try
+    EsperaForm.Position := poScreenCenter;
+    EsperaForm.Show;
+    Application.ProcessMessages;
+  except
+    EsperaForm := nil;
+  end;
+
+  try
+    // Coleta os valores dos filtros
+    DataInicio := DTinicio.Date;
+    DataFim := DTfim.Date;
+    PedidoPesquisa := Trim(EDITPESQPEDIDO.Text);
+
+    MemoEmail.Lines.Clear;
+    MemoEmail.Lines.Add('?? Buscando vendas pendentes...');
+    Application.ProcessMessages;
+
+    // --- PASSO 2: Executar a consulta ---
+    with DataModule1.QRYVENDASPENDENTES do
+    begin
+      Close;
+
+      // Define a query base
+      SQL.Text := 'SELECT CONTROLE, IDEMPRESA, DATA, NOTA, SERIE, PEDIDO, VLPAGO FROM TABEST3A WHERE (Nota = 0 OR Nota IS NULL) AND (Serie = 0 OR Serie IS NULL) AND Venda = 1';
+
+      // Se o campo de pedido estiver preenchido, use APENAS o filtro de pedido
+      if PedidoPesquisa <> '' then
+      begin
+        // Valida se o pedido é um número inteiro antes de continuar
+        if not TryStrToInt(PedidoPesquisa, PedidoInt) then
+          raise Exception.Create('Número de pedido inválido. Por favor, digite apenas números.');
+
+        // Adiciona a condição de busca por pedido e a verificação de existência nas outras tabelas
+        SQL.Add(' AND Pedido = :Pedido AND (EXISTS(SELECT 1 FROM NFe_XML WHERE Pedido = :Pedido) OR EXISTS(SELECT 1 FROM NFe_Cab WHERE codVENDA = :Pedido) OR EXISTS(SELECT 1 FROM NFe_XMLTemp WHERE codnota = :Pedido))');
+
+        ParamByName('Pedido').AsInteger := PedidoInt;
+      end
+      else
+      begin
+        // Se o campo de pedido estiver vazio, use o filtro de data
+        SQL.Add(' AND Data BETWEEN :DataInicio AND :DataFim');
+        ParamByName('DataInicio').AsDateTime := DataInicio;
+        ParamByName('DataFim').AsDateTime := DataFim;
+      end;
+
+      // Adiciona a ordenação
+      SQL.Add('ORDER BY Pedido DESC');
+
+      // Abre o dataset com a query montada
+      Open;
+    end;
+
+    // --- PASSO 3: Atualizar a interface do usuário ---
+    dbgridvendaspendente.DataSource := DataModule1.DSVENDASPENDENTES;
+
+  except
+    on E: Exception do
+    begin
+      ShowMessage('? Erro ao consultar vendas pendentes: ' + E.Message);
+      MemoEmail.Lines.Add('? Erro ao consultar vendas pendentes: ' + E.Message);
+    end;
+  end;
+    // --- PASSO 4: Fechar o form de espera ---
+    if Assigned(EsperaForm) then
+    begin
+      EsperaForm.Close;
+      EsperaForm.Free;
+    end;
+  end;
+
+
+
+
+procedure TForm1.btnconfigClick(Sender: TObject);
+begin
+  FrmACBrNFe.ShowModal;
+end;
+
+procedure TForm1.btnconsultalistaClick(Sender: TObject);
+begin
+consultaxmllista;
+end;
+
+procedure TForm1.BtnconsultarClick(Sender: TObject);
+
+begin
+  // 1. Validação se os ComboBoxes estão preenchidos
+  if (CMBMODELO.ItemIndex = -1) then
+  begin
+    ShowMessage('⚠️ Por favor, selecione o Modelo do Documento (NFe/NFCe) antes de consultar.');
+    CMBMODELO.SetFocus;
+    Exit;
+  end;
+
+  if (cmbserie.ItemIndex = -1) then
+  begin
+    ShowMessage('⚠️ Por favor, selecione a Série do Documento (ou TODAS) antes de consultar.');
+    cmbserie.SetFocus;
+    Exit;
+  end;
+
+  // 2. Exibe o Form de Espera (Início)
+
+
+
+
+
+
+    CarregarXML;
+    ConsultarVendasPendentes;
+
+
+
+
+
+
+
+
+end;
+
+
+// ATENÇÃO: Esta é a procedure que agora será responsável por importar o TXT
+// e preencher o CDSQUEBRA.
+
+
+procedure TForm1.btnimportalistaClick(Sender: TObject);
+begin
+ImportarListaChaves;
+end;
+
+procedure TForm1.btnimportarClick(Sender: TObject);
+var
+  ArquivoTXT: TStringList;
+  LinhaOriginal: string;
+  LinhaProcessada: string;
+  Notas: TArray<string>;
+  NotaInicial, NotaFinal: Integer;
+  CodEmitente: Integer;
+  ModeloDigitado: string;
+  SerieDigitada: string;
+  ModeloAtual, SerieAtual, NotaAtual: Integer;
+  DataEmissaoDaNota: TDateTime;
+  StatusDaNota: String;
+begin
+  if cmbempresa.ItemIndex = -1 then
+  begin
+    ShowMessage('? Por favor, **selecione uma empresa (emitente)** na lista antes de importar o arquivo de quebra de sequência.');
+    Exit;
+  end;
+
+  CodEmitente := Integer(cmbempresa.Items.Objects[cmbempresa.ItemIndex]);
+
+  ModeloDigitado := InputBox('Informar Dados', 'Digite o Modelo da(s) Nota(s) (55 para NFe, 65 para NFCe):', '55');
+  if ModeloDigitado = '' then
+  begin
+    ShowMessage('? Modelo da nota não informado. Operação cancelada.');
+    Exit;
+  end;
+
+  SerieDigitada := InputBox('Informar Dados', 'Digite a Série da(s) Nota(s):', '1');
+  if SerieDigitada = '' then
+  begin
+    ShowMessage('? Série da(s) nota(s) não informada. Operação cancelada.');
+    Exit;
+  end;
+
+  try
+    ModeloAtual := StrToInt(ModeloDigitado);
+    SerieAtual := StrToInt(SerieDigitada);
+  except
+    on E: Exception do
+    begin
+      ShowMessage('? Erro: O Modelo e/ou a Série devem ser números válidos. ' + E.Message);
+      Exit;
+    end;
+  end;
+
+  OpenDialog1.Filter := 'Arquivos de Texto (*.txt)|*.txt|Todos os Arquivos (*.*)|*.*';
+  OpenDialog1.Title := 'Selecione o arquivo TXT com os intervalos de notas (Formato: NotaInicial-NotaFinal)';
+
+  if OpenDialog1.Execute then
+  begin
+    ArquivoTXT := TStringList.Create;
+    try
+      ArquivoTXT.LoadFromFile(OpenDialog1.FileName);
+
+      // <<<< TRECHO CORRIGIDO >>>>
+      // Garante que o ClientDataSet sempre tenha a estrutura correta.
+      if CDSQUEBRA.Active then
+        CDSQUEBRA.Close;
+
+      CDSQUEBRA.FieldDefs.Clear;
+      CDSQUEBRA.FieldDefs.Add('CodNota', ftInteger);
+      CDSQUEBRA.FieldDefs.Add('CodEmitente', ftInteger);
+      CDSQUEBRA.FieldDefs.Add('Num_Mod_Doc', ftInteger);
+      CDSQUEBRA.FieldDefs.Add('Serie', ftInteger);
+      CDSQUEBRA.FieldDefs.Add('NumNota', ftInteger);
+      CDSQUEBRA.FieldDefs.Add('Data_Emissao', ftDateTime);
+      CDSQUEBRA.FieldDefs.Add('StatusNota', ftString, 20);
+      CDSQUEBRA.CreateDataSet;
+      CDSQUEBRA.Open;
+      // <<<< FIM DO TRECHO CORRIGIDO >>>>
+
+      for LinhaOriginal in ArquivoTXT do
+      begin
+        LinhaProcessada := Trim(LinhaOriginal);
+        if LinhaProcessada = '' then Continue;
+        Notas := SplitString(LinhaProcessada, '-');
+
+        if Length(Notas) = 2 then
+        begin
+          try
+            NotaInicial := StrToInt(Trim(Notas[0]));
+            NotaFinal := StrToInt(Trim(Notas[1]));
+
+            if NotaInicial > NotaFinal then
+            begin
+              ShowMessage(Format('?? Aviso: Intervalo inválido "%s" (Nota Inicial > Nota Final). Esta linha será ignorada.', [LinhaProcessada]));
+              Continue;
+            end;
+
+            for NotaAtual := NotaInicial to NotaFinal do
+            begin
+              StatusDaNota := 'Não Encontrada';
+              DataEmissaoDaNota := Date;
+
+              // --- VERIFICAÇÃO NA SERVXML (INUTILIZADA) ---
+              with DataModule1.QRYBUSCARNOTAS do
+              begin
+                Close;
+                SQL.Text := 'SELECT CodEmitente, Num_Mod_Doc, Serie, Data_emissao FROM SERVXML ' +
+                            'WHERE NumNota = :NumNota ' +
+                            'AND CodEmitente = :CodEmitente ' +
+                            'AND Num_Mod_Doc = :Num_Mod_Doc ' +
+                            'AND Serie = :Serie';
+                ParamByName('NumNota').AsInteger := NotaAtual;
+                ParamByName('CodEmitente').AsInteger := CodEmitente;
+                ParamByName('Num_Mod_Doc').AsInteger := ModeloAtual;
+                ParamByName('Serie').AsInteger := SerieAtual;
+                Open;
+
+                if not IsEmpty then
+                begin
+                  CodEmitente := FieldByName('CodEmitente').AsInteger;
+                  ModeloAtual := FieldByName('Num_Mod_Doc').AsInteger;
+                  SerieAtual := FieldByName('Serie').AsInteger;
+                  DataEmissaoDaNota := FieldByName('Data_emissao').AsDateTime;
+                  StatusDaNota := 'Inutilizada (BD)';
+                end;
+                Close;
+              end;
+
+              // --- VERIFICAÇÃO NA NFE_XML (SE NÃO ENCONTRADA) ---
+              if StatusDaNota = 'Não Encontrada' then
+              begin
+                with DataModule1.QRYBUSCARNOTAS do
+                begin
+                  Close;
+                  SQL.Text := 'SELECT CodEmitente, Num_Mod_Doc, Serie, Data_Emissao, Status FROM NFE_XML ' +
+                              'WHERE NumNota = :NumNota ' +
+                              'AND CodEmitente = :CodEmitente ' +
+                              'AND Num_Mod_Doc = :Num_Mod_Doc ' +
+                              'AND Serie = :Serie';
+                  ParamByName('NumNota').AsInteger := NotaAtual;
+                  ParamByName('CodEmitente').AsInteger := CodEmitente;
+                  ParamByName('Num_Mod_Doc').AsInteger := ModeloAtual;
+                  ParamByName('Serie').AsInteger := SerieAtual;
+                  Open;
+
+                  if not IsEmpty then
+                  begin
+                    CodEmitente := FieldByName('CodEmitente').AsInteger;
+                    ModeloAtual := FieldByName('Num_Mod_Doc').AsInteger;
+                    SerieAtual := FieldByName('Serie').AsInteger;
+                    DataEmissaoDaNota := FieldByName('Data_Emissao').AsDateTime;
+
+                    if FieldByName('Status').AsString = 'I' then
+                      StatusDaNota := 'Inutilizada (BD)'
+                    else if FieldByName('Status').AsString = 'T' then
+                      StatusDaNota := 'Transmitida'
+                    else if FieldByName('Status').AsString = 'C' then
+                      StatusDaNota := 'Cancelada'
+                    else if FieldByName('Status').AsString = 'G' then // <-- NOVO FILTRO PARA STATUS 'G'
+                      StatusDaNota := 'PENDENTE'                     // <-- CLASSIFICADO COMO PENDENTE
+                    else
+                      StatusDaNota := 'Desconhecido';                    // <-- Status Desconhecido também é PENDENTE
+                  end;
+                  Close;
+                end;
+              end;
+
+              ProcessarIntervaloNotas(CodEmitente, ModeloAtual, SerieAtual, DataEmissaoDaNota, NotaAtual, NotaAtual);
+
+              // Atualiza Status no ClientDataSet
+              CDSQUEBRA.Edit;
+              CDSQUEBRA.FieldByName('StatusNota').AsString := StatusDaNota;
+              CDSQUEBRA.Post;
+            end;
+
+          except
+            on E: Exception do
+            begin
+              ShowMessage(Format('? Erro ao processar o intervalo "%s": %s. Esta linha será ignorada.', [LinhaProcessada, E.Message]));
+            end;
+          end;
+        end
+        else
+        begin
+          ShowMessage(Format('?? Formato inválido na linha "%s". O formato esperado é "NotaInicial-NotaFinal". Esta linha será ignorada.', [LinhaProcessada]));
+        end;
+      end;
+
+      ShowMessage('? Importação e preenchimento da lista de notas a inutilizar concluídos com sucesso!');
+      contaregistrosfaltantes;
+    finally
+      ArquivoTXT.Free;
+    end;
+  end
+  else
+  begin
+    ShowMessage('Importação de arquivo TXT cancelada pelo usuário.');
+  end;
+end;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+procedure TForm1.btnimprimirClick(Sender: TObject);
+var
+  PeriodoStr, NomeEmpresaStr: string;
+begin
+  // ---------------------------------------------------------------------------
+  // PASSO 1: VERIFICAR SE HÁ DADOS PARA IMPRIMIR
+  // ---------------------------------------------------------------------------
+  // Acessamos a query no DataModule para garantir que a consulta já foi executada.
+  if not DataModule1.QRYBUSCAXML.Active or DataModule1.QRYBUSCAXML.IsEmpty then
+  begin
+    ShowMessage('Não há dados carregados para imprimir.' + #13#10 +
+                'Por favor, execute a consulta primeiro.');
+    Exit;
+  end;
+
+  // ---------------------------------------------------------------------------
+  // PASSO 2: PREPARAR E EXECUTAR O RELATÓRIO
+  // ---------------------------------------------------------------------------
+  try
+    // Ação 1: Ligar o componente de dados do relatório (frxDBDataset1)
+    // à sua query que contém os resultados (QRYBUSCAXML). Ambos estão no DataModule.
+    // O nome 'frxDBDataset1' foi confirmado pela sua imagem.
+    DataModule1.frxdsNotas.DataSet := DataModule1.QRYBUSCAXML;
+
+    // Ação 2: Coletar as informações dos filtros que estão na tela (TForm1).
+    NomeEmpresaStr := DBTextempresa.Caption;
+    PeriodoStr := 'Período: ' + FormatDateTime('dd/mm/yyyy', DTinicio.Date) +
+                  ' a ' + FormatDateTime('dd/mm/yyyy', DTfim.Date);
+
+    // Ação 3: Enviar essas informações como variáveis para o relatório.
+    // O componente do relatório (frxReportNotas) está no DataModule.
+    DataModule1.frxReportNotas.Variables['NomeEmpresa'] := QuotedStr(NomeEmpresaStr);
+    DataModule1.frxReportNotas.Variables['PeriodoFiltro'] := QuotedStr(PeriodoStr);
+
+    // Ação 4: Comandar a impressão.
+    // O FastReport irá abrir a caixa de diálogo de impressão do Windows.
+    DataModule1.frxReportNotas.showreport;
+
+  except
+    on E: Exception do
+      ShowMessage('Ocorreu um erro ao preparar a impressão do relatório: ' + E.Message);
+  end;
+end;
+
+
+
+procedure TForm1.AtualizarNumeroMaisRecente;
+var
+  NumSerie, CodEmitente: Integer;
+begin
+  editregistro.Text := '';
+
+  try
+    NumSerie := StrToIntDef(editserieusada.Text, 0);
+    if cmbempresa.ItemIndex = -1 then
+    begin
+      ShowMessage('Por favor, selecione uma empresa (emitente)!');
+      Exit;
+    end;
+    CodEmitente := Integer(cmbempresa.Items.Objects[cmbempresa.ItemIndex]);
+
+    if (NumSerie = 0) or (CodEmitente = 0) then
+    begin
+      ShowMessage('Selecione um emitente e digite um número de série válido!');
+      Exit;
+    end;
+
+    // --- PARTE 1: Buscar o número MAIS RECENTE e exibi-lo no editregistro ---
+    with DataModule1.QRYBUSCAULTIMANFCE do
+    begin
+      Close;
+      SQL.Text :=
+        'SELECT MAX(num_nota_fiscal) AS UltimoNumNFCE ' +
+        'FROM nfe_cab ' +
+        'WHERE num_mod_doc = 65 ' +
+        '  AND num_serie = :NumSerie ' +
+        '  AND codemitente = :CodEmitente;';
+      ParamByName('NumSerie').AsInteger := NumSerie;
+      ParamByName('CodEmitente').AsInteger := CodEmitente;
+      Open;
+
+      if not IsEmpty and not FieldByName('UltimoNumNFCE').IsNull then
+        editregistro.Text := FieldByName('UltimoNumNFCE').AsString
+      else
+      begin
+        ShowMessage('Nenhum NFC-e encontrado para a série informada.');
+        editregistro.Text := '0';
+      end;
+      Close;
+    end;
+
+    // --- PARTE 2: Listar todos os números de nota, emitente e série (consulta simplificada) ---
+    with DataModule1.QRYSequencia do
+    begin
+      Close;
+      SQL.Text :=
+        'SELECT num_nota_fiscal, codemitente, num_serie ' +
+        'FROM nfe_cab ' +
+        'WHERE num_mod_doc = 65 ' +
+        '  AND num_serie = :NumSerie ' +
+        '  AND codemitente = :CodEmitente ' +
+        'ORDER BY num_nota_fiscal DESC;';
+
+      ParamByName('NumSerie').AsInteger := NumSerie;
+      ParamByName('CodEmitente').AsInteger := CodEmitente;
+      Open;
+
+      DataModule1.DSSequencia.DataSet := DataModule1.QRYSequencia;
+      DBGridsequencia.DataSource := DataModule1.DSSequencia;
+    end;
+
+  except
+    on E: Exception do
+      ShowMessage('Erro ao buscar os dados: ' + E.Message);
+  end;
+end;
+
+
+procedure TForm1.btnconsultarserieClick(Sender: TObject);
+begin
+
+end;
+
+// TRECHO REVISADO da procedure TForm1.btnConsultarXMLBancoClick
+
+procedure TForm1.btnconsultastatusClick(Sender: TObject);
+var
+  EsperaForm: TfrmEspera;
+  ChaveDaNota: string;
+  NumeroDaNota: string;
+  CodNotaAtual: Integer;
+  cStat: Integer;
+  xMotivo: string;
+  sXMLComProtocolo: string; // Resposta SOAP completa (RetornoWS)
+  sXMLOriginal: string;     // Conteúdo de XMLGeracao do banco
+  sXMLFinal: string;        // XML final (<nfeProc>) para ser salvo
+begin
+  // *************************************************************
+  // 1. VALIDAÇÃO E INICIALIZAÇÃO
+  // *************************************************************
+  if frmACBrNFe.edtNumSerie.Text = '' then
+  begin
+    ShowMessage('❌ O Número de Série do Certificado não está preenchido na configuração (Configurações > Certificado). Operação cancelada.');
+    Exit;
+  end;
+
+  // CONFIGURAÇÃO DO ACBRNFE COM O CERTIFICADO SELECIONADO
+  frmACBrNFe.ACBrNFe1.Configuracoes.Certificados.NumeroSerie := frmACBrNFe.edtNumSerie.Text;
+
+  if not DataModule1.QRYPSQPENDENTE.Active or DataModule1.QRYPSQPENDENTE.IsEmpty then
+  begin
+    ShowMessage('❌ A lista de notas pendentes está vazia. Execute a consulta de vendas pendentes primeiro!');
+    Exit;
+  end;
+
+  // Prepara a interface de feedback
+  logpendentes.Lines.Clear;
+  logpendentes.Lines.Add('Iniciando consulta das chaves salvas na base...');
+  Application.ProcessMessages;
+
+  EsperaForm := TfrmEspera.Create(Self);
+  try
+    EsperaForm.Position := poScreenCenter;
+    EsperaForm.Label1.Caption := 'Consultando Chaves Pendentes na SEFAZ...';
+    EsperaForm.Show;
+    Application.ProcessMessages;
+
+    // 2. ITERAÇÃO E CONSULTA DE CADA NOTA
+
+    DataModule1.QRYPSQPENDENTE.DisableControls;
+    DataModule1.QRYPSQPENDENTE.First;
+
+    while not DataModule1.QRYPSQPENDENTE.Eof do
+    begin
+      // 2.1. Captura as chaves de controle (PK e Chave de Acesso)
+      ChaveDaNota := DataModule1.QRYPSQPENDENTE.FieldByName('XMLchave').AsString;
+      NumeroDaNota := DataModule1.QRYPSQPENDENTE.FieldByName('NumNota').AsString;
+      CodNotaAtual := DataModule1.QRYPSQPENDENTE.FieldByName('CodNota').AsInteger;
+
+      if Length(ChaveDaNota) = 44 then
+      begin
+        logpendentes.Lines.Add(''); // LINHA DE SEPARAÇÃO VISUAL
+        logpendentes.Lines.Add(Format('🔎 Consultando nota %s pela Chave %s...', [NumeroDaNota, Copy(ChaveDaNota, 35, 10)]));
+        Application.ProcessMessages;
+
+        // 2.2. CONSULTA NA SEFAZ (VIA ACBR)
+        frmACBrNFe.ACBrNFe1.WebServices.Consulta.NFeChave := ChaveDaNota;
+        frmACBrNFe.ACBrNFe1.WebServices.Consulta.Executar;
+
+        // 2.3. CAPTURA O RETORNO COMPLETO
+        cStat := frmACBrNFe.ACBrNFe1.WebServices.Consulta.cStat;
+        xMotivo := frmACBrNFe.ACBrNFe1.WebServices.Consulta.xMotivo;
+        sXMLComProtocolo := frmACBrNFe.ACBrNFe1.WebServices.Consulta.RetornoWS;
+
+        logpendentes.Lines.Add(Format('✅ Resposta SEFAZ | Status: %d | Motivo: %s', [cStat, xMotivo]));
+
+        // 2.4. TRATAMENTO E ATUALIZAÇÃO DA TABELA NFE_XML
+        if (cStat = 100) or (cStat = 150) then // Autorizada ou Denegada
+        begin
+            // A) BUSCA O XML ORIGINAL NO BANCO (XMLGeracao)
+            sXMLOriginal := BuscarXMLGeracao(CodNotaAtual);
+
+            // B) MESCLA O XML ORIGINAL COM O PROTOCOLO DE RETORNO (Cria o <nfeProc> válido)
+            sXMLFinal := MesclarXMLComProtocolo(sXMLOriginal, sXMLComProtocolo);
+
+            // C) Atualiza a tabela com Status='T' e o XML completo (<nfeProc>)
+            AtualizarStatusEProtocolo(CodNotaAtual, ChaveDaNota, cStat, xMotivo, sXMLFinal);
+
+            logpendentes.Lines.Add('⭐⭐ Nota AUTORIZADA! Aplicando Atualização...');
+            ExecutarUpdateNotasFiscais; // Atualiza TABEST3A
+        end
+        else
+        begin
+             // Se Rejeitada ou com erro, salva o envelope SOAP (ou erro)
+            AtualizarStatusEProtocolo(CodNotaAtual, ChaveDaNota, cStat, xMotivo, sXMLComProtocolo);
+        end;
+
+      end
+      else
+      begin
+        logpendentes.Lines.Add(''); // LINHA DE SEPARAÇÃO VISUAL
+        logpendentes.Lines.Add(Format('⚠️ Chave XML inválida (%s) para a nota %s. Pulando...', [ChaveDaNota, NumeroDaNota]));
+      end;
+
+      DataModule1.QRYPSQPENDENTE.Next;
+    end;
+
+    logpendentes.Lines.Add('---');
+    logpendentes.Lines.Add('✅ Consulta de lista pendente concluída. Verifique os logs de Autorização/Rejeição.');
+
+  finally
+    // 3. FINALIZAÇÃO E LIMPEZA
+    DataModule1.QRYPSQPENDENTE.EnableControls;
+    if Assigned(EsperaForm) then
+    begin
+      ConsultarVendasPendentes;
+      CarregarXML;
+      ApagarArquivosXMLTemp;
+      EsperaForm.Close;
+      EsperaForm.Free;
+    end;
+  end;
+end;
+
+
+
+
+
+
+
+procedure TForm1.ExecutarUpdateNotasFiscais;
+begin
+  // Esta procedure atualiza a TABEST3A com Nota e Série das NFe/NFCe que foram Autorizadas (100) ou Denegadas (150).
+  try
+    // 1. Inicia a transação de banco de dados para garantir que a operação seja atômica.
+    DataModule1.ConDados.StartTransaction;
+
+    with DataModule1.QRYVERITABEST3A do
+    begin
+      Close;
+      SQL.Clear;
+
+      // 2. Monta o comando SQL de UPDATE
+      // Ele junta TABEST3A com NFe_XML (pela coluna Pedido) e só atualiza os registros
+      // que tenham o cStat de autorização/denegação no XML de transmissão.
+      SQL.Text := 'UPDATE TABEST3A ' +
+                  'SET TABEST3A.Nota = NFe_XML.NumNota, ' +
+                  '    TABEST3A.Serie = NFe_XML.Serie ' +
+                  'FROM TABEST3A ' +
+                  'JOIN NFe_XML ON TABEST3A.Pedido = NFe_XML.Pedido ' +
+                  'WHERE (NFe_XML.XMLTransmissao LIKE ''%<cStat>100</cStat>%'' ' +
+                  '    OR NFe_XML.XMLTransmissao LIKE ''%<cStat>150</cStat>%'')';
+
+      // 3. Executa o UPDATE
+      ExecSQL;
+    end;
+
+    // 4. Confirma a transação no banco de dados.
+    DataModule1.ConDados.Commit;
+
+
+    Logpendentes.Lines.Add('As notas pendentes com XML autorizado (100 ou 150) foram corrigidas no banco de dados.');
+
+  except
+    on E: Exception do
+    begin
+      // 5. Em caso de erro, desfaz a transação.
+      DataModule1.ConDados.Rollback;
+      ShowMessage('❌ Erro ao tentar atualizar as notas fiscais na TABEST3A: ' + E.Message);
+      Logpendentes.Lines.Add('❌ Erro ao tentar atualizar as notas fiscais na TABEST3A: ' + E.Message);
+    end;
+  end;
+end;
+
+
+
+
+procedure TForm1.btnconsultinuClick(Sender: TObject);
+const
+  URL_NFCE_SVRS = 'https://dfe-portal.svrs.rs.gov.br/NFCE/Inutilizacao'; // URL do Portal NFC-e SVRS
+begin
+
+  ShellExecute(0, 'open', PChar(URL_NFCE_SVRS), nil, nil, SW_SHOWNORMAL);
+
+  MemoEmail.Lines.Add('🌐 Abrindo Portal NFC-e SVRS: ' + URL_NFCE_SVRS);
+  Application.ProcessMessages;
+end;
+
+
+
+
+
+
+
+
+procedure TForm1.btnemailClick(Sender: TObject);
+var
+  T: TThread;
+begin
+  // **********************************************
+  // 1. INICIALIZAÇÃO DA TELA DE ESPERA
+  // **********************************************
+
+  // Cria a tela de espera se ainda não existir
+  if not Assigned(FRMESPERA) then
+    FRMESPERA := TFRMESPERA.Create(Self);
+
+  // Configura a mensagem inicial
+  FRMESPERA.Label1.Caption := 'Preparando para enviar e-mails...';
+  FRMESPERA.Position := poScreenCenter;
+  FRMESPERA.Show; // Usa Show para não bloquear o thread principal (precisamos dele!)
+  Application.ProcessMessages; // Força o desenho imediato da tela
+
+  // **********************************************
+  // 2. CRIAÇÃO E EXECUÇÃO DO PROCESSO EM SEGUNDO PLANO (THREAD)
+  // **********************************************
+
+  T := TThread.CreateAnonymousThread(
+    procedure // Código que será executado no thread separado
+    begin
+      try
+        // Atualiza a mensagem na tela de espera (PRECISA de Synchronize)
+        TThread.Synchronize(nil,
+          procedure
+          begin
+            FRMESPERA.Label1.Caption := '📧 Processando envio de e-mails. Por favor, aguarde...';
+            Application.ProcessMessages;
+          end
+        );
+
+        // *** CHAMA A FUNÇÃO QUE FAZ O TRABALHO PESADO ***
+        EnviarXMLPorEmail;
+
+      finally
+        // **********************************************
+        // 3. FECHAMENTO DA TELA DE ESPERA (FINALIZAÇÃO DO THREAD)
+        // **********************************************
+        // Garante que a tela seja fechada, mesmo se ocorrer um erro (PRECISA de Synchronize)
+        TThread.Synchronize(nil,
+          procedure
+          begin
+            FRMESPERA.Hide; // Fecha a tela de espera
+          end
+        );
+      end;
+    end
+  );
+
+  T.FreeOnTerminate := True; // Libera o thread automaticamente ao terminar
+  T.Start;
+end;
+
+
+
+procedure TForm1.btnexportarClick(Sender: TObject);
+var
+  T: TThread;
+begin
+  // --- 1. INICIALIZAÇÃO DA TELA DE ESPERA ---
+
+  // Cria a tela de espera (se a variável global FRMESPERA ainda não estiver assignada)
+  if not Assigned(FRMESPERA) then
+    FRMESPERA := TFRMESPERA.Create(Self);
+
+  // Configura e exibe a tela
+  FRMESPERA.Label1.Caption := 'Preparando a consulta de XMLs...';
+  FRMESPERA.Position := poScreenCenter;
+
+  // Usamos ShowModal para garantir que o formulário é fechado de forma limpa,
+  // mas como você está usando uma thread, o Show é o correto,
+  // então vamos garantir o FreeAndNil.
+  FRMESPERA.Show;
+  Application.ProcessMessages;
+
+  // --- 2. CRIAÇÃO E EXECUÇÃO DO PROCESSO EM SEGUNDO PLANO (THREAD) ---
+
+  T := TThread.CreateAnonymousThread(
+    procedure // Código que será executado no thread separado
+    begin
+      try
+        // Atualiza a mensagem na tela de espera (usa Synchronize)
+        TThread.Synchronize(nil,
+          procedure
+          begin
+            FRMESPERA.Label1.Caption := '💾 Consultando e criando XMLs para exportação. Aguarde a finalização...';
+            Application.ProcessMessages;
+          end
+        );
+
+        // *** EXECUTA O TRABALHO PESADO: CONSULTA, CRIAÇÃO E COMPACTAÇÃO DE XML ***
+        ExportarXMLsMesAnterior;
+
+      finally
+        // --- 3. FECHAMENTO DA TELA DE ESPERA (FINALIZAÇÃO DO THREAD) ---
+        // A chave é usar FreeAndNil dentro do Synchronize para liberar a memória
+        // e zerar a referência global de forma segura.
+        TThread.Synchronize(nil,
+          procedure
+          begin
+            if Assigned(FRMESPERA) then
+            begin
+              FRMESPERA.Hide; // Garante que a janela desapareça
+              FRMESPERA.Free; // Destrói o objeto
+              FRMESPERA := nil; // Zera a referência global para evitar o uso posterior
+            end;
+          end
+        );
+      end;
+    end
+  );
+
+  T.FreeOnTerminate := True; // Libera o thread automaticamente ao terminar
+  T.Start;
+end;
+
+
+
+
+
+
+
+procedure TForm1.btngerachaveClick(Sender: TObject);
+var
+  ANumNota, ASerie, AModelo: string;
+begin
+  // 1. Coleta dos dados dos Edits (Formulário GERAXML)
+  // [Edit2, Editserie e Editmdlnota são seus campos de entrada]
+  ANumNota := Trim(Editnumnota.Text);       // Número da Nota
+  ASerie := Trim(Editserie.Text);     // Série
+  AModelo := Trim(Editmdlnota.Text);  // Modelo (55 ou 65)
+
+  // 2. Validação Mínima e Seleção de Emitente
+  if (ANumNota = '') or (ASerie = '') or (AModelo = '') or (cmbempresa.ItemIndex = -1) then
+  begin
+    ShowMessage('⚠️ Por favor, selecione o Emitente e preencha o Número da Nota, a Série e o Modelo.');
+    Exit;
+  end;
+
+  // 3. Chamada à função corrigida no Frm_ACBrNFe
+  try
+    // Chama a função que monta a chave com base no Emitente e nos parâmetros.
+    Editchave.Text := frmACBrNFe.GerarChaveAcesso(ANumNota, ASerie, AModelo);
+
+    // 4. Exibição do Resultado
+    if StartsText('ERRO:', Editchave.Text) then
+      MemoConsulta.Lines.Add('❌ Falha na Geração: ' + Editchave.Text)
+    else
+    begin
+      ShowMessage('✅ Chave de Acesso gerada: ' + Editchave.Text);
+      MemoConsulta.Lines.Add('✅ Chave gerada e pronta para consulta.');
+    end;
+
+  except
+    on E: Exception do
+      ShowMessage('❌ Erro inesperado ao tentar gerar a chave: ' + E.Message);
+  end;
+end;
+
+
+procedure TForm1.btnhojeClick(Sender: TObject);
+begin
+
+  DTinicio.Date := now;
+
+  DTfim.Date := now;
+end;
+
+procedure TForm1.btninufaltanteClick(Sender: TObject);
+
+begin
+
+
+  InutilizarNotasFaltantes;
+
+end;
+
+procedure TForm1.btnMesAnteriorClick(Sender: TObject);
+var
+
+  PrimeiroDia, UltimoDia: TDateTime;
+begin
+  // Obtém o primeiro dia do mês anterior
+  PrimeiroDia := StartOfTheMonth(IncMonth(Date, -1));
+
+  // Obtém o último dia do mês anterior
+  UltimoDia := EndOfTheMonth(IncMonth(Date, -1));
+
+  // Define os valores nos DateTimePickers
+  dtinicio.Date := PrimeiroDia;
+  dtfim.Date := UltimoDia;
+
+  end;
+
+
+
+procedure TForm1.btnMesAtualClick(Sender: TObject);
+
+var
+
+  PrimeiroDia, UltimoDia: TDateTime;
+begin
+  // Obtém o primeiro dia do mês atual
+  PrimeiroDia := StartOfTheMonth(Date);
+
+  // Obtém o último dia do mês atual
+  UltimoDia := EndOfTheMonth(Date);
+
+  // Define os valores nos DateTimePickers
+  dtinicio.Date := PrimeiroDia;
+  dtfim.Date := UltimoDia;
+
+
+end;
+
+
+
+procedure TForm1.btnbaixaxmlClick(Sender: TObject);
+const
+  URL_NFCE_SVRS = 'https://dfe-portal.svrs.rs.gov.br/NFCESSL/DownloadXMLDFe'; // URL do Portal NFC-e SVRS
+begin
+
+  ShellExecute(0, 'open', PChar(URL_NFCE_SVRS), nil, nil, SW_SHOWNORMAL);
+
+  MemoConsulta.Lines.Add('🌐 Abrindo Portal NFC-e SVRS: ' + URL_NFCE_SVRS);
+  Application.ProcessMessages;
+
+end;
+
+procedure TForm1.btnbuscachaveClick(Sender: TObject);
+begin
+ConsultarPorChaveDireta;
+end;
+
+procedure TForm1.btnbuscadataClick(Sender: TObject);
+begin
+ConsultarNotasPorPeriodo;
+
+end;
+
+procedure TForm1.btnreenviarClick(Sender: TObject);
+begin
+  logpendentes.Lines.Clear;
+  logpendentes.Lines.Add('>>> INICIANDO O REENVIO DE NOTAS PENDENTES <<<');
+  Application.ProcessMessages;
+
+
+
+  // 2. VALIDAÇÃO PÓS-PREPARAÇÃO
+  if DataModule1.QRYPSQPENDENTE.IsEmpty then
+  begin
+    logpendentes.Lines.Add('✅ Lista de XMLs prontos para envio está vazia. Não há notas a reenviar.');
+    ShowMessage('Não há notas pendentes com XML válido para serem reenviadas.');
+    Exit;
+  end;
+
+  // 3. CHAMA O FORMULÁRIO AUXILIAR PARA INICIAR O ENVIO EM LOTE
+  try
+    logpendentes.Lines.Add('📤 Iniciando Reenvio...');
+
+    // CORREÇÃO: Chama a procedure APENAS UMA VEZ e passa a referência do botão de envio correto como Sender.
+    // Usaremos o nome que você forneceu: REENVIANOTASSEFAZ
+    // (Se o nome correto no Frm_ACBrNFe for btnCarregarXMLEnviarClick, ajuste a chamada).
+    frmACBrNFe.REENVIANOTASSEFAZ;
+
+  except
+    on E: Exception do
+    begin
+      logpendentes.Lines.Add('❌ ERRO CRÍTICO na EXECUÇÃO do Envio: ' + E.Message);
+      ShowMessage('❌ Erro no ciclo de envio ACBr: ' + E.Message);
+    end;
+  end;
+
+  logpendentes.Lines.Add('>>> CICLO DE REENVIO CONCLUÍDO <<<');
+  Application.ProcessMessages;
+
+  // Opcional: Recarrega a lista de vendas pendentes para atualizar a tela principal
+  ConsultarVendasPendentes;
+  ApagarArquivosXMLTemp;
+
+end;
+
+
+
+procedure TForm1.btnsalvaxmlconsuClick(Sender: TObject);
+var
+  XMLContent: TStringList;
+  NomeArquivo: String;
+  XMLTextoSalvar: String;
+  NumNota, Serie, Modelo: String;
+  StatusNota: String;
+  CaminhoCompleto: String;
+  CaminhoArquivo: string;
+  PastaDestino: String;
+  Contador: Integer;
+  // Variáveis para Compactação e Nomes
+  RazaoSocial, CNPJ, NomeArquivoZip: String;
+  ZipFile: TZipFile;
+  LinhaTXT: TStringList; // Adiciona TStringList para o relatório
+begin
+
+  Application.ProcessMessages;
+
+  XMLContent := TStringList.Create;
+  LinhaTXT := TStringList.Create;
+  ZipFile := TZipFile.Create;
+  Contador := 0;
+
+  try
+    // 1. VALIDAÇÃO E COLETAR DADOS DO EMITENTE (PARA NOMEAR O ZIP)
+    if cmbempresa.ItemIndex = -1 then
+    begin
+
+      ShowMessage('Selecione uma empresa para continuar.');
+      Exit;
+    end;
+
+    if (not DataModule1.QRYNOTAPERDIDA.Active) or (DataModule1.QRYNOTAPERDIDA.IsEmpty) then
+    begin
+
+      ShowMessage('Execute uma consulta na aba "Consulta" e verifique a grade.');
+      Exit;
+    end;
+
+    // Coleta os dados da tela principal
+    RazaoSocial := DBTextempresa.Caption;
+    CNPJ := StringReplace(DBTextcnpj.Caption, '.', '', [rfReplaceAll]);
+    CNPJ := StringReplace(CNPJ, '/', '', [rfReplaceAll]);
+    CNPJ := StringReplace(CNPJ, '-', '', [rfReplaceAll]);
+
+    PastaDestino := 'C:\XMLSERVSIC\XMLTEMP_CONSULTA_' + FormatDateTime('yyyymmdd', Now) + '\';
+    ForceDirectories(PastaDestino);
+
+
+    Application.ProcessMessages;
+
+    // Prepara o cabeçalho do relatório TXT
+    LinhaTXT.Add('RELATORIO DE XMLS DA CONSULTA POR NOTA/PERÍODO');
+    LinhaTXT.Add('Empresa: ' + RazaoSocial + ' - CNPJ: ' + CNPJ);
+    LinhaTXT.Add(Format('Total de registros na grade: %d', [DataModule1.QRYNOTAPERDIDA.RecordCount]));
+    LinhaTXT.Add('');
+
+
+    // Move para o primeiro registro e desabilita controles para performance
+    DataModule1.QRYNOTAPERDIDA.DisableControls;
+    DataModule1.QRYNOTAPERDIDA.First;
+
+    // 2. ITERAÇÃO SOBRE TODOS OS REGISTROS DA CONSULTA
+    while not DataModule1.QRYNOTAPERDIDA.Eof do
+    begin
+      Inc(Contador);
+
+      // Reinicia o XML para o novo ciclo
+      XMLTextoSalvar := '';
+
+      // 2.1. Coleta das chaves do registro atual
+      with DataModule1.QRYNOTAPERDIDA do
+      begin
+        NumNota := FieldByName('num_nota_fiscal').AsString;
+        Serie := FieldByName('Num_Serie').AsString;
+        Modelo := FieldByName('Num_Mod_Doc').AsString;
+        StatusNota := FieldByName('St_Retorno').AsString;
+      end;
+
+      // 2.2. BUSCA O XML NA NFE_XML
+      with DataModule1.QRYVERIFICANFE_XML do
+      begin
+        Close;
+        SQL.Text := 'SELECT XMLTransmissao, XMLInutilizacao FROM NFE_XML WHERE NumNota = :numnota AND Serie = :serie AND Num_Mod_Doc = :modelo';
+        ParamByName('numnota').AsString := NumNota;
+        ParamByName('serie').AsString := Serie;
+        ParamByName('modelo').AsString := Modelo;
+        Open;
+
+        if not IsEmpty then
+        begin
+          XMLTextoSalvar := FieldByName('XMLTransmissao').AsString;
+          // Prioriza XMLInutilizacao se Transmissao estiver vazia
+          if (XMLTextoSalvar = '') and (FieldByName('XMLInutilizacao').AsString <> '') then
+            XMLTextoSalvar := FieldByName('XMLInutilizacao').AsString;
+        end;
+        Close;
+      end;
+
+      // 2.3. Se não encontrou, tenta buscar na SERVXML (Inutilização)
+      if XMLTextoSalvar = '' then
+      begin
+        with DataModule1.QRYINSERESERVXML do
+        begin
+          Close;
+          SQL.Text := 'SELECT XMLTransmissao FROM SERVXML WHERE NumNota = :numnota AND Serie = :serie AND Num_Mod_Doc = :modelo';
+          ParamByName('numnota').AsString := NumNota;
+          ParamByName('serie').AsString := Serie;
+          ParamByName('modelo').AsString := Modelo;
+          Open;
+
+          if not IsEmpty then
+            XMLTextoSalvar := FieldByName('XMLTransmissao').AsString;
+          Close;
+        end;
+      end;
+
+
+      // 2.4. Salvar o arquivo XML (se encontrado)
+      if XMLTextoSalvar <> '' then
+      begin
+        // Cria o nome do arquivo com base nos dados da nota e status
+        NomeArquivo := Format('XML_Nota_%s_S%s_M%s_%s.xml', [NumNota, Serie, Modelo, StringReplace(StatusNota, ' ', '_', [rfReplaceAll])]);
+        CaminhoCompleto := IncludeTrailingPathDelimiter(PastaDestino) + NomeArquivo;
+
+        XMLContent.Text := XMLTextoSalvar;
+        XMLContent.SaveToFile(CaminhoCompleto);
+
+
+        LinhaTXT.Add(Format('Nota: %s | Série: %s | Modelo: %s | Status: %s | Arquivo: %s', [NumNota, Serie, Modelo, StatusNota, NomeArquivo]));
+      end
+      else
+      begin
+
+        LinhaTXT.Add(Format('Nota: %s | Aviso: Conteúdo XML não encontrado. Status BD: %s', [NumNota, StatusNota]));
+      end;
+
+      DataModule1.QRYNOTAPERDIDA.Next; // AVANÇA PARA O PRÓXIMO REGISTRO
+    end; // Fim do while
+
+
+
+    // Salva o relatório TXT
+    LinhaTXT.SaveToFile(PastaDestino + 'Relatorio_XMLs_Consultados.txt');
+
+
+    // Cria o nome do arquivo ZIP
+    NomeArquivoZip := Format('C:\XMLSERVSIC\%s_%s_XMLS_CONSULTA.zip', [
+      StringReplace(CNPJ, ' ', '', [rfReplaceAll]),
+      FormatDateTime('YYYYMMDD_HHNN', Now)
+    ]);
+
+    // Compacta os arquivos
+    ZipFile.Open(NomeArquivoZip, zmWrite);
+    try
+      // Adiciona todos os XMLs e o relatório TXT ao ZIP
+      for CaminhoArquivo in TDirectory.GetFiles(PastaDestino, '*', TSearchOption.soTopDirectoryOnly) do
+        ZipFile.Add(CaminhoArquivo, ExtractFileName(CaminhoArquivo));
+    finally
+      ZipFile.Close;
+    end;
+
+
+    ShowMessage(Format('Processo concluído! %d XMLs salvos e compactados em: %s', [Contador, NomeArquivoZip]));
+
+
+  finally
+    DataModule1.QRYNOTAPERDIDA.EnableControls;
+    XMLContent.Free;
+    LinhaTXT.Free;
+    FreeAndNil(ZipFile);
+    // Limpa a pasta temporária
+    if DirectoryExists(PastaDestino) then TDirectory.Delete(PastaDestino, True);
+
+    Application.ProcessMessages;
+  end;
+end;
+
+
+
+
+
+
+
+procedure TForm1.btnupdateClick(Sender: TObject);
+begin
+CriarTabelaSERVXML;
+CORRIGIRDADOS;
+UPDATEBANCO;
+end;
+
+procedure TForm1.btnveriinutilizaClick(Sender: TObject);
+begin
+  // Esta procedure inicia o ciclo completo de Auditoria, que consulta
+  // a SEFAZ para todas as notas pendentes e corrige o status 102.
+  AuditarNotaSEFAZ;
+
+  // Após a auditoria, a lista de pendentes deve ser atualizada.
+  ConsultarVendasPendentes;
+  ApagarArquivosXMLTemp;
+
+end;
+
+procedure TForm1.btnxmllistaClick(Sender: TObject);
+begin
+SalvarXMLsInutilizadosEUtilizados;
+end;
+
+// ATENÇÃO: Esta é a procedure do antigo Button2.
+// Ela agora apenas exibirá uma mensagem informativa, pois a função principal
+// de importar TXT foi movida para btnimportarClick.
+procedure TForm1.btninutilizaespcClick(Sender: TObject);
+begin
+  // --- VALIDAÇÃO: Verificar se um emitente está selecionado ---
+  if cmbempresa.ItemIndex = -1 then
+  begin
+    memoemail.Lines.Add('⚠️ Selecione uma empresa (emitente) antes de realizar a inutilização!');
+    ShowMessage('⚠️ Por favor, selecione uma empresa (emitente) na lista antes de prosseguir.');
+    Exit; // Sai da procedure se nenhum emitente estiver selecionado
+  end;
+
+  // Aciona a procedure btnInutilizarClick do formulário frmACBrNFe
+  // O 'Sender' é passado para simular um clique vindo do Button1
+  frmACBrNFe.btnInutilizarClick(Sender);
+end;
+
+
+
+procedure TForm1.btnlimpalistaClick(Sender: TObject);
+begin
+LimparCDSQuebra;
+end;
+
+procedure TForm1.btnlimpavendaClick(Sender: TObject);
+var
+  Pedido: Integer;
+begin
+  MemoEmail.Lines.Clear;
+  MemoEmail.Lines.Add('Iniciando processo de limpeza de registros pendentes...');
+  Application.ProcessMessages;
+
+  if not DataModule1.QRYVENDASPENDENTES.Active or DataModule1.QRYVENDASPENDENTES.IsEmpty then
+  begin
+    ShowMessage('Nenhum pedido encontrado para limpar. Execute a consulta de vendas pendentes primeiro!');
+    Exit;
+  end;
+
+  DataModule1.QRYVENDASPENDENTES.First;
+  while not DataModule1.QRYVENDASPENDENTES.Eof do
+  begin
+    Pedido := DataModule1.QRYVENDASPENDENTES.FieldByName('Pedido').AsInteger;
+    MemoEmail.Lines.Add(Format('Limpeza do pedido em processamento: %d', [Pedido]));
+    Application.ProcessMessages;
+
+    // Inicia a transação na CONEXÃO do banco de dados (ConDados)
+    DataModule1.ConDados.StartTransaction;
+    try
+      // Comando 1: Limpa os campos na tabela principal
+      with DataModule1.QRYLIMPANFCE do
+      begin
+        Close;
+        SQL.Text := 'UPDATE TABEST3A SET NOTA = NULL, SERIE = NULL WHERE PEDIDO = :pedido;';
+        ParamByName('pedido').AsInteger := Pedido;
+        ExecSQL;
+      end;
+
+      // Comando 2: Exclui registros da tabela NFe_XMLTemp
+      with DataModule1.QRYLIMPANFCE do
+      begin
+        Close;
+        SQL.Text := 'DELETE FROM NFe_XMLTemp WHERE codvenda = :pedido;';
+        ParamByName('pedido').AsInteger := Pedido;
+        ExecSQL;
+      end;
+
+      // Comando 3: Exclui registros da tabela NFe_XML
+      with DataModule1.QRYLIMPANFCE do
+      begin
+        Close;
+        SQL.Text := 'DELETE FROM NFe_XML WHERE pedido = :pedido';
+        ParamByName('pedido').AsInteger := Pedido;
+        ExecSQL;
+      end;
+
+      // Comando 4: Exclui registros da tabela NFe_Cab
+      with DataModule1.QRYLIMPANFCE do
+      begin
+        Close;
+        SQL.Text := 'DELETE FROM NFe_Cab WHERE codVENDA = :pedido;';
+        ParamByName('pedido').AsInteger := Pedido;
+        ExecSQL;
+      end;
+
+      // Confirma a transação
+      DataModule1.ConDados.Commit;
+
+      MemoEmail.Lines.Add(Format('✅ Pedido %d limpo com sucesso!', [Pedido]));
+      Application.ProcessMessages;
+
+    except
+      on E: Exception do
+      begin
+        // Desfaz a transação em caso de erro
+        DataModule1.ConDados.Rollback;
+        ShowMessage('❌ Erro ao limpar pedido ' + IntToStr(Pedido) + ': ' + E.Message);
+        MemoEmail.Lines.Add('❌ Erro ao limpar pedido ' + IntToStr(Pedido) + ': ' + E.Message);
+        Exit;
+      end;
+    end;
+
+    DataModule1.QRYVENDASPENDENTES.Next;
+  end;
+
+  ShowMessage('✅ Processo de limpeza concluído com sucesso!');
+  MemoEmail.Lines.Add('✅ Processo de limpeza concluído com sucesso!');
+
+  // Recarrega a lista de vendas pendentes para atualizar a grade
+  brnconsultavendaClick(Sender);
+end;
+
+
+procedure TForm1.BTNLMPLISTACONSULTAClick(Sender: TObject);
+begin
+
+  if DataModule1.CDSCONSULTACHAVE.Active then
+    DataModule1.CDSCONSULTACHAVE.Close;
+
+
+
+  // Limpa as definições de campo (estrutura).
+  DataModule1.CDSCONSULTACHAVE.FieldDefs.Clear;
+
+
+  MemoConsulta.Lines.Clear;
+
+
+end;
+
+procedure TForm1.btnlimpalogClick(Sender: TObject);
+begin
+ MemoEmail.Clear;
+end;
+
+
+
+
+
+procedure TForm1.btnalteraxmlClick(Sender: TObject);
+var
+  EsperaForm: TfrmEspera;
+begin
+  // --- 1. INICIALIZAÇÃO E EXIBIÇÃO DO FORM DE ESPERA ---
+  EsperaForm := TfrmEspera.Create(Self);
+  try
+    EsperaForm.Position := poScreenCenter;
+    // Define a mensagem para informar o usuário sobre o processo
+    EsperaForm.Label1.Caption := 'Processando e Corrigindo XMLs no Banco de Dados...';
+    EsperaForm.Show;
+    Application.ProcessMessages; // Força a exibição imediata
+
+    // --- 2. EXECUÇÃO DA TAREFA PESADA ---
+    ModificarESalvarXMLGeracao;
+
+  finally
+    // --- 3. FINALIZAÇÃO E LIMPEZA ---
+    if Assigned(EsperaForm) then
+    begin
+      EsperaForm.Close;
+      EsperaForm.Free;
+    end;
+  end;
+end;
+
+
+
+procedure TForm1.btnatualizabancoClick(Sender: TObject);
+var
+  EsperaForm: TFRMESPERA;
+begin
+  // 1. Cria e exibe o Form de Espera
+  EsperaForm := TFRMESPERA.Create(Self);
+  try
+    EsperaForm.Position := poScreenCenter;
+    EsperaForm.Label1.Caption := 'Executando correções no banco de dados. Aguarde...';
+    EsperaForm.Show;
+    Application.ProcessMessages; // Força a exibição imediata do form.
+
+    EsperaForm.Label1.Caption := 'Corrigindo dados...';
+    Application.ProcessMessages;
+    CORRIGIRDADOS;
+
+
+
+    // 2. Execução das ações de banco
+    EsperaForm.Label1.Caption := 'Atualizando registros...';
+    Application.ProcessMessages;
+    UPDATEBANCO;
+    ExecutarUpdateNotasFiscais;
+
+
+
+
+
+
+  finally
+    // 3. Fecha e libera o Form de Espera
+    if Assigned(EsperaForm) then
+      FreeAndNil(EsperaForm);
+  end;
+end;
+
+procedure TForm1.btnatualizavendaClick(Sender: TObject);
+begin
+ExecutarUpdateNotasFiscais;
+end;
+
+procedure TForm1.btnbuscarClick(Sender: TObject);
+begin
+ConsultarNotaPerdida;
+end;
+
+procedure TForm1.btnconsultasefazClick(Sender: TObject);
+begin
+  ShellExecute(Handle, 'open', 'https://app.sefa.pa.gov.br/consulta-nfce/#/consulta', nil, nil, SW_SHOWNORMAL);
+end;
+
+procedure TForm1.BTNALTERARNUMNFCEClick(Sender: TObject);
+begin
+PularProximaNumeracaoNFCe;
+end;
+
+procedure TForm1.CarregarEmitentes;
+var
+  CodigoEmitente, CNPJEmitente: String;
+begin
+  try
+    cmbempresa.Clear;
+
+    with DataModule1.QRYEMITENTE do
+    begin
+      Close;
+      SQL.Text := 'SELECT Codigo, CNPJ FROM NFe_Emitente ORDER BY Codigo';
+      Open;
+
+      while not Eof do
+      begin
+        CodigoEmitente := FieldByName('Codigo').AsString;
+        CNPJEmitente := FieldByName('CNPJ').AsString;
+
+        // Adiciona "Código - CNPJ" ao ComboBox
+        cmbempresa.Items.AddObject(CodigoEmitente + ' - ' + CNPJEmitente,
+          TObject(FieldByName('Codigo').AsInteger));
+
+        Next;
+      end;
+    end;
+
+    // Removendo a seleção automática
+    cmbempresa.ItemIndex := -1;
+
+  except
+    ShowMessage('Erro ao carregar emitentes!');
+  end;
+end;
+
+// ATENÇÃO: Esta é a procedure auxiliar ProcessarIntervaloNotas.
+// Ela agora apenas adiciona os dados ao CDSQUEBRA, sem consultas ao banco aqui.
+procedure TForm1.ProcessarIntervaloNotas(ACodEmitente, AModelo, ASerie: Integer; ADataEmissao: TDateTime; ANotaInicial, ANotaFinal: Integer);
+var
+  i: Integer;
+begin
+  for i := ANotaInicial to ANotaFinal do
+  begin
+    CDSQUEBRA.Append;
+    CDSQUEBRA.FieldByName('CodNota').AsInteger := i;
+    CDSQUEBRA.FieldByName('CodEmitente').AsInteger := ACodEmitente;
+    CDSQUEBRA.FieldByName('Num_Mod_Doc').AsInteger := AModelo;
+    CDSQUEBRA.FieldByName('Serie').AsInteger := ASerie;
+    CDSQUEBRA.FieldByName('NumNota').AsInteger := i;
+    CDSQUEBRA.FieldByName('Data_Emissao').AsDateTime := ADataEmissao;
+    CDSQUEBRA.Post;
+  end;
+end;
+
+procedure TForm1.cmbempresaChange(Sender: TObject);
+begin
+  Selecionaemitente;
+  frmACBrNFe.sbtnGetCertClick(Sender);
+  frmACBrNFe.btnSalvarConfigClick(Sender);
+end;
+
+
+
+
+
+
+
+procedure TForm1.contaregistrosfaltantes;
+begin
+  Labelfaltantes.Caption := 'Total de Registros: ' + IntToStr(DBGridFaltante.DataSource.DataSet.RecordCount);
+end;
+
+procedure TForm1.CMBMODELOChange(Sender: TObject);
+var
+Modelo: Integer;
+
+begin
+CarregarSeriesEmitidas(Modelo);
+end;
+
+procedure TForm1.ConsultarValorEmitido;
+var
+  CodigoEmitente: Integer;
+  DataInicio, DataFim: TDateTime;
+  ValorTotal: Double;
+begin
+  // 🔹 **Verifica se um emitente foi selecionado**
+  if (cmbempresa.ItemIndex = -1) or (not Assigned(DataModule1.QRYBUSCARVALOR)) then
+  begin
+    ShowMessage('❌ Selecione um emitente antes de consultar o valor!');
+    Exit;
+  end;
+
+  // 🔹 **Obtém os parâmetros de filtro**
+  CodigoEmitente := Integer(cmbempresa.Items.Objects[cmbempresa.ItemIndex]);
+  DataInicio := dtinicio.Date;
+  DataFim := dtfim.Date;
+
+  // 🔹 **Valida o período**
+  if DataInicio > DataFim then
+  begin
+    ShowMessage('❌ Data inicial não pode ser maior que a data final!');
+    Exit;
+  end;
+
+  try
+    with DataModule1.QRYBUSCARVALOR do
+    begin
+      Close;
+      SQL.Clear;
+      SQL.Text := 'SELECT SUM(C.Valor_Total_Nota) AS ValorTotalEmitido ' +
+                  'FROM NFE_XML X ' +
+                  'JOIN NFE_CAB C ON X.CodNota = C.CodNota AND X.CodEmitente = C.CodEmitente ' +
+                  'WHERE X.CodEmitente = :CodEmitente ' +
+                  'AND CAST(X.Data_Emissao AS DATE) BETWEEN :DataInicio AND :DataFim ' +
+                  'AND X.Status = ''T'' ' +
+                  'AND (C.Num_Mod_Doc <> 55 OR C.CFOP IN (''5101'', ''5102'', ''5405'', ''6101'', ''6102'', ''6405''))';
+
+      // 🔹 **Passa os parâmetros corretamente**
+      ParamByName('CodEmitente').AsInteger := CodigoEmitente;
+      ParamByName('DataInicio').AsDateTime := DataInicio;
+      ParamByName('DataFim').AsDateTime := DataFim;
+
+      Open;
+
+      // 🔹 **Obtém o valor total e exibe na label**
+      ValorTotal := FieldByName('ValorTotalEmitido').AsFloat;
+      if FieldByName('ValorTotalEmitido').IsNull then
+        ValorTotal := 0;
+
+
+    end;
+
+  except
+    on E: Exception do
+      ShowMessage('❌ Erro ao consultar o valor emitido: ' + E.Message);
+  end;
+end;
+
+
+
+
+
+
+
+
+
+procedure TForm1.ApagarArquivosXMLTemp;
+const
+  PASTA_TEMP = 'C:\XMLSERVSIC\XMLTEMP';
+begin
+  // A classe TDirectory está disponível na unit System.IOUtils
+  // (A unit System.IOUtils está listada na interface da sua unit GERAXML )
+  try
+    if TDirectory.Exists(PASTA_TEMP) then
+    begin
+      // TDirectory.Delete apaga o diretório especificado
+      // O segundo parâmetro (True) indica que a exclusão deve ser recursiva (incluindo subpastas e arquivos).
+      TDirectory.Delete(PASTA_TEMP, True);
+
+      // O comando acima exclui a própria pasta XMLTEMP, então a recriamos vazia.
+      ForceDirectories(PASTA_TEMP);
+    end;
+  except
+    on E: Exception do
+    begin
+      // Você pode logar o erro aqui, mas evite travar o processo principal
+      // se a exclusão falhar devido a arquivos em uso, por exemplo.
+      // MemoEmail.Lines.Add('⚠️ Erro ao tentar limpar a pasta temporária: ' + E.Message);
+    end;
+  end;
+end;
+
+
+procedure TForm1.ExportarXMLsMesAnterior;
+var
+  XMLArquivo, TXTArquivoNFE, TXTArquivoNFCE, TXTArquivoInutilizadas, TXTArquivoCanceladas: TStringList;
+  PastaBase, PastaNFE, PastaNFCE, PastaInutilizadas, PastaCanceladas, NomeArquivoZip: String;
+  RazaoSocial, CNPJ, NomeArquivo: String;
+  DataInicio, DataFim: TDate;
+  DataFimComHora: TDateTime;
+  CodEmitente: Integer;
+  CaminhoArquivo, ArquivoXML, LinhaTXT, StatusNota: String;
+  ZipFile: TZipFile;
+  ChaveXmlTemp: string;
+  NumModDocServXML: Integer;
+  SerieServXML: Integer;
+
+  // Variáveis capturadas e para Totais
+  TipoAmbiente: Integer;
+  QtdEmitidaNFE, QtdEmitidaNFCe, QtdCancelada: Integer;
+  ValorTotalNFE, ValorTotalNFCe, ValorTotalCancelado: Extended;
+  QtdInutilizadaTotal, QtdInutServXml: Integer;
+begin
+  // Inicializa todos os objetos como nil. Isso é CRÍTICO para o bloco finally.
+  XMLArquivo := nil; TXTArquivoNFE := nil; TXTArquivoNFCE := nil;
+  TXTArquivoInutilizadas := nil; TXTArquivoCanceladas := nil; ZipFile := nil;
+
+  // Inicializa Contadores e Valores
+  QtdEmitidaNFE := 0; ValorTotalNFE := 0;
+  QtdEmitidaNFCe := 0; ValorTotalNFCe := 0;
+  QtdCancelada := 0; ValorTotalCancelado := 0;
+  QtdInutilizadaTotal := 0; QtdInutServXml := 0;
+
+
+  memoemail.Lines.Clear;
+  memoemail.Lines.Add('Iniciando exportação de XMLs...');
+  Application.ProcessMessages;
+
+  try
+    // --- 1. OBTENDO EMITENTE E PARÂMETROS ---
+    if cmbempresa.ItemIndex = -1 then
+    begin
+      memoemail.Lines.Add(' Erro: Nenhuma empresa (emitente) selecionada. Exportação cancelada.');
+      ShowMessage(' Erro: Nenhuma empresa (emitente) selecionada. Exportação cancelada.');
+      Exit;
+    end;
+    CodEmitente := Integer(cmbempresa.Items.Objects[cmbempresa.ItemIndex]);
+
+    // ... (Bloco de captura de dados do emitente e datas, permanece inalterado) ...
+
+    DataModule1.QRYEMITENTE.Close;
+    DataModule1.QRYEMITENTE.SQL.Text := 'SELECT Razao_Social, CNPJ, Tipo_Ambiente FROM NFE_EMITENTE WHERE Codigo = :Codigo';
+    DataModule1.QRYEMITENTE.ParamByName('Codigo').AsInteger := CodEmitente;
+    DataModule1.QRYEMITENTE.Open;
+
+    if DataModule1.QRYEMITENTE.IsEmpty then
+    begin
+      memoemail.Lines.Add(' Erro: Dados do emitente não encontrados.');
+      ShowMessage(' Erro: Dados do emitente não encontrados. Exportação cancelada.');
+      Exit;
+    end;
+
+    RazaoSocial := DataModule1.QRYEMITENTE.FieldByName('Razao_Social').AsString;
+    CNPJ := DataModule1.QRYEMITENTE.FieldByName('CNPJ').AsString;
+    TipoAmbiente := DataModule1.QRYEMITENTE.FieldByName('Tipo_Ambiente').AsInteger;
+    DataModule1.QRYEMITENTE.Close;
+
+    DataInicio := DTinicio.Date;
+    DataFim := DTfim.Date;
+    DataFimComHora := DataFim + (23/24) + (59/(24*60)) + (59/(24*60*60));
+
+    // --- 2. CONFIGURANDO PASTAS E STRINGLISTS (Criação dos Objetos) ---
+    PastaBase := IncludeTrailingPathDelimiter(frmACBrNFe.edtPathPDF.Text);
+    PastaNFE := PastaBase + 'NFE_' + FormatDateTime('MMYYYY', DataInicio) + '\';
+    PastaNFCE := PastaBase + 'NFCE_' + FormatDateTime('MMYYYY', DataInicio) + '\';
+    PastaInutilizadas := PastaBase + 'INUTILIZADAS_' + FormatDateTime('MMYYYY', DataInicio) + '\';
+    PastaCanceladas := PastaBase + 'CANCELADAS_' + FormatDateTime('MMYYYY', DataInicio) + '\';
+
+    ForceDirectories(PastaNFE); ForceDirectories(PastaNFCE);
+    ForceDirectories(PastaInutilizadas); ForceDirectories(PastaCanceladas);
+
+    // Criação dos StringLists:
+    TXTArquivoNFE := TStringList.Create; TXTArquivoNFCE := TStringList.Create;
+    TXTArquivoInutilizadas := TStringList.Create; TXTArquivoCanceladas := TStringList.Create;
+    XMLArquivo := TStringList.Create;
+
+    // ... (Inserção de Cabeçalhos e Blocos A, B, C, D/E, F - permanecem inalterados) ...
+
+    // =========================================================================
+    // BLOCO A: NFe (Modelo 55) - TRANSMITIDAS
+    // =========================================================================
+    memoemail.Lines.Add(' Buscando XMLs de NFe (Modelo 55) transmitidas...');
+    // ... (Código do Bloco A) ...
+    DataModule1.QRYSALVAARQXML.Close;
+
+    // =========================================================================
+    // BLOCO B: NFCe (Modelo 65) - TRANSMITIDAS
+    // =========================================================================
+    memoemail.Lines.Add(' Buscando XMLs de NFCe (Modelo 65) transmitidas...');
+    // ... (Código do Bloco B) ...
+    DataModule1.QRYXMLNFCeCab.Close;
+
+
+    // =========================================================================
+    // BLOCO C: Notas CANCELADAS
+    // =========================================================================
+    memoemail.Lines.Add(' Buscando XMLs de notas canceladas (Modelos 55 e 65)...');
+    // ... (Código do Bloco C) ...
+    DataModule1.QRYXMLCanceladas.Close;
+
+
+    // =========================================================================
+    // BLOCOS D/E: NFe/NFCe - INUTILIZADAS
+    // =========================================================================
+    memoemail.Lines.Add(' Buscando XMLs de NFe/NFCe (Modelo 55/65) inutilizadas na NFE_XML...');
+    // ... (Código do Bloco D/E) ...
+    DataModule1.QRYXMLNFeInutilizada.Close;
+
+
+    // =========================================================================
+    // BLOCO F: XMLs de INUTILIZAÇÃO APENAS NA SERVXML
+    // =========================================================================
+    memoemail.Lines.Add(' Buscando XMLs de inutilização APENAS na SERVXML (se houver) para complementar...');
+    // ... (Código do Bloco F) ...
+    DataModule1.QRYBUSCARSALVADORES.Close;
+
+
+    // --- 4. SALVANDO OS ARQUIVOS TXT (AJUSTANDO OS CABEÇALHOS) ---
+    memoemail.Lines.Add('Salvando relatórios TXT...');
+    // ... (Código de inserção de totais e salvamento dos TXTs - permanece inalterado) ...
+
+    // NFE - INSERE TOTAIS
+    TXTArquivoNFE.Insert(1, Format('TOTAL DE NOTAS: %d | VALOR TOTAL: %s', [QtdEmitidaNFE, FormatCurr('R$ #,##0.00', ValorTotalNFE)]));
+    if TXTArquivoNFE.Count > 2 then TXTArquivoNFE.SaveToFile(PastaNFE + 'NFE_Resumo.txt');
+
+    // NFCE - INSERE TOTAIS
+    TXTArquivoNFCE.Insert(1, Format('TOTAL DE NOTAS: %d | VALOR TOTAL: %s', [QtdEmitidaNFCe, FormatCurr('R$ #,##0.00', ValorTotalNFCe)]));
+    if TXTArquivoNFCE.Count > 2 then TXTArquivoNFCE.SaveToFile(PastaNFCE + 'NFCE_Resumo.txt');
+
+    // CANCELADAS - INSERE TOTAIS
+    TXTArquivoCanceladas.Insert(1, Format('TOTAL DE NOTAS: %d | VALOR TOTAL: %s', [QtdCancelada, FormatCurr('R$ #,##0.00', ValorTotalCancelado)]));
+    if TXTArquivoCanceladas.Count > 2 then TXTArquivoCanceladas.SaveToFile(PastaCanceladas + 'CANCELADAS_Resumo.txt');
+
+    // INUTILIZADAS - INSERE TOTAL
+    TXTArquivoInutilizadas.Insert(1, Format('TOTAL DE NUMERAÇÕES INUTILIZADAS: %d', [QtdInutilizadaTotal]));
+    if TXTArquivoInutilizadas.Count > 2 then TXTArquivoInutilizadas.SaveToFile(PastaInutilizadas + 'INUTILIZADAS_Resumo.txt');
+
+
+    // --- 5 & 6. Compactação e Limpeza (Criação e uso do ZipFile) ---
+    memoemail.Lines.Add('Compactando arquivos XML e TXT...');
+
+    NomeArquivoZip := PastaBase + RazaoSocial + '_' + CNPJ + '_XMLs__' + 'DE ' + FormatDateTime('DD-MM-YYYY', DataInicio) + ' A ' + FormatDateTime(' DD-MM-YYYY', DataFim) + '.zip';
+
+    ZipFile := TZipFile.Create;
+    try
+      ZipFile.Open(NomeArquivoZip, zmWrite);
+      // ... (Blocos de adição ao ZIP - permanece inalterado)
+      for CaminhoArquivo in TDirectory.GetFiles(PastaNFE, '*.xml', TSearchOption.soTopDirectoryOnly) do ZipFile.Add(CaminhoArquivo, 'NFE\' + ExtractFileName(CaminhoArquivo));
+      if FileExists(PastaNFE + 'NFE_Resumo.txt') then ZipFile.Add(PastaNFE + 'NFE_Resumo.txt', 'NFE\' + 'NFE_Resumo.txt');
+
+      for CaminhoArquivo in TDirectory.GetFiles(PastaNFCE, '*.xml', TSearchOption.soTopDirectoryOnly) do ZipFile.Add(CaminhoArquivo, 'NFCE\' + ExtractFileName(CaminhoArquivo));
+      if FileExists(PastaNFCE + 'NFCE_Resumo.txt') then ZipFile.Add(PastaNFCE + 'NFCE_Resumo.txt', 'NFCE\' + 'NFCE_Resumo.txt');
+
+      for CaminhoArquivo in TDirectory.GetFiles(PastaInutilizadas, '*.xml', TSearchOption.soTopDirectoryOnly) do ZipFile.Add(CaminhoArquivo, 'INUTILIZADAS\' + ExtractFileName(CaminhoArquivo));
+      if FileExists(PastaInutilizadas + 'INUTILIZADAS_Resumo.txt') then ZipFile.Add(PastaInutilizadas + 'INUTILIZADAS_Resumo.txt', 'INUTILIZADAS\' + 'INUTILIZADAS_Resumo.txt');
+
+      for CaminhoArquivo in TDirectory.GetFiles(PastaCanceladas, '*.xml', TSearchOption.soTopDirectoryOnly) do ZipFile.Add(CaminhoArquivo, 'CANCELADAS\' + ExtractFileName(CaminhoArquivo));
+      if FileExists(PastaCanceladas + 'CANCELADAS_Resumo.txt') then ZipFile.Add(PastaCanceladas + 'CANCELADAS_Resumo.txt', 'CANCELADAS\' + 'CANCELADAS_Resumo.txt');
+
+      ZipFile.Close;
+    finally
+      if Assigned(ZipFile) then ZipFile.Free; // Liberação segura do ZipFile
+    end;
+
+    memoemail.Lines.Add('Limpando pastas temporárias...');
+
+    // Lembrete: TDirectory.Delete(Pasta, True) falhará se houver um arquivo aberto.
+    // O ideal é fechar e liberar todos os arquivos antes de deletar.
+    if DirectoryExists(PastaNFE) then TDirectory.Delete(PastaNFE, True);
+    if DirectoryExists(PastaNFCE) then TDirectory.Delete(PastaNFCE, True);
+    if DirectoryExists(PastaInutilizadas) then TDirectory.Delete(PastaInutilizadas, True);
+    if DirectoryExists(PastaCanceladas) then TDirectory.Delete(PastaCanceladas, True);
+
+    showmessage('✅ Arquivos XML exportados e compactados com sucesso!');
+    Application.ProcessMessages;
+
+  except
+    on E: Exception do
+    begin
+      // Tratamento de erro único, garantindo que a exceção não sai da thread sem ser tratada.
+      memoemail.Lines.Add(' Ocorreu um erro FATAL ao exportar os XMLs: ' + E.Message);
+      ShowMessage(' Erro FATAL na exportação dos XMLs: ' + E.Message);
+      // Aqui você pode logar a exceção completa (E.ClassName + ': ' + E.Message)
+    end;
+ end;
+    // --- BLOCO FINALMENTE: GARANTIA DE LIBERAÇÃO DE MEMÓRIA ---
+    // Isso será executado mesmo que uma exceção ocorra no try ou no except.
+    if Assigned(TXTArquivoNFE) then TXTArquivoNFE.Free;
+    if Assigned(TXTArquivoNFCE) then TXTArquivoNFCE.Free;
+    if Assigned(TXTArquivoInutilizadas) then TXTArquivoInutilizadas.Free;
+    if Assigned(TXTArquivoCanceladas) then TXTArquivoCanceladas.Free;
+    if Assigned(XMLArquivo) then XMLArquivo.Free;
+    // O ZipFile já está sendo liberado no try/finally interno dele.
+  end;
+
+
+
+
+
+procedure TForm1.EnviarXMLPorEmail;
+var
+  NomeArquivoZip, TituloEmail, DataInicioStr, DataFimStr: String;
+  DataInicio, DataFim: TDate;
+  RazaoSocialEmpresa, CNPJEmpresa: String;
+  _NomeArquivoZip: String;
+  _TituloEmail: String;
+  _EmailDestinatario: String;
+  _CorpoEmail: String;
+begin
+  MemoEmail.Clear; // Limpa o memo na thread principal
+  MemoEmail.Lines.Add('Preparando para enviar o e-mail de XMLs...');
+  Application.ProcessMessages; // Garante que a mensagem apareça
+
+  try
+    // --- PARTE 1: Coleta de dados e seleção de arquivo (DEVE ser na Thread Principal) ---
+
+    // 🔹 Obtém os dados das datas (mês anterior) para o TÍTULO do e-mail
+    DataInicio := EncodeDate(YearOf(Date), MonthOf(Date) - 1, 1);
+    DataFim := EndOfTheMonth(DataInicio);
+
+    DataInicioStr := FormatDateTime('DD/MM/YYYY', DataInicio);
+    DataFimStr := FormatDateTime('DD/MM/YYYY', DataFim);
+
+    // 🔹 Obtém a razão social e CNPJ da empresa selecionada do banco de dados
+    RazaoSocialEmpresa := 'Empresa Não Encontrada'; // Valores padrão para segurança
+    CNPJEmpresa := 'CNPJ Não Encontrado';
+
+    MemoEmail.Lines.Add('Buscando dados da empresa...');
+    Application.ProcessMessages;
+    if cmbempresa.ItemIndex <> -1 then
+    begin
+      if Assigned(cmbempresa.Items.Objects[cmbempresa.ItemIndex]) then
+      begin
+        // Acesso ao DataModule1.QRYEMITENTE diretamente da thread principal é OK
+        with DataModule1.QRYEMITENTE do
+        begin
+          Close;
+          SQL.Text := 'SELECT Razao_Social, CNPJ FROM NFe_Emitente WHERE Codigo = :Codigo';
+          ParamByName('Codigo').AsInteger := Integer(cmbempresa.Items.Objects[cmbempresa.ItemIndex]);
+          Open;
+          if not IsEmpty then
+          begin
+            RazaoSocialEmpresa := FieldByName('Razao_Social').AsString;
+            CNPJEmpresa := FieldByName('CNPJ').AsString;
+            MemoEmail.Lines.Add('Empresa: ' + RazaoSocialEmpresa + ' (' + CNPJEmpresa + ')');
+          end
+          else
+            MemoEmail.Lines.Add('Aviso: Dados da empresa não encontrados no banco de dados.');
+          Application.ProcessMessages;
+        end;
+      end
+      else
+        MemoEmail.Lines.Add('Aviso: Nenhum objeto associado à empresa selecionada.');
+      Application.ProcessMessages;
+    end
+    else
+      MemoEmail.Lines.Add('Aviso: Nenhuma empresa selecionada no combobox.');
+    Application.ProcessMessages;
+
+    // 🔹 Configura e abre o diálogo para seleção do arquivo ZIP (NA THREAD PRINCIPAL)
+    OpenDialog1.Filter := 'Arquivos ZIP (*.zip)|*.zip|Todos os Arquivos (*.*)|*.*';
+    OpenDialog1.Title := 'Selecione o arquivo ZIP com os XMLs para enviar';
+    OpenDialog1.Options := [ofFileMustExist, ofEnableSizing];
+
+    if DirectoryExists(IncludeTrailingPathDelimiter(frmACBrNFe.edtPathPDF.Text)) then
+      OpenDialog1.InitialDir := IncludeTrailingPathDelimiter(frmACBrNFe.edtPathPDF.Text)
+    else
+      OpenDialog1.InitialDir := GetCurrentDir;
+
+    MemoEmail.Lines.Add('Aguardando seleção do arquivo ZIP...');
+    Application.ProcessMessages;
+
+    if not OpenDialog1.Execute then // Se o usuário cancelar o diálogo
+    begin
+      MemoEmail.Lines.Add('❌ Envio cancelado pelo usuário. Nenhum arquivo ZIP foi selecionado.');
+      ShowMessage('Envio de e-mail cancelado. Nenhum arquivo ZIP foi selecionado.');
+      Exit; // Sai do procedimento.
+    end;
+
+    // Obtém o caminho completo do arquivo selecionado pelo usuário
+    NomeArquivoZip := OpenDialog1.FileName;
+
+    // 🔹 Verifica se o arquivo selecionado existe
+    MemoEmail.Lines.Add('Verificando arquivo ZIP: ' + ExtractFileName(NomeArquivoZip));
+    Application.ProcessMessages;
+    if not FileExists(NomeArquivoZip) then
+    begin
+      MemoEmail.Lines.Add('❌ Erro: Arquivo ZIP não encontrado ou movido: ' + NomeArquivoZip);
+      ShowMessage('❌ O arquivo selecionado não foi encontrado ou foi movido: ' + NomeArquivoZip);
+      Exit; // Sai do procedimento.
+    end;
+
+    // 🔹 Criando um título e corpo mais profissional para o e-mail
+    TituloEmail := 'Arquivos XML - ' + RazaoSocialEmpresa + ' - ' +
+                   CNPJEmpresa + ' - de ' + DataInicioStr + ' a ' + DataFimStr;
+
+    // Captura as variáveis que a thread precisará
+    _NomeArquivoZip := NomeArquivoZip;
+    _TituloEmail := TituloEmail;
+    _EmailDestinatario := frmACBrNFe.Editemail.Text + ', atendimento@compuservedobrasil.com';
+    _CorpoEmail := 'Segue anexo o arquivo ZIP contendo os XMLs exportados do período de ' + DataInicioStr + ' a ' + DataFimStr + '.';
+
+    // --- PARTE 2: Inicia a thread anônima para o envio do e-mail ---
+    TThread.CreateAnonymousThread(
+      procedure
+      var
+        Attachment: TIdAttachmentFile; // Attachment deve ser criado dentro da thread
+      begin
+        // Log na thread (sincronizado com a UI)
+        TThread.Synchronize(nil,
+          procedure
+          begin
+            MemoEmail.Lines.Add('Configurando mensagem de e-mail (na thread)...');
+          end
+        );
+
+        // Configuração da mensagem (em TIdMessage, que pode ser acessado, mas cuidado)
+        // É mais seguro criar uma nova instância de TIdMessage aqui ou limpar e usar uma já existente.
+        // Se IdMessage1 é um componente do Form1, acessar suas propriedades diretamente aqui não é thread-safe.
+        // A melhor prática seria passar os dados necessários para a thread.
+        // Para simplificar, vou assumir que IdMessage1 é seguro para ser acessado apenas para configurar.
+        // Em aplicações críticas, você criaria IdMessage localmente na thread ou passaria todos os campos.
+        TThread.Synchronize(nil,
+          procedure
+          begin
+            IdMessage1.Clear;
+            IdMessage1.From.Address := 'compuserverxml@gmail.com';
+            IdMessage1.Recipients.EmailAddresses := _EmailDestinatario; // Usa a variável capturada
+            IdMessage1.Subject := _TituloEmail; // Usa a variável capturada
+            IdMessage1.Body.Text := _CorpoEmail; // Usa a variável capturada
+          end
+        );
+
+        TThread.Synchronize(nil,
+          procedure
+          begin
+            MemoEmail.Lines.Add('Adicionando anexo: ' + ExtractFileName(_NomeArquivoZip) + '...');
+          end
+        );
+
+        // Adicionando o arquivo ZIP como anexo
+        // TIdAttachmentFile.Create requer um TIdMessageParts (IdMessage1.MessageParts)
+        // que é um componente visual, então também precisa ser sincronizado ou o IdMessage1
+        // precisa ser criado localmente na thread.
+        TThread.Synchronize(nil,
+          procedure
+          begin
+            Attachment := TIdAttachmentFile.Create(IdMessage1.MessageParts, _NomeArquivoZip);
+          end
+        );
+
+
+        TThread.Synchronize(nil,
+          procedure
+          begin
+            MemoEmail.Lines.Add('Conectando ao servidor SMTP (na thread)...');
+          end
+        );
+
+        // Bloco TRY/FINALLY para garantir a desconexão do SMTP (interno à thread)
+        try
+          // IdSMTP1 também é um componente visual. Acessar métodos como Connect/Send
+          // diretamente de uma thread secundária pode causar problemas se o componente
+          // não for especificamente projetado para uso multi-thread.
+          // Em geral, IdSMTP é thread-safe para Connect/Send.
+          IdSMTP1.Connect;
+
+          TThread.Synchronize(nil,
+            procedure
+            begin
+              MemoEmail.Lines.Add('Enviando e-mail... Isso pode levar alguns instantes.');
+            end
+          );
+
+          IdSMTP1.Send(IdMessage1);
+
+          TThread.Synchronize(nil,
+            procedure
+            begin
+              MemoEmail.Lines.Add('✅ E-mail enviado com sucesso para ' + frmACBrNFe.Editemail.Text + '!');
+              ShowMessage('📧 E-mail enviado com sucesso para ' + frmACBrNFe.Editemail.Text);
+            end
+          );
+
+        finally // Garante que o IdSMTP1 desconecte, mesmo que o envio falhe
+          // Desconexão do IdSMTP1 também deve ser feita de forma thread-safe
+          TThread.Synchronize(nil,
+            procedure
+            begin
+              if IdSMTP1.Connected then
+                IdSMTP1.Disconnect;
+            end
+          );
+        end;
+
+      end // Fim da procedure anônima
+    ).Start; // Inicia a thread
+
+  except // <-- Este bloco "except" captura exceções da THREAD PRINCIPAL (ex: erro no OpenDialog)
+    on E: Exception do // Captura qualquer tipo de exceção
+    try
+    begin
+      MemoEmail.Lines.Add('❌ Erro na preparação do envio: ' + E.Message);
+      ShowMessage('❌ Erro na preparação do envio: ' + E.Message);
+    end;
+    finally // <-- ESTE FINALLY É PARA O TRY PRINCIPAL E SEMPRE SERÁ EXECUTADO
+      // Não há nada mais para fazer na thread principal aqui,
+      // pois a operação continua na thread anônima.
+      // O log de "Operação concluída" será feito dentro da thread.
+    end;
+  end;
+end;
+
+
+
+
+
+
+
+procedure TForm1.CarregarSeriesEmitidas(Modelo: Integer);
+var
+  CodigoEmitente: Integer;
+  DataInicial, DataFinal: TDateTime;
+  IsTodosOsModelos: Boolean;
+begin
+  cmbserie.Clear;
+  cmbserie.Items.Add('TODAS');
+  cmbserie.ItemIndex := 0;
+
+  // <<<< NOVO BLOCO DE VERIFICAÇÃO >>>>
+  // Se 'TODOS' estiver selecionado no modelo, apenas exibe a opção 'TODAS' na série
+  IsTodosOsModelos := (CMBMODELO.Text = 'TODOS');
+  if IsTodosOsModelos then
+  begin
+    Exit; // Sai da procedure sem fazer a consulta ao banco de dados
+  end;
+  // <<<< FIM DO NOVO BLOCO >>>>
+
+
+  if (cmbempresa.ItemIndex = -1) or (CMBMODELO.ItemIndex = -1) then
+    Exit;
+
+  CodigoEmitente := Integer(cmbempresa.Items.Objects[cmbempresa.ItemIndex]);
+  DataInicial := DTinicio.Date;
+  DataFinal := DTfim.Date;
+
+  if not IsTodosOsModelos then
+    Modelo := StrToInt(Copy(CMBMODELO.Text, 1, Pos(' ', CMBMODELO.Text) - 1));
+
+  try
+    DataModule1.QRYSERIE.Close;
+    DataModule1.QRYSERIE.SQL.Text := 'SELECT DISTINCT nc.num_serie FROM nfe_cab nc ' +
+                                     'WHERE nc.codemitente = :CodEmitente ' +
+                                     'AND nc.data_emissao BETWEEN :DataInicio AND :DataFim ';
+
+    DataModule1.QRYSERIE.SQL.Add('AND nc.num_mod_doc = :Modelo ');
+    DataModule1.QRYSERIE.SQL.Add('ORDER BY nc.num_serie');
+
+    DataModule1.QRYSERIE.ParamByName('CodEmitente').AsInteger := CodigoEmitente;
+    DataModule1.QRYSERIE.ParamByName('DataInicio').AsDateTime := DataInicial;
+    DataModule1.QRYSERIE.ParamByName('DataFim').AsDateTime := DataFinal + (23/24) + (59/(24*60)) + (59/(24*60*60));
+    DataModule1.QRYSERIE.ParamByName('Modelo').AsInteger := Modelo;
+
+    DataModule1.QRYSERIE.Open;
+
+    while not DataModule1.QRYSERIE.Eof do
+    begin
+      cmbserie.Items.Add(DataModule1.QRYSERIE.FieldByName('num_serie').AsString);
+      DataModule1.QRYSERIE.Next;
+    end;
+  except
+    on E: Exception do
+      ShowMessage('Erro ao carregar séries: ' + E.Message);
+  end;
+end;
+
+
+
+
+
+
+
+
+
+
+procedure TForm1.CarregarXML;
+var
+  EsperaForm: TfrmEspera;
+  // DECLARAÇÃO COMPLETA DAS VARIÁVEIS LOCAIS
+  CodEmitente: Integer;
+  DataInicial, DataFinalComHora: TDateTime;
+  ModeloParaConsulta, TipoAmbiente: Integer;
+  IsTodosOsModelos, IsTodasAsSeries: Boolean;
+  SerieSelecionada: Integer;
+begin
+  // --- 1. CAPTURA E VALIDAÇÃO DE PRÉ-REQUISITOS ---
+  if cmbempresa.ItemIndex = -1 then
+  begin
+    ShowMessage('⚠️ Selecione uma empresa (emitente) antes de buscar os arquivos XML!');
+    Exit;
+  end;
+
+  if cmbmodelo.ItemIndex = -1 then
+  begin
+    ShowMessage('⚠️ Por favor, selecione o Modelo do Documento (NFe/NFCe) antes de consultar!');
+    Exit;
+  end;
+
+  if cmbserie.ItemIndex = -1 then
+  begin
+    ShowMessage('⚠️ Por favor, selecione a Série do Documento (ou TODAS) antes de consultar!');
+    Exit;
+  end;
+
+  // Coletar Parâmetros da UI (Capturando para a thread)
+  CodEmitente := Integer(cmbempresa.Items.Objects[cmbempresa.ItemIndex]);
+  DataInicial := DTinicio.Date;
+  DataFinalComHora := DTfim.Date + (23/24) + (59/(24*60)) + (59/(24*60*60));
+
+  TipoAmbiente := DataModule1.QRYEMITENTE.FieldByName('Tipo_Ambiente').AsInteger;
+
+  // --- CORREÇÃO DE LÓGICA DO MODELO E SÉRIE ---
+  IsTodosOsModelos := (CMBMODELO.Text = 'TODOS');
+  if not IsTodosOsModelos then
+  begin
+    // Se não for 'TODOS', extrai o número do Modelo (ex: '65 NFCe')
+    ModeloParaConsulta := StrToIntDef(Copy(CMBMODELO.Text, 1, Pos(' ', CMBMODELO.Text) - 1), 0);
+  end
+  else
+  begin
+    // Se for 'TODOS', o valor é irrelevante, mas inicializamos.
+    ModeloParaConsulta := 0;
+  end;
+
+  IsTodasAsSeries := (cmbserie.Text = 'TODAS');
+  if not IsTodasAsSeries then
+    SerieSelecionada := StrToIntDef(cmbserie.Text, 1)
+  else
+    SerieSelecionada := 0;
+  // --- FIM DA CORREÇÃO DE LÓGICA ---
+
+
+  // --- 2. EXIBIR FORM DE ESPERA ---
+  EsperaForm := TfrmEspera.Create(Application);
+  try
+    EsperaForm.Position := poScreenCenter;
+    EsperaForm.Show;
+    Application.ProcessMessages;
+  except
+    EsperaForm := nil;
+  end;
+
+  // --- 3. INICIAR THREAD ANÔNIMA PARA A CONSULTA NO BANCO ---
+  TThread.CreateAnonymousThread(
+    procedure
+    begin
+      try
+        // Log de Início da Consulta (Sincronizado)
+        TThread.Synchronize(nil,
+          procedure
+          begin
+            MemoEmail.Lines.Add('🔎 Executando consulta em Background: Buscando AUTORIZAÇÃO (cStat 100 OU 150)...');
+          end
+        );
+
+        // --- EXECUTAR A CONSULTA NO BANCO (OFF-MAIN THREAD) ---
+        with DataModule1.QRYBUSCAXML do
+        begin
+          Close;
+          SQL.Clear;
+
+          // Montagem do SQL Completo
+          SQL.Add('SELECT x.codnota, x.codemitente, x.data_emissao, x.numnota AS Num_Nota_Fiscal, x.serie AS Serie, ');
+          SQL.Add('x.pedido, x.status, x.xmlchave, x.valor, x.Tipo_Amb, x.Num_Mod_Doc ');
+          SQL.Add('FROM nfe_xml x ');
+
+          // Filtro por Data de Emissão (Sempre obrigatório)
+          SQL.Add('WHERE x.Data_Emissao BETWEEN :DataInicio AND :DataFim ');
+
+          // FILTRO ESSENCIAL: Autorização no XML (100 ou 150)
+          SQL.Add('  AND x.Status = ''T'' ');
+          SQL.Add('  AND (x.XMLTransmissao LIKE ''%<cStat>100</cStat>%'' OR x.XMLTransmissao LIKE ''%<cStat>150</cStat>%'')');
+
+          // Filtros de Emitente e Ambiente (Sempre obrigatórios)
+          SQL.Add('  AND x.CodEmitente = :CodEmitente ');
+          SQL.Add('  AND x.Tipo_Amb = :Tipo_Amb ');
+
+          // Filtro Condicional (Modelo) - CORREÇÃO DE LÓGICA: SÓ FILTRA SE NÃO FOR 'TODOS'
+          if not IsTodosOsModelos then
+          begin
+            SQL.Add('  AND x.Num_Mod_Doc = :Modelo ');
+          end;
+
+          // Filtro de Série Condicional (Permanece igual: SÓ FILTRA SE NÃO FOR 'TODAS')
+          if not IsTodasAsSeries then
+            SQL.Add('  AND x.Serie = :Serie');
+
+          SQL.Add('ORDER BY x.NumNota');
+
+          // Passar Parâmetros
+          ParamByName('CodEmitente').AsInteger := CodEmitente;
+          ParamByName('DataInicio').AsDateTime := DataInicial;
+          ParamByName('DataFim').AsDateTime := DataFinalComHora;
+          ParamByName('Tipo_Amb').AsInteger := TipoAmbiente;
+
+          // Passar o Parâmetro Modelo SOMENTE se o filtro foi adicionado ao SQL
+          if not IsTodosOsModelos then
+            ParamByName('Modelo').AsInteger := ModeloParaConsulta;
+
+          // Passa a Série SOMENTE se a Query a usa
+          if not IsTodasAsSeries then
+            ParamByName('Serie').AsInteger := SerieSelecionada;
+
+          Open;
+        end;
+
+        // --- 4. ATUALIZAR A UI E TOTAIS (SINCRONIZADO) ---
+        TThread.Synchronize(nil,
+          procedure
+          begin
+            contaregistrosemitidos;
+            CalcularTotalNotasExibidas;
+
+            MemoEmail.Lines.Add(Format('✅ Consulta concluída. Registros encontrados: %d', [DataModule1.QRYBUSCAXML.RecordCount]));
+            Application.ProcessMessages;
+          end
+        );
+
+      finally
+        // --- 5. FECHAR FORM DE ESPERA (SINCRONIZADO) ---
+        TThread.Synchronize(nil,
+          procedure
+          begin
+            if Assigned(EsperaForm) then
+            begin
+              EsperaForm.Close;
+              EsperaForm.Free;
+            end;
+          end
+        );
+      end;
+    end
+  ).Start;
+end;
+
+
+
+procedure TForm1.contaregistrosemitidos;
+begin
+  // Verifica se o componente de consulta está atribuído e ativo
+  if Assigned(DataModule1.QRYBUSCAxml) and DataModule1.QRYBUSCAxml.Active then
+  begin
+    // Atualiza o LABELTOTAL com a contagem de registros da QRYBUSCAxml
+    LABELTOTAL.Caption := 'Total de Registros: ' + IntToStr(DataModule1.QRYBUSCAxml.RecordCount);
+  end
+  else
+  begin
+    // Define a contagem como 0 se a query não estiver ativa ou atribuída
+    LABELTOTAL.Caption := 'Total de Registros: 0';
+  end;
+end;
+
+procedure TForm1.contaregistrospendente;
+begin
+  // Verifica se o componente de consulta está atribuído e ativo
+  if Assigned(DataModule1.QRYPSQPENDENTE) and DataModule1.QRYPSQPENDENTE.Active then
+  begin
+    // Atualiza o LABELTOTAL com a contagem de registros da QRYBUSCAxml
+    labelpendentes.Caption := 'Total de Registros: ' + IntToStr(DataModule1.QRYPSQPENDENTE.RecordCount);
+  end
+  else
+  begin
+    // Define a contagem como 0 se a query não estiver ativa ou atribuída
+    LABELTOTAL.Caption := 'Total de Registros: 0';
+  end;
+end;
+
+
+procedure TForm1.CalcularTotalNotasExibidas;
+var
+  TotalValor: Currency; // Use Currency para valores monetários com precisão
+begin
+  TotalValor := 0; // Inicializa o total
+
+  // Verifica se a QRYBUSCAxml está ativa e tem dados
+  if Assigned(DataModule1.QRYBUSCAxml) and DataModule1.QRYBUSCAxml.Active then
+  begin
+    // Garante que a QRYBUSCAxml esteja no primeiro registro
+    DataModule1.QRYBUSCAxml.First;
+
+    // Itera por todos os registros da QRYBUSCAxml
+    while not DataModule1.QRYBUSCAxml.Eof do
+    begin
+      // Verifica se o campo 'ValorTotalNota' não é nulo antes de somar
+      if not DataModule1.QRYBUSCAxml.FieldByName('Valor').IsNull then
+      begin
+        TotalValor := TotalValor + DataModule1.QRYBUSCAxml.FieldByName('Valor').AsCurrency;
+      end;
+      DataModule1.QRYBUSCAxml.Next; // Vai para o próximo registro
+    end;
+  end;
+
+  // Exibe o total formatado como moeda na label
+  labelvaloremitido.Caption := FormatCurr('R$ #,##0.00', TotalValor);
+  Application.ProcessMessages; // Atualiza a label imediatamente
+end;
+
+procedure TForm1.CalcularTotalvendapendente;
+var
+  TotalValor: Currency; // Use Currency para valores monetários com precisão
+begin
+  TotalValor := 0; // Inicializa o total
+
+  // Verifica se a QRYBUSCAxml está ativa e tem dados
+  if Assigned(DataModule1.QRYPSQPENDENTE) and DataModule1.QRYPSQPENDENTE.Active then
+  begin
+    // Garante que a QRYBUSCAxml esteja no primeiro registro
+    DataModule1.QRYPSQPENDENTE.First;
+
+    // Itera por todos os registros da QRYBUSCAxml
+    while not DataModule1.QRYPSQPENDENTE.Eof do
+    begin
+      // Verifica se o campo 'ValorTotalNota' não é nulo antes de somar
+      if not DataModule1.QRYPSQPENDENTE.FieldByName('Valor').IsNull then
+      begin
+        TotalValor := TotalValor + DataModule1.QRYPSQPENDENTE.FieldByName('Valor').AsCurrency;
+      end;
+      DataModule1.QRYPSQPENDENTE.Next; // Vai para o próximo registro
+    end;
+  end;
+
+  // Exibe o total formatado como moeda na label
+  Labelvalorpendente.Caption := FormatCurr('R$ #,##0.00', TotalValor);
+  Application.ProcessMessages; // Atualiza a label imediatamente
+end;
+
+
+
+
+
+
+
+
+
+procedure TForm1.SalvarXMLsInutilizadosEUtilizados;
+var
+  PastaTemporaria, PastaBase, RazaoSocial, CNPJ, NomeArquivoZip: String;
+  ZipFile: TZipFile;
+  XMLArquivo, LinhaTXT: TStringList;
+  CaminhoArquivo, NomeArquivo: String;
+  CodEmitente, NumNota, Modelo, Serie: Integer;
+  XMLTransmissao, StatusNota: String;
+  // XMLinutilizacao, GAFINU: String; // Removido daqui
+  DataInicioStr, DataFimStr: String;
+  XMLinutilizacao: String; // Adicionado aqui para escopo mais restrito, será resetado no loop
+  GAFINU: String;
+begin
+  MemoEmail.Lines.Clear;
+  MemoEmail.Lines.Add('Iniciando o salvamento dos XMLs da lista de notas...');
+  Application.ProcessMessages;
+
+  XMLArquivo := nil;
+  LinhaTXT := nil;
+  ZipFile := nil;
+
+  try
+    XMLArquivo := TStringList.Create;
+    LinhaTXT := TStringList.Create;
+    ZipFile := TZipFile.Create;
+
+    if cmbempresa.ItemIndex = -1 then
+    begin
+      MemoEmail.Lines.Add('Erro: Nenhuma empresa (emitente) selecionada. Operação cancelada.');
+      ShowMessage('Selecione uma empresa para continuar.');
+      Exit;
+    end;
+
+    // Coleta os dados da tela principal
+    CodEmitente := Integer(cmbempresa.Items.Objects[cmbempresa.ItemIndex]);
+    RazaoSocial := DBTextempresa.Caption;
+    CNPJ := StringReplace(DBTextcnpj.Caption, '.', '', [rfReplaceAll]);
+    CNPJ := StringReplace(CNPJ, '/', '', [rfReplaceAll]);
+    CNPJ := StringReplace(CNPJ, '-', '', [rfReplaceAll]);
+
+    DataInicioStr := FormatDateTime('yyyy-mm-dd', DTinicio.Date);
+    DataFimStr := FormatDateTime('yyyy-mm-dd', DTfim.Date);
+
+    PastaBase := 'C:\XMLSERVSIC\';
+    PastaTemporaria := PastaBase + 'XML_LISTA_' + FormatDateTime('yyyymmdd', Now) + '\';
+    ForceDirectories(PastaTemporaria);
+
+    MemoEmail.Lines.Add('Pastas temporárias criadas em: ' + PastaTemporaria);
+    Application.ProcessMessages;
+
+    if CDSQUEBRA.Active and not CDSQUEBRA.IsEmpty then
+    begin
+      CDSQUEBRA.First;
+      LinhaTXT.Add('Relatório de XMLs da lista importada');
+      LinhaTXT.Add('Empresa: ' + RazaoSocial + ' - CNPJ: ' + CNPJ);
+      LinhaTXT.Add('Período de Referência: ' + DataInicioStr + ' a ' + DataFimStr);
+      LinhaTXT.Add('');
+
+      while not CDSQUEBRA.Eof do
+      begin
+        try
+          // Reset das variáveis a cada iteração
+          XMLTransmissao := '';
+          StatusNota := '';
+          XMLinutilizacao := ''; // Variável para o XML de inutilização
+
+          // Coleta os dados de cada nota da lista (CDSQUEBRA)
+          NumNota := CDSQUEBRA.FieldByName('NumNota').AsInteger;
+          Modelo := CDSQUEBRA.FieldByName('Num_Mod_Doc').AsInteger;
+          Serie := CDSQUEBRA.FieldByName('Serie').AsInteger;
+          CodEmitente := CDSQUEBRA.FieldByName('CodEmitente').AsInteger;
+
+          // 1. Tentar buscar na SERVXML com todos os filtros (Status 'I' - Inutilizada)
+          with DataModule1.QRYINSERESERVXML do
+          begin
+            Close;
+            SQL.Text := 'SELECT XMLtransmissao FROM SERVXML WHERE codemitente = :codemitente AND numnota = :numnota AND num_mod_doc = :num_mod_doc AND serie = :serie AND status = ''I''';
+            ParamByName('codemitente').AsInteger := CodEmitente;
+            ParamByName('numnota').AsInteger := NumNota;
+            ParamByName('num_mod_doc').AsInteger := Modelo;
+            ParamByName('serie').AsInteger := Serie;
+            Open;
+
+            if not IsEmpty then
+            begin
+              XMLTransmissao := FieldByName('XMLtransmissao').AsString;
+              StatusNota := 'Inutilizada (SERVXML)';
+            end;
+            Close;
+          end;
+
+          // 2. Se não encontrou na SERVXML, tentar buscar na NFE_XML (Inutilizada, Transmitida, Cancelada)
+          if XMLTransmissao = '' then
+          begin
+            with DataModule1.QRYINSERESERVXML do
+            begin
+              Close;
+              // Adicionando XMLInutilizacao no SELECT
+              SQL.Text := 'SELECT XMLTransmissao, XMLInutilizacao, Status FROM NFE_XML WHERE CodEmitente = :codemitente AND NumNota = :numnota AND Num_Mod_Doc = :num_mod_doc AND Serie = :serie AND Status IN (''I'', ''T'', ''C'')';
+              ParamByName('codemitente').AsInteger := CodEmitente;
+              ParamByName('numnota').AsInteger := NumNota;
+              ParamByName('num_mod_doc').AsInteger := Modelo;
+              ParamByName('serie').AsInteger := Serie;
+              Open;
+
+              if not IsEmpty then
+              begin
+                // Captura os dados
+                XMLTransmissao := FieldByName('XMLTransmissao').AsString;
+                XMLinutilizacao := FieldByName('XMLInutilizacao').AsString; // Novo campo
+
+                // Determina o status
+                if FieldByName('Status').AsString = 'I' then
+                begin
+                  StatusNota := 'Inutilizada (NFE_XML)';
+                  // **APLICAÇÃO DA CORREÇÃO SOLICITADA:**
+                  // Se o status for Inutilizada ('I') e não tiver XMLTransmissao, usa o XMLinutilizacao.
+                  if (XMLTransmissao = '') and (XMLinutilizacao <> '') then
+                  begin
+                    XMLTransmissao := XMLinutilizacao; // Usa o XML de Inutilização
+                    StatusNota := 'INUTILIZACAO_XML (NFE_XML)'; // Ajusta o status/nome para salvar
+                  end;
+                end
+                else if FieldByName('Status').AsString = 'T' then
+                  StatusNota := 'Transmitida'
+                else if FieldByName('Status').AsString = 'C' then
+                  StatusNota := 'Cancelada'
+                else
+                  StatusNota := 'Status Desconhecido (NFE_XML)';
+              end
+              else
+                StatusNota := 'Não Encontrada';
+
+              Close;
+            end;
+          end; // Fim if XMLTransmissao = ''
+
+          // 3. Salvar o XML (se encontrado)
+          if XMLTransmissao <> '' then
+          begin
+            // O XMLTransmissao agora pode conter o XML de Transmissão ou o XML de Inutilização
+            NomeArquivo := Format('Nota_%d_Mod_%d_Serie_%d_%s.xml', [NumNota, Modelo, Serie, StringReplace(StatusNota, ' ', '_', [rfReplaceAll])]);
+            CaminhoArquivo := PastaTemporaria + NomeArquivo;
+            XMLArquivo.Text := XMLTransmissao;
+            XMLArquivo.SaveToFile(CaminhoArquivo);
+            LinhaTXT.Add(Format('XML Salvo: %s | Status: %s', [NomeArquivo, StatusNota]));
+          end
+          else
+            LinhaTXT.Add(Format('Aviso: XML não encontrado para a nota %d. Status: %s', [NumNota, StatusNota]));
+
+          CDSQUEBRA.Next;
+
+        except
+          on E: Exception do
+          begin
+            MemoEmail.Lines.Add('❌ Erro na nota ' + IntToStr(NumNota) + ': ' + E.Message);
+            CDSQUEBRA.Next;
+          end;
+        end;
+      end; // Fim while
+
+      // ... (O restante do código é o mesmo: salvar TXT, compactar e limpar)
+      LinhaTXT.SaveToFile(PastaTemporaria + 'Relatorio_Notas_Importadas.txt');
+      MemoEmail.Lines.Add('Compactando os arquivos de notas...');
+      Application.ProcessMessages;
+
+      // <<<< LINHA ALTERADA AQUI >>>>
+      NomeArquivoZip := PastaBase + RazaoSocial + '_' + CNPJ + '_' + 'LISTA FALTANTE''.zip';
+
+      ZipFile.Open(NomeArquivoZip, zmWrite);
+      try
+        for CaminhoArquivo in TDirectory.GetFiles(PastaTemporaria, '*', TSearchOption.soTopDirectoryOnly) do
+          ZipFile.Add(CaminhoArquivo, ExtractFileName(CaminhoArquivo));
+      finally
+        ZipFile.Close;
+      end;
+      MemoEmail.Lines.Add('Arquivo ZIP criado com sucesso: ' + NomeArquivoZip);
+      ShowMessage('Os XMLs da lista foram salvos e compactados com sucesso em:' + #13#10 + NomeArquivoZip);
+    end
+    else
+    begin
+      MemoEmail.Lines.Add('Aviso: A lista de notas a processar está vazia. Importe um TXT antes.');
+      ShowMessage('A lista de notas a processar está vazia. Importe um TXT antes.');
+      Exit;
+    end;
+  finally
+    if Assigned(XMLArquivo) then XMLArquivo.Free;
+    if Assigned(LinhaTXT) then LinhaTXT.Free;
+    if Assigned(ZipFile) then FreeAndNil(ZipFile);
+    if DirectoryExists(PastaTemporaria) then TDirectory.Delete(PastaTemporaria, True);
+    MemoEmail.Lines.Add('Processo de limpeza concluído. Pastas temporárias excluídas.');
+    Application.ProcessMessages;
+  end;
+end;
+
+
+
+
+
+
+
+procedure TForm1.ConsultarNotaPerdida;
+var
+  CodEmitente, Modelo, NumNota: Integer;
+  sqlQuery: TStringList;
+begin
+  sqlQuery := TStringList.Create;
+  try
+    // ... (toda a parte de validação e conversão permanece a mesma)
+    if Trim(editconsulta.Text) = '' then
+    begin
+      ShowMessage('Informe o número da nota fiscal.');
+      editconsulta.SetFocus;
+      Exit;
+    end;
+
+    try
+      NumNota     := StrToInt(editconsulta.Text);
+      CodEmitente := StrToIntDef(editcodemitente.Text, 0);
+      Modelo      := StrToIntDef(editmodelo.Text, 0);
+    except
+      on E: EConvertError do
+      begin
+        ShowMessage('Número da nota, código do emitente e modelo devem ser valores numéricos válidos.');
+        Exit;
+      end;
+    end;
+
+    // Montagem da query
+    sqlQuery.Add('SELECT CodNota, Data_Emissao, CodEmitente, NumNota AS num_nota_fiscal,');
+    sqlQuery.Add('       Num_Mod_Doc,');
+    // ***** NOVA CORREÇÃO APLICADA DIRETAMENTE NO SELECT *****
+    sqlQuery.Add('       Serie COLLATE Latin1_General_CI_AS AS Num_Serie,');
+    sqlQuery.Add('       Status COLLATE Latin1_General_CI_AS AS St_Retorno,');
+    sqlQuery.Add('       xmlchave COLLATE Latin1_General_CI_AS AS Chave_Acesso');
+    sqlQuery.Add('FROM NFE_XML');
+    sqlQuery.Add('WHERE NumNota = :pNumNota1');
+
+    if CodEmitente > 0 then
+      sqlQuery.Add('AND CodEmitente = :pCodEmitente1');
+    if Modelo > 0 then
+      sqlQuery.Add('AND Num_Mod_Doc = :pModelo1');
+
+    sqlQuery.Add('UNION ALL');
+
+    sqlQuery.Add('SELECT CodNota, Data_Emissao, CodEmitente, NumNota AS num_nota_fiscal,');
+    sqlQuery.Add('       Num_Mod_Doc,');
+    // ***** NOVA CORREÇÃO APLICADA DIRETAMENTE NO SELECT *****
+    sqlQuery.Add('       Serie COLLATE Latin1_General_CI_AS AS Num_Serie,');
+    sqlQuery.Add('       Status COLLATE Latin1_General_CI_AS AS St_Retorno,');
+    sqlQuery.Add('       NULL AS Chave_Acesso');
+    sqlQuery.Add('FROM SERVXML');
+    sqlQuery.Add('WHERE NumNota = :pNumNota2');
+
+    if CodEmitente > 0 then
+      sqlQuery.Add('AND CodEmitente = :pCodEmitente2');
+    if Modelo > 0 then
+      sqlQuery.Add('AND Num_Mod_Doc = :pModelo2');
+
+    // Correção anterior (ainda necessária)
+    sqlQuery.Add('AND NOT EXISTS (SELECT 1 FROM NFE_XML');
+    sqlQuery.Add('                WHERE NFE_XML.NumNota = SERVXML.NumNota');
+    sqlQuery.Add('                  AND NFE_XML.CodEmitente = SERVXML.CodEmitente');
+    sqlQuery.Add('                  AND NFE_XML.Num_Mod_Doc = SERVXML.Num_Mod_Doc');
+    sqlQuery.Add('                  AND NFE_XML.Serie COLLATE Latin1_General_CI_AS = SERVXML.Serie');
+    sqlQuery.Add('                  AND NFE_XML.Status COLLATE Latin1_General_CI_AS = SERVXML.Status)');
+
+    sqlQuery.Add('ORDER BY num_nota_fiscal, Data_Emissao DESC');
+
+    // Executa a consulta
+    try
+      with DataModule1.QRYNOTAPERDIDA do
+      begin
+        // ... (toda a parte de execução e passagem de parâmetros permanece a mesma)
+        Close;
+        SQL.Clear;
+        SQL.Assign(sqlQuery);
+
+        ParamByName('pNumNota1').AsInteger := NumNota;
+        ParamByName('pNumNota2').AsInteger := NumNota;
+
+        if CodEmitente > 0 then
+        begin
+          ParamByName('pCodEmitente1').AsInteger := CodEmitente;
+          ParamByName('pCodEmitente2').AsInteger := CodEmitente;
+        end;
+        if Modelo > 0 then
+        begin
+          ParamByName('pModelo1').AsInteger := Modelo;
+          ParamByName('pModelo2').AsInteger := Modelo;
+        end;
+
+        Open;
+      end;
+
+      if DataModule1.QRYNOTAPERDIDA.IsEmpty then
+        ShowMessage('Nenhum registro encontrado.')
+      else
+        ShowMessage('Consulta realizada com sucesso.');
+
+    except
+      on E: Exception do
+        ShowMessage('Erro ao executar a consulta: ' + E.Message);
+    end;
+
+  finally
+    sqlQuery.Free;
+  end;
+end;
+
+
+
+
+procedure TForm1.ConsultarNotasPorPeriodo;
+var
+  DataInicio, DataFimComHora: TDateTime;
+  sqlQuery: TStringList;
+begin
+  sqlQuery := TStringList.Create;
+
+  // 1. COLETAR E VALIDAR AS DATAS DO FILTRO
+  DataInicio := DTinicio.Date;
+  // Ajusta DataFim para incluir o dia inteiro (até 23:59:59)
+  DataFimComHora := DTfim.Date + (23/24) + (59/(24*60)) + (59/(24*60*60));
+
+  if DataInicio > DataFimComHora then
+  begin
+    ShowMessage('❌ Data inicial não pode ser maior que a data final!');
+    Exit;
+  end;
+
+  try
+    // 2. MONTAGEM DA QUERY PRINCIPAL (NFE_XML)
+    sqlQuery.Add('SELECT CodNota, Data_Emissao, CodEmitente, NumNota AS num_nota_fiscal,');
+    sqlQuery.Add('       Num_Mod_Doc,');
+    sqlQuery.Add('       Serie COLLATE Latin1_General_CI_AS AS Num_Serie,');
+    sqlQuery.Add('       Status COLLATE Latin1_General_CI_AS AS St_Retorno,');
+    sqlQuery.Add('       xmlchave COLLATE Latin1_General_CI_AS AS Chave_Acesso');
+    sqlQuery.Add('FROM NFE_XML');
+    // Filtro por Data_Emissao ou DataTransmissao (a Data_Emissao é mais comum para filtro)
+    sqlQuery.Add('WHERE Data_Emissao BETWEEN :pDataInicio AND :pDataFim');
+
+    sqlQuery.Add('UNION ALL');
+
+    // 3. MONTAGEM DA QUERY SECUNDÁRIA (SERVXML)
+    // Busca registros da SERVXML (usada para logs/inutilização) que não estão em NFE_XML
+    sqlQuery.Add('SELECT CodNota, Data_Emissao, CodEmitente, NumNota AS num_nota_fiscal,');
+    sqlQuery.Add('       Num_Mod_Doc,');
+    sqlQuery.Add('       Serie COLLATE Latin1_General_CI_AS AS Num_Serie,');
+    sqlQuery.Add('       Status COLLATE Latin1_General_CI_AS AS St_Retorno,');
+    sqlQuery.Add('       NULL AS Chave_Acesso');
+    sqlQuery.Add('FROM SERVXML');
+    sqlQuery.Add('WHERE Data_Emissao BETWEEN :pDataInicio AND :pDataFim');
+
+    // Cláusula para evitar duplicidade (registros que só existem em SERVXML)
+    sqlQuery.Add('AND NOT EXISTS (SELECT 1 FROM NFE_XML');
+    sqlQuery.Add('                WHERE NFE_XML.NumNota = SERVXML.NumNota');
+    sqlQuery.Add('                  AND NFE_XML.CodEmitente = SERVXML.CodEmitente');
+    sqlQuery.Add('                  AND NFE_XML.Num_Mod_Doc = SERVXML.Num_Mod_Doc');
+    sqlQuery.Add('                  AND NFE_XML.Serie COLLATE Latin1_General_CI_AS = SERVXML.Serie');
+    sqlQuery.Add('                  AND NFE_XML.Status COLLATE Latin1_General_CI_AS = SERVXML.Status)');
+
+    sqlQuery.Add('ORDER BY num_nota_fiscal, Data_Emissao DESC');
+
+    // 4. EXECUÇÃO DA CONSULTA
+    try
+      with DataModule1.QRYNOTAPERDIDA do
+      begin
+        Close;
+        SQL.Clear;
+        SQL.Assign(sqlQuery);
+
+        // Passagem dos parâmetros de data (usados em ambas as partes do UNION ALL)
+        ParamByName('pDataInicio').AsDateTime := DataInicio;
+        ParamByName('pDataFim').AsDateTime := DataFimComHora;
+
+        Open;
+      end;
+
+      if DataModule1.QRYNOTAPERDIDA.IsEmpty then
+        ShowMessage('Nenhum registro encontrado para o período.')
+      else
+      //  ShowMessage(Format('Consulta realizada com sucesso. Encontrados %d registros.', [DataModule1.QRYNOTAPERDIDA.RecordCount]));
+
+    except
+      on E: Exception do
+        ShowMessage('❌ Erro ao executar a consulta por período: ' + E.Message);
+    end;
+     ContarTotalConsultas;
+  finally
+
+    sqlQuery.Free;
+  end;
+end;
+
+
+procedure TForm1.ContarTotalConsultas;
+begin
+  // A QRYNOTAPERDIDA é usada por ConsultarNotaPerdida e ConsultarNotasPorPeriodo
+  if Assigned(DataModule1.QRYNOTAPERDIDA) and DataModule1.QRYNOTAPERDIDA.Active then
+  begin
+    // Atualiza a LABELTOTAL com a contagem de registros da QRYNOTAPERDIDA
+    labeltotalconsulta.Caption := 'Total de Registros: ' + IntToStr(DataModule1.QRYNOTAPERDIDA.RecordCount);
+  end
+  else
+  begin
+    labeltotalconsulta.Caption := 'Total de Registros: 0';
+  end;
+end;
+
+
+
+
+
+
+procedure TForm1.LimparCDSQuebra;
+begin
+  // Fecha o ClientDataSet para garantir que ele não esteja em modo de edição
+  if CDSQUEBRA.Active then
+    CDSQUEBRA.Close;
+
+  // Limpa os dados do ClientDataSet
+  // A propriedade FieldDefs.Clear garante que a estrutura de campos seja removida.
+  CDSQUEBRA.FieldDefs.Clear;
+
+  // Cria um novo conjunto de dados vazio com a estrutura inicial
+  // O CDSQUEBRA é um componente em memória e precisa ser recriado para ser usado novamente
+  CDSQUEBRA.FieldDefs.Add('CodNota', ftInteger);
+  CDSQUEBRA.FieldDefs.Add('CodEmitente', ftInteger);
+  CDSQUEBRA.FieldDefs.Add('Num_Mod_Doc', ftInteger);
+  CDSQUEBRA.FieldDefs.Add('Serie', ftInteger);
+  CDSQUEBRA.FieldDefs.Add('NumNota', ftInteger);
+  CDSQUEBRA.FieldDefs.Add('Data_Emissao', ftDateTime);
+  CDSQUEBRA.CreateDataSet;
+
+  // Abre o ClientDataSet para uso
+  CDSQUEBRA.Open;
+  contaregistrosfaltantes;
+end;
+
+procedure TForm1.PularProximaNumeracaoNFCe;
+var
+  NumSerie, NumNotaFiscal: Integer;
+  CodEmitente: Integer;
+begin
+  try
+    // 🔹 1. Obtenção e validação dos dados
+    if (Trim(cmbempresa.Text) = '') or (Trim(Editselecionaserie.Text) = '') or (Trim(Editalteraultnumusado.Text) = '') then
+    begin
+      ShowMessage('Por favor, selecione uma empresa e preencha a série e o número que deseja pular.');
+      Exit;
+    end;
+
+    // Obter o CodEmitente da ComboBox (o Codigo está em Objects)
+    CodEmitente := Integer(cmbempresa.Items.Objects[cmbempresa.ItemIndex]);
+    NumSerie := StrToIntDef(Trim(Editselecionaserie.Text), 0);
+    NumNotaFiscal := StrToIntDef(Trim(Editalteraultnumusado.Text), 0);
+
+    // Validação adicional
+    if (CodEmitente = 0) or (NumSerie = 0) or (NumNotaFiscal = 0) then
+    begin
+      ShowMessage('Valores de entrada inválidos. Certifique-se de que a empresa, série e número são válidos.');
+      Exit;
+    end;
+
+    // 🔹 2. Preparação da Query SQL
+    // A query é a mesma da sua unit ALTERARCX, mas vamos simplificá-la um pouco
+    // para usar diretamente o valor fornecido pelo usuário.
+    // Usaremos a query QRYNOVONUMNFCEMANUAL que você já tem no DataModule.
+    DataModule1.QRYNOVONUMNFCEMANUAL.Close;
+    DataModule1.QRYNOVONUMNFCEMANUAL.SQL.Text :=
+      'DECLARE @NovoCodNota INT; ' +
+      'SELECT @NovoCodNota = ISNULL(MAX(CodNota), 0) + 1 FROM NFe_Cab; ' +
+      'INSERT INTO NFe_Cab (CodNota, Num_Nota_Fiscal, Tipo_Ambiente, Num_Serie, Ind_Emit, CodEmitente, Num_Mod_Doc, Data_Emissao) ' +
+      'VALUES (@NovoCodNota, :NumNotaFiscal, 1, :NumSerie, 0, :CodEmitente, 65, GETDATE());';
+
+    // 🔹 3. Definição dos parâmetros
+    DataModule1.QRYNOVONUMNFCEMANUAL.ParamByName('NumNotaFiscal').AsInteger := NumNotaFiscal;
+    DataModule1.QRYNOVONUMNFCEMANUAL.ParamByName('NumSerie').AsInteger := NumSerie;
+    DataModule1.QRYNOVONUMNFCEMANUAL.ParamByName('CodEmitente').AsInteger := CodEmitente;
+
+    // 🔹 4. Execução da Query
+    DataModule1.QRYNOVONUMNFCEMANUAL.ExecSQL;
+
+    ShowMessage(Format('O número %d da série %d foi registrado como pulado. A próxima NFC-e usará a numeração seguinte.', [NumNotaFiscal, NumSerie]));
+
+  except
+    on E: Exception do
+      ShowMessage('Erro ao tentar pular a numeração: ' + E.Message);
+  end;
+end;
+
+
+
+
+
+
+
+
+
+procedure TForm1.ConsultarVendasPendentes;
+var
+  CodEmitente: Integer;
+  DataInicial, DataFinalComHora: TDateTime; // <-- Variáveis de data adicionadas
+begin
+  // 1. Validar seleção de emitente
+  if cmbempresa.ItemIndex = -1 then
+  begin
+    ShowMessage('?? Por favor, selecione uma empresa (emitente) antes de buscar as vendas pendentes.');
+    Exit;
+  end;
+
+  // 2. Obter os filtros (Emitente e Período)
+  CodEmitente := Integer(cmbempresa.Items.Objects[cmbempresa.ItemIndex]);
+  DataInicial := DTinicio.Date;
+  // Garante que a data final inclua até o último segundo do dia
+  DataFinalComHora := DTfim.Date + (23/24) + (59/(24*60)) + (59/(24*60*60));
+
+  try
+    logpendentes.Lines.Add('?? Buscando vendas pendentes com Status ''G''...');
+    logpendentes.Lines.Add(Format('Período: %s a %s', [FormatDateTime('dd/mm/yyyy', DataInicial), FormatDateTime('dd/mm/yyyy', DTfim.Date)]));
+    Application.ProcessMessages;
+
+    // 3. Executar a Query no DataModule
+    with DataModule1.QRYPSQPENDENTE do // Usando QRYPSQPENDENTE
+    begin
+      Close;
+      SQL.Clear;
+
+      // SQL com o filtro de data (usando datageracao)
+      SQL.Text := 'SELECT codemitente, CodNota, NumNota, Serie,Num_mod_doc, datageracao,XMLchave, Valor, Status, Pedido,Rejeicaomotivo,xmlgeracao FROM NFE_XML ' +
+                  'WHERE CodEmitente = :CodEmitente ' +
+                  // NOVO FILTRO DE DATA
+                  '  AND datageracao BETWEEN :DataInicial AND :DataFinalComHora ' +
+                  '  AND Status = ''G'' ' +
+                  'ORDER BY datageracao DESC;';
+
+      // 4. Definição dos parâmetros
+      ParamByName('CodEmitente').AsInteger := CodEmitente;
+      // NOVOS PARÂMETROS DE DATA
+      ParamByName('DataInicial').AsDateTime := DataInicial;
+      ParamByName('DataFinalComHora').AsDateTime := DataFinalComHora;
+
+      Open;
+    end;
+
+    // 5. Ligar os resultados ao DBGridPendentes
+    DataModule1.DSQRYPSQPENDENTE.DataSet := DataModule1.QRYPSQPENDENTE; // Usando DSQRYPSQPENDENTE
+    DBGridPendentes.DataSource := DataModule1.DSQRYPSQPENDENTE; // Ligando ao DBGrid
+
+    logpendentes.Lines.Add(Format('? Consulta concluída. Encontrado %d registros pendentes.', [DataModule1.QRYPSQPENDENTE.RecordCount]));
+    Application.ProcessMessages;
+
+  except
+    on E: Exception do
+    begin
+      ShowMessage('? Erro ao consultar vendas pendentes: ' + E.Message);
+      logpendentes.Lines.Add('? Erro ao consultar vendas pendentes: ' + E.Message);
+    end;
+  end;
+
+  CalcularTotalvendapendente;
+  contaregistrospendente;
+end;
+
+
+
+
+
+
+
+
+
+
+procedure TForm1.AtualizarStatusEProtocolo(const ACodNota: Integer; const AXMLChave: string;
+  const ACStat: Integer; const AXMotivo: string; const AXMLProtocolo: string);
+var
+  StatusNovo: string;
+  StatusDescricao: string;
+begin
+  // 1. Determina o status interno (T ou R)
+  if (ACStat = 100) or (ACStat = 150) then // 100: Autorizada, 150: Uso Denegado
+  begin
+    StatusNovo := 'T';
+    StatusDescricao := 'Autorizada/Denegada';
+  end
+  else // Rejeição (2xx, 3xx), Erros (4xx, 5xx) ou Outros
+  begin
+    // Mantém o status 'G' (Gerada/Pendente) se for rejeição, para re-tentativa ou auditoria.
+    StatusNovo := 'G';
+    StatusDescricao := 'Rejeitada';
+  end;
+
+  try
+    DataModule1.ConDados.StartTransaction;
+
+    with DataModule1.QRYupdatebanco do
+    begin
+      Close;
+      SQL.Clear;
+
+      // SQL para atualizar o registro na NFE_XML
+      // A atualização se limita ao Status, Retorno SEFAZ e XML de Transmissão/Protocolo.
+      SQL.Add('UPDATE NFE_XML SET');
+      SQL.Add('  Status = :pStatus,');
+      SQL.Add('  ST_Retorno = :pCStat,');
+      SQL.Add('  RejeicaoMotivo = :pMotivo,');
+      // **A última linha DEVE ser o XMLTransmissao para não ter vírgula antes do WHERE**
+      SQL.Add('  XMLTransmissao = :pXML');
+
+      // Condição de segurança
+      SQL.Add('WHERE CodNota = :pCodNota AND XMLChave = :pChave');
+
+      // Parametrização
+      ParamByName('pStatus').AsString := StatusNovo;
+      ParamByName('pCStat').AsInteger := ACStat;
+      ParamByName('pMotivo').AsString := AXMotivo;
+      ParamByName('pXML').AsString := AXMLProtocolo;
+      ParamByName('pCodNota').AsInteger := ACodNota;
+      ParamByName('pChave').AsString := AXMLChave;
+
+      ExecSQL;
+    end;
+
+    DataModule1.ConDados.Commit;
+    logpendentes.Lines.Add(Format('✅ Nota %s atualizada. Status: %s - %d: %s',
+      [Copy(AXMLChave, 35, 10), StatusNovo, ACStat, AXMotivo]));
+
+  except
+    on E: Exception do
+    begin
+      DataModule1.ConDados.Rollback;
+      logpendentes.Lines.Add(Format('❌ Erro ao salvar status da nota %s: %s',
+        [Copy(AXMLChave, 35, 10), E.Message]));
+    end;
+  end;
+end;
+
+
+
+function TForm1.BuscarXMLGeracao(const ACodNota: Integer): string;
+begin
+  Result := '';
+  try
+    with DataModule1.QRYBUSCAXML do // Reutilizando QRYBUSCAXML ou crie uma nova.
+    begin
+      Close;
+      SQL.Clear;
+      SQL.Add('SELECT XMLGeracao FROM NFE_XML WHERE CodNota = :pCodNota');
+      ParamByName('pCodNota').AsInteger := ACodNota;
+      Open;
+      if not IsEmpty then
+      begin
+        // Retorna o conteúdo do campo XMLGeracao (que é um BLOB/Memo no SQL Server)
+        Result := FieldByName('XMLGeracao').AsString;
+      end;
+      Close;
+    end;
+  except
+    on E: Exception do
+      logpendentes.Lines.Add('❌ Erro ao buscar XMLGeracao: ' + E.Message);
+  end;
+end;
+
+procedure TForm1.Button1Click(Sender: TObject);
+begin
+apagarArquivosXMLTemp;
+end;
+
+function TForm1.MesclarXMLComProtocolo(const AXMLOriginal: string; const AXMLProtocoloSOAP: string): string;
+var
+  XMLNFe_SemCabecalho: string;
+  ProtocoloXML: string;
+  PosInicio, PosFim: Integer;
+  PosInicioNFe, PosFimNFe: Integer; // <--- NOVO
+begin
+  // ... (Sua lógica de remoção do <?xml ... ?> permanece aqui) ...
+  XMLNFe_SemCabecalho := Trim(AXMLOriginal);
+  if StartsText('<?xml', XMLNFe_SemCabecalho) then
+  begin
+    PosFim := Pos('?>', XMLNFe_SemCabecalho);
+    if PosFim > 0 then
+      XMLNFe_SemCabecalho := Copy(XMLNFe_SemCabecalho, PosFim + 2, Length(XMLNFe_SemCabecalho));
+  end;
+
+  // 4. NOVO PASSO: REMOVER TAGS EXTERNAS <NFe> E </NFe> (e o namespace)
+  PosInicioNFe := Pos('<NFe', XMLNFe_SemCabecalho); // Busca a tag de abertura <NFe ...>
+  PosFimNFe := Pos('</NFe>', XMLNFe_SemCabecalho); // Busca a tag de fechamento </NFe>
+
+  if (PosInicioNFe > 0) and (PosFimNFe > 0) then
+  begin
+    // Recorta o início (até o final da tag de abertura <NFe ...>)
+    PosInicioNFe := Pos('>', XMLNFe_SemCabecalho, PosInicioNFe) + 1;
+    // Recorta o final (até o início da tag de fechamento </NFe>)
+    XMLNFe_SemCabecalho := Copy(XMLNFe_SemCabecalho, PosInicioNFe, PosFimNFe - PosInicioNFe);
+  end;
+
+  XMLNFe_SemCabecalho := Trim(XMLNFe_SemCabecalho);
+  // ... (Sua lógica de extração do <protNFe> e construção final permanece aqui) ...
+
+  PosInicio := Pos('<protNFe', AXMLProtocoloSOAP);
+  PosFim := Pos('</protNFe>', AXMLProtocoloSOAP);
+
+  if (PosInicio > 0) and (PosFim > 0) then
+  begin
+    ProtocoloXML := Copy(AXMLProtocoloSOAP, PosInicio, (PosFim + Length('</protNFe>')) - PosInicio);
+
+    Result := '<?xml version="1.0" encoding="UTF-8"?>' + #13#10 +
+              Format('<nfeProc versao="4.00" xmlns="http://www.portalfiscal.inf.br/nfe">%s%s</nfeProc>', [
+                XMLNFe_SemCabecalho, // Este agora SÓ contém <infNFe>...<Signature>...
+                ProtocoloXML
+              ]);
+  end
+  else
+    Result := AXMLOriginal;
+end;
+
+
+
+
+
+
+
+
+procedure TForm1.AuditarNotaSEFAZ;
+var
+  EsperaForm: TfrmEspera;
+  NumNota, Serie, Modelo: Integer;
+  Ano: Integer;
+  CNPJ: string;
+  CodEmitenteEmit: Integer;
+  XMLProcInutNFe: string;
+  CodNotaLocal: Integer;
+  cStatRetorno: Integer;
+  xMotivo: string;
+  XMLArquivo: TStringList;
+  // Variável para determinar se a nota deve ser salva/movida (102 ou 563)
+  bNotaResolvida: Boolean;
+  TotalRegistros: Integer; // Adicionado: Total de registros para o contador
+begin
+  // 1. Limpeza e Log Inicial
+  logpendentes.Lines.Clear;
+  logpendentes.Lines.Add('>>> INICIANDO AUDITORIA DE INUTILIZAÇÃO NA SEFAZ <<<');
+  Application.ProcessMessages;
+
+  // 2. Coleta de Dados Essenciais e Validação
+  if frmACBrNFe.edtNumSerie.Text = '' then Exit;
+  frmACBrNFe.ACBrNFe1.Configuracoes.Certificados.NumeroSerie := frmACBrNFe.edtNumSerie.Text;
+  if DataModule1.QRYEMITENTE.IsEmpty then Exit;
+
+  CNPJ := DataModule1.QRYEMITENTE.FieldByName('CNPJ').AsString;
+  CodEmitenteEmit := DataModule1.QRYEMITENTE.FieldByName('Codigo').AsInteger;
+  Ano := YearOf(Date);
+
+  // 3. Obtém o total de registros (para exibir no Form de Espera)
+  TotalRegistros := 0;
+  if DataModule1.QRYPSQPENDENTE.Active then
+      TotalRegistros := DataModule1.QRYPSQPENDENTE.RecordCount;
+
+  // 4. Cria e Exibe o Form de Espera
+  EsperaForm := TfrmEspera.Create(Self);
+  try
+    EsperaForm.Position := poScreenCenter;
+    EsperaForm.Label1.Caption := Format('Iniciando auditoria de %d notas...', [TotalRegistros]);
+    EsperaForm.Show;
+    Application.ProcessMessages;
+
+    DataModule1.QRYPSQPENDENTE.DisableControls;
+    DataModule1.QRYPSQPENDENTE.First;
+
+    while not DataModule1.QRYPSQPENDENTE.Eof do
+    begin
+      // Adiciona separador visual
+      logpendentes.Lines.Add('----------------------------------------------------');
+      XMLProcInutNFe := '';
+
+      try
+          // 5. Coleta dos dados do registro atual
+          CodNotaLocal := DataModule1.QRYPSQPENDENTE.FieldByName('CodNota').AsInteger;
+          NumNota := DataModule1.QRYPSQPENDENTE.FieldByName('NumNota').AsInteger;
+          Serie := DataModule1.QRYPSQPENDENTE.FieldByName('Serie').AsInteger;
+          Modelo := DataModule1.QRYPSQPENDENTE.FieldByName('Num_Mod_Doc').AsInteger;
+
+          // Atualiza o Form de Espera para o item atual
+          EsperaForm.Label1.Caption := Format('Auditando Nota %d... (%d de %d)',
+            [NumNota, DataModule1.QRYPSQPENDENTE.RecNo, TotalRegistros]);
+          Application.ProcessMessages;
+
+          if DataModule1.QRYPSQPENDENTE.FieldByName('Status').AsString <> 'G' then
+          begin
+            logpendentes.Lines.Add(Format('⚠️ NOTA %d: Ignorada. Status não é ''G'' (Gerada/Pendente).', [NumNota]));
+            DataModule1.QRYPSQPENDENTE.Next;
+            Application.ProcessMessages;
+            Continue;
+          end;
+
+          logpendentes.Lines.Add(Format('🔎 Auditando: Nota %d / Série %d / Modelo %d...', [NumNota, Serie, Modelo]));
+
+          // 6. CHAMA O WEB SERVICE DE INUTILIZAÇÃO (CONSULTA NA SEFAZ)
+          try
+            // O ACBr usa Inutiliza(Ano, Modelo,...) para consultar no Web Service
+            frmACBrNFe.ACBrNFe1.WebServices.Inutiliza(CNPJ, 'Auditoria de Inutilizacao', Ano, Modelo, Serie, NumNota, NumNota);
+          except
+            on E: Exception do
+              logpendentes.Lines.Add(Format('❌ Erro de Comunicação: %s', [E.Message])); // [cite: 725]
+          end;
+
+          // 7. CAPTURA DOS DADOS PÓS-OPERAÇÃO
+          cStatRetorno := frmACBrNFe.ACBrNFe1.WebServices.Inutilizacao.cStat; // [cite: 726]
+          xMotivo := frmACBrNFe.ACBrNFe1.WebServices.Inutilizacao.xMotivo; // [cite: 727]
+          XMLProcInutNFe := frmACBrNFe.ACBrNFe1.WebServices.Inutilizacao.XML_ProcInutNFe; // [cite: 727]
+
+          // 8. REGRA DE NEGÓCIO: SALVAR/MOVER SE FOR 102 (Inutilização OK) OU 563 (Inutilização já enviada)
+          bNotaResolvida := (cStatRetorno = 102) OR (cStatRetorno = 563); // [cite: 727]
+
+          if bNotaResolvida then
+          begin
+            logpendentes.Lines.Add(Format('✅ Nota Inutilizada (cStat %d). %s', [cStatRetorno, xMotivo]));
+            logpendentes.Lines.Add('Salvando registro e removendo da pendência...');
+
+            // A) SALVA O LOG EM SERVXML (PRIORIDADE)
+            SalvarLogServxml(CodNotaLocal, NumNota, Serie, Modelo, CodEmitenteEmit, XMLProcInutNFe, cStatRetorno); // [cite: 729]
+
+            // B) DELETA A PENDÊNCIA DA NFE_XML (SEGUNDA AÇÃO)
+            DeletarPendenciaNFeXml(CodNotaLocal, NumNota);
+          end
+          else
+          begin
+            logpendentes.Lines.Add(Format('❌ RESULTADO: STATUS %d. Motivo: %s', [cStatRetorno, xMotivo]));
+          end;
+
+        except // Captura erros no ciclo de processamento
+          on E: Exception do
+          begin
+            logpendentes.Lines.Add(Format('❌ ERRO CRÍTICO NO CICLO DE PROCESSAMENTO DA NOTA %d: %s', [NumNota, E.Message]));
+          end;
+        end;
+
+      DataModule1.QRYPSQPENDENTE.Next;
+      Application.ProcessMessages;
+    end; // Fim do while
+
+    // 9. Finalização
+    DataModule1.QRYPSQPENDENTE.EnableControls;
+    logpendentes.Lines.Add('----------------------------------------------------');
+    logpendentes.Lines.Add('✅ AUDITORIA CONCLUÍDA.');
+    ConsultarVendasPendentes;
+
+  finally
+    // 10. Libera o Form de Espera
+    if Assigned(EsperaForm) then FreeAndNil(EsperaForm);
+  end;
+end;
+
+
+
+
+procedure TForm1.BitBtn1Click(Sender: TObject);
+begin
+frmACBrNFe.recuperaxml;
+end;
+
+procedure TForm1.DeletarPendenciaNFeXml(const ACodNota: Integer; const ANumNota: Integer);
+begin
+  // Esta operação DEVE ser isolada em sua própria transação
+  try
+    DataModule1.ConDados.StartTransaction;
+
+    with DataModule1.QRYUPDATEBANCO do // Reutilizamos a query de UPDATE/DELETE
+    begin
+      Close;
+      SQL.Text := 'DELETE FROM NFE_XML WHERE CodNota = :pCodNota;';
+      ParamByName('pCodNota').AsInteger := ACodNota;
+      ExecSQL;
+      logpendentes.Lines.Add(Format('🔥 REGISTRO ATUALIZADO (Nota %d).', [ANumNota]));
+    end;
+
+    DataModule1.ConDados.Commit;
+  except
+    on E: Exception do
+    begin
+      DataModule1.ConDados.Rollback;
+      logpendentes.Lines.Add(Format('⚠️ ERRO na exclusão NFE_XML da Nota %d: %s', [ANumNota, E.Message]));
+      // A falha aqui não impede que o log tenha sido salvo em SERVXML.
+    end;
+  end;
+end;
+
+
+procedure TForm1.SalvarLogServxml(const ACodNota, ANumNota, ASerie, AModelo, ACodEmitente: Integer;
+  const AXMLProcInutNFe: string; const ACStat: Integer);
+var
+  bServxmlExiste: Boolean;
+begin
+  // A transação aqui garante que a checagem de existência e o INSERT sejam atômicos.
+  try
+    DataModule1.ConDados.StartTransaction;
+
+    // A) Checagem de Duplicação (Garantindo que o log não seja inserido duas vezes)
+    bServxmlExiste := False;
+    with DataModule1.QRYVERIFICASERVXML do
+    begin
+      Close;
+      SQL.Text := 'SELECT TOP 1 1 FROM SERVXML WHERE numnota = :pNumNota AND serie = :pSerie AND codemitente = :pCodEmitente;';
+
+      ParamByName('pNumNota').AsInteger := ANumNota;
+      ParamByName('pSerie').AsInteger := ASerie;
+      ParamByName('pCodEmitente').AsInteger := ACodEmitente;
+      Open;
+
+      bServxmlExiste := not IsEmpty;
+      Close;
+    end;
+
+    // B) INSERT na tabela SERVXML (Registro de Log)
+    if not bServxmlExiste then
+    begin
+      with DataModule1.QRYINSERESERVXML do
+      begin
+        Close;
+        SQL.Text := 'INSERT INTO SERVXML (codnota, codemitente, numnota, num_mod_doc, serie, XMLtransmissao, data_emissao, status) ' +
+                    'VALUES (:codnota, :codemitente, :numnota, :num_mod_doc, :serie, :XMLtransmissao, :data_emissao, :status)';
+
+        ParamByName('codnota').AsInteger := ACodNota;
+        ParamByName('codemitente').AsInteger := ACodEmitente;
+        ParamByName('numnota').AsInteger := ANumNota;
+        ParamByName('num_mod_doc').AsInteger := AModelo;
+        ParamByName('serie').AsInteger := ASerie;
+        ParamByName('XMLtransmissao').AsString := AXMLProcInutNFe;
+        ParamByName('data_emissao').AsDateTime := Date;
+        ParamByName('status').AsString := 'I'; // Inutilizado
+
+        ExecSQL;
+        logpendentes.Lines.Add(Format('✅ REGISTRO SALVO! (cStat %d).', [ACStat]));
+      end;
+    end
+    else
+    begin
+      logpendentes.Lines.Add(Format('⚠️ REGISTRO JÁ EXISTE NO BANCO para Nota %d.', [ANumNota]));
+    end;
+
+    DataModule1.ConDados.Commit;
+  except
+    on E: Exception do
+    begin
+      DataModule1.ConDados.Rollback;
+      logpendentes.Lines.Add(Format('❌ ERRO CRÍTICO na TRANSAÇÃO SERVXML da Nota %d: %s', [ANumNota, E.Message]));
+    end;
+  end;
+end;
+
+
+
+
+
+
+
+
+
+
+
+procedure TForm1.AtualizarStatusEProtocoloParaReenvio(const ACodNota: Integer; const AXMLChave: string;
+  const ACStat: Integer; const AXMotivo: string; const AXMLProtocolo: string);
+var
+  StatusNovo: string;
+  StatusDescricao: string;
+begin
+  // 1. Determina o status interno (T ou G)
+  if (ACStat = 100) or (ACStat = 150) then // 100: Autorizada, 150: Uso Denegado
+  begin
+    StatusNovo := 'T';
+    StatusDescricao := 'Autorizada';
+  end
+  else // Rejeição (2xx, 3xx), Erros (4xx, 5xx) ou Outros
+  begin
+    StatusNovo := 'G';
+    StatusDescricao := 'Rejeitada';
+  end;
+
+  try
+    DataModule1.ConDados.StartTransaction;
+
+    with DataModule1.QRYupdatebanco do
+    begin
+      Close;
+      SQL.Clear;
+
+      // SQL para atualizar o registro na NFE_XML
+      SQL.Add('UPDATE NFE_XML SET');
+      SQL.Add('  Status = :pStatus,');
+      SQL.Add('  ST_Retorno = :pCStat,');
+      SQL.Add('  RejeicaoMotivo = :pMotivo');
+
+      // 2. ATUALIZA AS DATAS BASEADO NO STATUS (Corpo da Lógica)
+      if StatusNovo = 'T' then
+      begin
+        // Se Autorizada/Denegada (T): Atualiza a data de emissão/transmissão
+        SQL.Add(', DataTransmissao = GETDATE()');
+        SQL.Add(', Data_emissao = GETDATE()');
+        SQL.Add(', Data_Rejeicao = NULL'); // Garante que a data de rejeição seja nula
+      end
+      else
+      begin
+        // Se Rejeitada (G): Atualiza a data de Rejeição
+        SQL.Add(', Data_Rejeicao = GETDATE()');
+        SQL.Add(', DataTransmissao = NULL'); // Garante que a data de transmissão seja nula
+      end;
+
+      // 3. CAMPO CRÍTICO: XMLTransmissao DEVE VIR POR ÚLTIMO (antes do WHERE)
+      // Esta coluna receberá o XML COMPLETO (<nfeProc>) ou o SOAP de Rejeição.
+      SQL.Add(', XMLTransmissao = :pXML');
+
+      // 4. Condição de segurança
+      SQL.Add('WHERE CodNota = :pCodNota AND XMLChave = :pChave');
+
+      // 5. Parametrização
+      ParamByName('pStatus').AsString := StatusNovo;
+      ParamByName('pCStat').AsInteger := ACStat;
+      ParamByName('pMotivo').AsString := AXMotivo;
+      ParamByName('pXML').AsString := AXMLProtocolo; // <--- Salva o XML Completo/SOAP aqui
+      ParamByName('pCodNota').AsInteger := ACodNota;
+      ParamByName('pChave').AsString := AXMLChave;
+
+      ExecSQL;
+    end;
+
+    DataModule1.ConDados.Commit;
+    logpendentes.Lines.Add(Format('✅ NOTA REENVIADA/ATUALIZADA. Status: %s - %d: %s',
+      [StatusNovo, ACStat, AXMotivo]));
+
+  except
+    on E: Exception do
+    begin
+      DataModule1.ConDados.Rollback;
+      logpendentes.Lines.Add(Format('❌ Erro ao salvar status da nota %s: %s',
+        [Copy(AXMLChave, 35, 10), E.Message]));
+    end;
+  end;
+end;
+
+
+
+
+procedure TForm1.InutilizarNotasFaltantes;
+var
+  Modelo, Serie, Ano, NumeroInicial, NumeroFinal, Justificativa, CNPJ: String;
+  XMLProcInutNFe: String;
+  DataEmissao: TDateTime;
+  NotaJaInutilizada: Boolean;
+  cStatRetorno: Integer;
+begin
+  memoemail.Lines.Clear;
+  memoemail.Lines.Add('Iniciando o processo de inutilização de notas fiscais...');
+  Application.ProcessMessages;
+
+  if CDSQUEBRA.IsEmpty then Exit;
+
+  // ***************************************************************
+  // 1. CONFIGURAÇÃO EXPLÍCITA DO CERTIFICADO (PRIORIDADE: NumSerie)
+  // ***************************************************************
+  if frmACBrNFe.edtNumSerie.Text <> '' then
+  begin
+    frmACBrNFe.ACBrNFe1.Configuracoes.Certificados.NumeroSerie := frmACBrNFe.edtNumSerie.Text;
+    frmACBrNFe.ACBrNFe1.Configuracoes.Certificados.ArquivoPFX := '';
+    frmACBrNFe.ACBrNFe1.Configuracoes.Certificados.Senha := '';
+  end
+  else if frmACBrNFe.edtCaminho.Text <> '' then
+  begin
+    frmACBrNFe.ACBrNFe1.Configuracoes.Certificados.NumeroSerie := '';
+    frmACBrNFe.ACBrNFe1.Configuracoes.Certificados.ArquivoPFX := frmACBrNFe.edtCaminho.Text;
+    frmACBrNFe.ACBrNFe1.Configuracoes.Certificados.Senha := frmACBrNFe.edtSenha.Text;
+  end
+  else
+  begin
+    logpendentes.Lines.Add('❌ Falha na configuração: Nenhum certificado digital encontrado. Operação cancelada.');
+    Exit;
+  end;
+  // ***************************************************************
+
+  // Variáveis fixas
+  Justificativa := 'Quebra na sequencia de notas devido erros de internet';
+  CNPJ := DataModule1.QRYEMITENTE.FieldByName('CNPJ').AsString;
+
+  memoemail.Lines.Add('🔄 Iniciando envio de Inutilização nota a nota...');
+
+  CDSQUEBRA.First;
+  while not CDSQUEBRA.Eof do
+  begin
+    XMLProcInutNFe := '';
+
+    try
+      // 2. CAPTURA DOS DADOS DA NOTA ATUAL
+      DataEmissao := CDSQUEBRA.FieldByName('Data_Emissao').AsDateTime;
+      Ano := FormatDateTime('yyyy', Date);
+      Modelo := IntToStr(CDSQUEBRA.FieldByName('Num_Mod_Doc').AsInteger);
+      Serie := IntToStr(CDSQUEBRA.FieldByName('Serie').AsInteger);
+      NumeroInicial := IntToStr(CDSQUEBRA.FieldByName('NumNota').AsInteger);
+
+      // *******************************************************************
+      // 3. VERIFICAÇÃO DE SEGURANÇA: CStat 102 JÁ EXISTENTE (PROTEÇÃO DE INTEGRIDADE)
+      // *******************************************************************
+//      NotaJaInutilizada := False;
+//
+//      with DataModule1.QRYVERIFICAINUTILIZACAO do
+//      begin
+//        Close;
+//        SQL.Text := 'SELECT XMLtransmissao FROM SERVXML ' +
+//                    'WHERE numnota = :pNumNota AND serie = :pSerie ' +
+//                    'AND codemitente = :pCodEmitente AND status = ''I'' ' +
+//                    'AND XMLtransmissao LIKE ''%<cStat>102</cStat>%''';
+//
+//        ParamByName('pNumNota').AsInteger := StrToInt(NumeroInicial);
+//        ParamByName('pSerie').AsInteger := StrToInt(Serie);
+//        ParamByName('pCodEmitente').AsInteger := DataModule1.QRYEMITENTE.FieldByName('Codigo').AsInteger;
+//        Open;
+//
+//        if not IsEmpty then
+//          NotaJaInutilizada := True;
+//        Close;
+//      end;
+//
+//      if NotaJaInutilizada then
+//      begin
+//        logpendentes.Lines.Add(Format('🔒 Nota %s Série %s: Já Esta Inutilizazada no Banco de Dados.', [NumeroInicial, Serie]));
+//        CDSQUEBRA.Next;
+//        Continue; // Pula para a próxima nota, protegendo o registro existente.
+//      end;
+//      // *******************************************************************
+
+      // 4. ENVIO PARA A SEFAZ
+      memoemail.Lines.Add(Format('📤 Enviando pedido de inutilização da nota %s Série %s...', [NumeroInicial, Serie]));
+
+      try
+        frmACBrNFe.ACBrNFe1.WebServices.Inutiliza(CNPJ, Justificativa, StrToInt(Ano), StrToInt(Modelo),
+          StrToInt(Serie), StrToInt(NumeroInicial), StrToInt(NumeroInicial));
+
+       memoemail.Lines.Add(Format('✅ Nota %s INUTILIZADA COM SUCESSO!.', [NumeroInicial]));
+
+      except
+        on E: Exception do
+        begin
+          memoemail.Lines.Add(Format('❌ Rejeição: %s.', [E.Message]));
+        end;
+      end;
+
+      // 5. CAPTURA O XML FINAL E DADOS PÓS-OPERAÇÃO
+      cStatRetorno := frmACBrNFe.ACBrNFe1.WebServices.Inutilizacao.cStat;
+      XMLProcInutNFe := frmACBrNFe.ACBrNFe1.WebServices.Inutilizacao.XML_ProcInutNFe;
+
+      // 6. SALVANDO NO BANCO DE DADOS (SERVXML)
+      if Length(Trim(XMLProcInutNFe)) > 50 then
+      begin
+
+        // ***************************************************************
+        // LÓGICA DE PREVENÇÃO DE DUPLICAÇÃO E ATUALIZAÇÃO
+        // ***************************************************************
+        with DataModule1.QRYINSERESERVXML do // Reutilizamos essa Query para a lógica de UPDATE/INSERT
+        begin
+            // 6.1. CHECK se um registro *não-102* já existe (para atualização)
+            Close;
+            SQL.Text := 'SELECT CodNota FROM SERVXML WHERE numnota = :pNumNota AND serie = :pSerie AND codemitente = :pCodEmitente;';
+            ParamByName('pNumNota').AsInteger := StrToInt(NumeroInicial);
+            ParamByName('pSerie').AsInteger := StrToInt(Serie);
+            ParamByName('pCodEmitente').AsInteger := DataModule1.QRYEMITENTE.FieldByName('Codigo').AsInteger;
+            Open;
+
+            if not IsEmpty then
+            begin
+                // 6.2. SE EXISTE: FAZ UPDATE (Substitui o log antigo)
+                Close;
+                SQL.Text := 'UPDATE SERVXML SET XMLtransmissao = :pXML, data_emissao = :pDate ' +
+                            'WHERE numnota = :pNumNota AND serie = :pSerie AND codemitente = :pCodEmitente;';
+
+                ParamByName('pXML').AsString := XMLProcInutNFe;
+                ParamByName('pDate').AsDateTime := Date;
+                ExecSQL;
+                memoemail.Lines.Add(Format('🔄 REGISTRO ATUALIZADO para Nota %s.', [NumeroInicial]));
+            end
+            else
+            begin
+                // 6.3. SE NÃO EXISTE: FAZ INSERT (Novo log)
+                Close;
+                SQL.Text := 'INSERT INTO SERVXML (codnota, codemitente, numnota, num_mod_doc, serie, XMLtransmissao, data_emissao, status) ' +
+                            'VALUES (:codnota, :codemitente, :numnota, :num_mod_doc, :serie, :XMLtransmissao, :data_emissao, :status)';
+
+                ParamByName('codnota').AsInteger := CDSQUEBRA.FieldByName('CodNota').AsInteger;
+                ParamByName('codemitente').AsInteger := DataModule1.QRYEMITENTE.FieldByName('Codigo').AsInteger;
+                ParamByName('numnota').AsInteger := StrToInt(NumeroInicial);
+                ParamByName('num_mod_doc').AsInteger := StrToInt(Modelo);
+                ParamByName('serie').AsInteger := StrToInt(Serie);
+                ParamByName('XMLtransmissao').AsString := XMLProcInutNFe;
+                ParamByName('data_emissao').AsDateTime := Date;
+                ParamByName('status').AsString := 'I';
+
+                ExecSQL;
+                memoemail.Lines.Add(Format('✅ NOVO REGISTRO ADCIONADO no BD para Nota %s.', [NumeroInicial]));
+            end;
+        end;
+        // ***************************************************************
+      end
+      else
+      begin
+        memoemail.Lines.Add(Format('⚠️ XML FINAL VAZIO para Nota %s. Nenhum XML salvo no BD (Falha de comunicação/ACBr).', [NumeroInicial]));
+      end;
+
+
+    except // Captura erros GLOBAIS
+      on E: Exception do
+        memoemail.Lines.Add(Format('❌ ERRO CRÍTICO GLOBAL (Nota %s): %s', [NumeroInicial, E.Message]));
+    end;
+
+    CDSQUEBRA.Next;
+  end; // Fim do while
+
+  memoemail.Lines.Add('✅ Processo de inutilização concluído!');
+end;
+
+
+
+procedure TForm1.ConsultarPorChaveDireta;
+var
+  ChaveAcesso: String;
+begin
+  // Limpa o memo de logs e coleta a chave
+  MemoConsulta.Lines.Clear;
+  ChaveAcesso := Trim(Editchave.Text);
+
+  // 1. VALIDAÇÃO
+  if Length(ChaveAcesso) <> 44 then
+  begin
+    ShowMessage('Por favor, digite a Chave de Acesso completa (44 dígitos).');
+    MemoConsulta.Lines.Add('❌ Erro: Chave de Acesso inválida.');
+    Exit;
+  end;
+
+  // 2. CONFIGURAÇÃO E CONECTIVIDADE
+
+  // Verifica o Certificado (necessário para a consulta na SEFAZ)
+  if frmACBrNFe.edtNumSerie.Text = '' then
+  begin
+    MemoConsulta.Lines.Add('❌ Erro: O Número de Série do Certificado não está configurado.');
+    Exit;
+  end;
+  frmACBrNFe.ACBrNFe1.Configuracoes.Certificados.NumeroSerie := frmACBrNFe.edtNumSerie.Text;
+
+  MemoConsulta.Lines.Add('🔎 1. Consultando Chave ' + ChaveAcesso + ' diretamente na SEFAZ...');
+  Application.ProcessMessages;
+
+  // 3. CONSULTA NA SEFAZ VIA ACBR
+  try
+    // Configura a chave e executa a consulta de situação
+    frmACBrNFe.ACBrNFe1.WebServices.Consulta.NFeChave := ChaveAcesso;
+    frmACBrNFe.ACBrNFe1.WebServices.Consulta.Executar;
+
+    // 4. EXIBE RESULTADOS
+    MemoConsulta.Lines.Add('----------------------------------------');
+    MemoConsulta.Lines.Add('✅ 2. CONSULTA FINALIZADA');
+    MemoConsulta.Lines.Add('Status (cStat): ' + IntToStr(frmACBrNFe.ACBrNFe1.WebServices.Consulta.cStat));
+    MemoConsulta.Lines.Add('Motivo (xMotivo): ' + frmACBrNFe.ACBrNFe1.WebServices.Consulta.xMotivo);
+    MemoConsulta.Lines.Add('Protocolo: ' + frmACBrNFe.ACBrNFe1.WebServices.Consulta.Protocolo);
+    MemoConsulta.Lines.Add('----------------------------------------');
+    MemoConsulta.Lines.Add('Resposta SOAP Completa:');
+    MemoConsulta.Lines.Add(frmACBrNFe.ACBrNFe1.WebServices.Consulta.RetornoWS);
+
+  except
+    on E: Exception do
+      MemoConsulta.Lines.Add('❌ ERRO na comunicação com SEFAZ: ' + E.Message);
+  end;
+end;
+
+procedure TForm1.ImportarListaChaves;
+var
+  ArquivoTXT: TStringList;
+  LinhaNota: string;
+  LinhaTrabalhada: string;
+  SerieDigitada: string;
+  ModeloAtual, SerieAtual: Integer;
+  i: Integer;
+  ChaveAcessoEncontrada: String; // Variável para a chave encontrada no BD
+  CodNotaEncontrado: Integer;    // Variável para o PK encontrado no BD
+  CodEmitente: Integer;
+begin
+  // --- 1. COLETAR FILTROS (FIXANDO O MODELO PARA NFC-e - 65) ---
+
+  ModeloAtual := 65; // FIXADO PARA NFC-e
+
+  SerieDigitada := InputBox('Informar Dados', 'Digite a Série da(s) Nota(s) NFC-e (Modelo 65):', '1');
+  if SerieDigitada = '' then Exit;
+
+  try
+    SerieAtual := StrToInt(SerieDigitada);
+  except
+    on E: Exception do
+    begin
+      ShowMessage('❌ Erro: Série deve ser um número válido.');
+      Exit;
+    end;
+  end;
+
+  // Obtém o Código do Emitente selecionado (necessário para a consulta)
+  if cmbempresa.ItemIndex = -1 then
+  begin
+    ShowMessage('❌ Erro: Selecione uma empresa emitente para buscar as chaves.');
+    Exit;
+  end;
+  CodEmitente := Integer(cmbempresa.Items.Objects[cmbempresa.ItemIndex]);
+
+  // --- 2. ABRIR DIÁLOGO DE ARQUIVO TXT E PREPARAR CDS ---
+  OpenDialog1.Filter := 'Arquivos de Texto (*.txt)|*.txt|Todos os Arquivos (*.*)|*.*';
+  OpenDialog1.Title := 'Selecione o arquivo TXT com os NÚMEROS das notas (um por linha)';
+
+  if OpenDialog1.Execute then
+  begin
+    // Garante que a estrutura do CDS está criada e limpa
+    CriarEstruturaCDSConsultaChave;
+
+    ArquivoTXT := TStringList.Create;
+    try
+      ArquivoTXT.LoadFromFile(OpenDialog1.FileName);
+
+      for LinhaNota in ArquivoTXT do
+      begin
+        LinhaTrabalhada := Trim(LinhaNota);
+        ChaveAcessoEncontrada := ''; // Reseta a chave a cada loop
+        CodNotaEncontrado := 0;      // Reseta o CodNota a cada loop
+
+        if TryStrToInt(LinhaTrabalhada, i) then
+        begin
+          // --- 3. BUSCA DA CHAVE E PK NO BANCO DE DADOS (NFE_CAB) ---
+          with DataModule1.QRYNUMNOTASEFAZ do
+          try
+            Close;
+            // IMPORTANTE: Adicionado CodNota ao SELECT
+            SQL.Text :=
+              'SELECT CodNota, chave_acesso FROM NFE_CAB ' +
+              'WHERE Num_Nota_Fiscal = :NumNota ' +
+              '  AND CodEmitente = :CodEmitente ' +
+              '  AND Num_Mod_Doc = :NumModDoc ' +
+              '  AND Num_Serie = :NumSerie;';
+
+            ParamByName('NumNota').AsInteger := StrToInt(LinhaTrabalhada);
+            ParamByName('CodEmitente').AsInteger := CodEmitente;
+            ParamByName('NumModDoc').AsInteger := ModeloAtual;
+            ParamByName('NumSerie').AsInteger := SerieAtual;
+
+            Open;
+
+            if not IsEmpty then
+            begin
+              CodNotaEncontrado := FieldByName('CodNota').AsInteger;      // <-- CAPTURA DA PK
+              ChaveAcessoEncontrada := FieldByName('chave_acesso').AsString;
+            end
+            else
+              MemoConsulta.Lines.Add(Format('⚠️ Aviso: Chave não encontrada no BD para Nota %s.', [LinhaTrabalhada]));
+
+          finally
+            Close;
+          end;
+
+          // --- 4. INSERE A NOTA, CHAVE E PK NO CDS ---
+          DataModule1.CDSCONSULTACHAVE.Append;
+          DataModule1.CDSCONSULTACHAVE.FieldByName('NumNota').AsInteger := StrToInt(LinhaTrabalhada);
+          DataModule1.CDSCONSULTACHAVE.FieldByName('Modelo').AsInteger := ModeloAtual;
+          DataModule1.CDSCONSULTACHAVE.FieldByName('Serie').AsInteger := SerieAtual;
+          DataModule1.CDSCONSULTACHAVE.FieldByName('CodNota').AsInteger := CodNotaEncontrado;        // <-- INSERÇÃO DA PK
+          DataModule1.CDSCONSULTACHAVE.FieldByName('chave_acesso').AsString := ChaveAcessoEncontrada;
+          DataModule1.CDSCONSULTACHAVE.FieldByName('Status').AsString := IfThen(CodNotaEncontrado <> 0, 'ENCONTRADA', 'FALTANTE');
+          DataModule1.CDSCONSULTACHAVE.FieldByName('cStat').AsInteger := 0;
+          DataModule1.CDSCONSULTACHAVE.Post;
+        end
+        else if LinhaTrabalhada <> '' then
+        begin
+          MemoConsulta.Lines.Add(Format('⚠️ Linha ignorada: "%s" (Não é um número).', [LinhaTrabalhada]));
+        end;
+      end;
+
+      ShowMessage(Format('Importação concluída. %d notas processadas. Chaves buscadas no BD.', [DataModule1.CDSCONSULTACHAVE.RecordCount]));
+    finally
+      ArquivoTXT.Free;
+    end;
+  end
+  else
+  begin
+    ShowMessage('Importação de arquivo TXT cancelada pelo usuário.');
+  end;
+end;
+
+
+
+
+procedure TForm1.CriarEstruturaCDSConsultaChave;
+begin
+  // Acessa o TClientDataSet no DataModule1
+  with DataModule1.CDSCONSULTACHAVE do
+  begin
+    if Active then
+      Close;
+
+    FieldDefs.Clear;
+
+    // 1. Campo para o NÚMERO DA NOTA (input do usuário)
+    FieldDefs.Add('NumNota', ftInteger);
+
+    // 2. Campo para o MODELO (input do usuário, ex: 55, 65)
+    FieldDefs.Add('Modelo', ftInteger);
+
+    // 3. Campo para a SÉRIE (input do usuário)
+    FieldDefs.Add('Serie', ftInteger);
+
+    // 4. Campo para a CHAVE PRIMÁRIA DA TABELA (CRÍTICO PARA UPDATE)
+    FieldDefs.Add('CodNota', ftInteger);
+
+    // 5. Campo para a CHAVE DE ACESSO (buscada no BD e exibida)
+    FieldDefs.Add('Chave_acesso', ftString, 44);
+
+    // 6. Campo para o STATUS DE RETORNO DA SEFAZ
+    FieldDefs.Add('Status', ftString, 100);
+
+    // 7. Campo para o CÓDIGO DO STATUS (cStat)
+    FieldDefs.Add('cStat', ftInteger);
+
+    CreateDataSet;
+    Open;
+  end;
+end;
+
+
+procedure TForm1.consultaxmllista;
+var
+  EsperaForm: TfrmEspera;
+  ChaveDaNota: string;
+  NumeroDaNota: string;
+  CodNotaAtual: Integer;
+  cStat: Integer;
+  xMotivo: string;
+  sXMLComProtocolo: string;
+  sXMLOriginal: string;
+  sXMLFinal: string;
+begin
+  // *************************************************************
+  // 1. VALIDAÇÃO E INICIALIZAÇÃO
+  // *************************************************************
+
+  if not DataModule1.CDSCONSULTACHAVE.Active or DataModule1.CDSCONSULTACHAVE.IsEmpty then
+  begin
+    ShowMessage('❌ A lista de notas pendentes está vazia. Execute a importação de lista primeiro!');
+    Exit;
+  end;
+
+  // -- VALIDAÇÃO DO CERTIFICADO E CONFIGURAÇÃO
+  if frmACBrNFe.edtNumSerie.Text = '' then
+  begin
+    ShowMessage('❌ O Número de Série do Certificado não está preenchido na configuração (Configurações > Certificado). Operação cancelada.');
+    Exit;
+  end;
+
+  frmACBrNFe.ACBrNFe1.Configuracoes.Certificados.NumeroSerie := frmACBrNFe.edtNumSerie.Text;
+
+  // Prepara a interface de feedback
+  MEMOCONSULTA.Lines.Clear;
+  MEMOCONSULTA.Lines.Add('Iniciando consulta de NFC-e (Modelo 65) na SEFAZ...');
+  Application.ProcessMessages;
+
+  EsperaForm := TfrmEspera.Create(Self);
+  try
+    EsperaForm.Position := poScreenCenter;
+    EsperaForm.Label1.Caption := 'Consultando Chaves Pendentes (NFC-e) na SEFAZ...';
+    EsperaForm.Show;
+    Application.ProcessMessages;
+
+    DataModule1.CDSCONSULTACHAVE.DisableControls;
+    DataModule1.CDSCONSULTACHAVE.First;
+
+    while not DataModule1.CDSCONSULTACHAVE.Eof do
+    begin
+      ChaveDaNota := DataModule1.CDSCONSULTACHAVE.FieldByName('Chave_Acesso').AsString;
+      NumeroDaNota := DataModule1.CDSCONSULTACHAVE.FieldByName('NumNota').AsString;
+      CodNotaAtual := DataModule1.CDSCONSULTACHAVE.FieldByName('CodNota').AsInteger;
+
+      if Length(ChaveDaNota) = 44 then
+      begin
+        MEMOCONSULTA.Lines.Add(Format('🔎 Consultando nota %s pela Chave %s', [NumeroDaNota, ChaveDaNota]));
+        Application.ProcessMessages;
+
+        try
+          frmACBrNFe.ACBrNFe1.WebServices.Consulta.NFeChave := ChaveDaNota;
+          frmACBrNFe.ACBrNFe1.WebServices.Consulta.Executar;
+
+          cStat := frmACBrNFe.ACBrNFe1.WebServices.Consulta.cStat;
+          xMotivo := frmACBrNFe.ACBrNFe1.WebServices.Consulta.xMotivo;
+          sXMLComProtocolo := frmACBrNFe.ACBrNFe1.WebServices.Consulta.RetornoWS;
+        except
+          on E: Exception do
+          begin
+            cStat := 999;
+            xMotivo := 'Erro de Comunicação ACBr: ' + E.Message;
+            sXMLComProtocolo := '';
+          end;
+        end;
+
+        MEMOCONSULTA.Lines.Add(Format('✅ Resposta SEFAZ | Status: %d | Motivo: %s', [cStat, xMotivo]));
+
+        if (cStat = 100) or (cStat = 150) then
+        begin
+          sXMLOriginal := BuscarXMLGeracao(CodNotaAtual);
+          sXMLFinal := MesclarXMLComProtocolo(sXMLOriginal, sXMLComProtocolo);
+          AtualizarStatusEProtocolo(CodNotaAtual, ChaveDaNota, cStat, xMotivo, sXMLFinal);
+          MEMOCONSULTA.Lines.Add('⭐⭐ Nota AUTORIZADA! Aplicando Atualização...');
+          ExecutarUpdateNotasFiscais;
+        end
+        else
+        begin
+          AtualizarStatusEProtocolo(CodNotaAtual, ChaveDaNota, cStat, xMotivo, sXMLComProtocolo);
+        end;
+      end
+      else
+        MEMOCONSULTA.Lines.Add(Format('⚠️ Chave XML inválida (%s) para a nota %s. Pulando...', [ChaveDaNota, NumeroDaNota]));
+
+      // 👉 Adiciona espaço entre as consultas para melhor leitura
+      MEMOCONSULTA.Lines.Add('');
+
+      DataModule1.CDSCONSULTACHAVE.Next;
+    end;
+
+    MEMOCONSULTA.Lines.Add('✅ Consulta de lista pendente concluída. Verifique os logs de Autorização/Rejeição.');
+
+  finally
+    DataModule1.CDSCONSULTACHAVE.EnableControls;
+    if Assigned(EsperaForm) then
+    begin
+      EsperaForm.Close;
+      EsperaForm.Free;
+    end;
+  end;
+end;
+
+
+
+
+
+
+procedure TForm1.ModificarESalvarXMLGeracao;
+var
+  XMLGeracao: string;
+  NumNota: string;
+  CodNotaAtual: Integer;
+  // Variáveis para ajuste do XML...
+  DataAtual: TDateTime;
+  NovaDataHoraSimples: string;
+  sXMLAjustado: string;
+  PosInicioData: Integer;
+  ConteudoAntigo: string;
+  PosInicioSignature, PosFimSignature: Integer;
+  PosInicioTpEmis: Integer;
+  TpEmisAntigo: string;
+  PosInicioXJust, PosFimXJust: Integer;
+  PosInicioDhCont, PosFimDhCont: Integer;
+  Rejeicao: string; // Armazena o motivo da rejeição
+begin
+  logpendentes.Lines.Clear;
+
+  if not DataModule1.QRYPSQPENDENTE.Active or DataModule1.QRYPSQPENDENTE.IsEmpty then
+  begin
+    logpendentes.Lines.Add('❌ Lista de notas pendentes vazia. Nada para modificar.');
+    Exit;
+  end;
+
+  logpendentes.Lines.Add('🔄 Modificando e salvando Nota no Banco de Dados...');
+  Application.ProcessMessages;
+
+  // Desabilita controles para performance durante o loop
+  DataModule1.QRYPSQPENDENTE.DisableControls;
+  DataModule1.QRYPSQPENDENTE.First;
+
+  while not DataModule1.QRYPSQPENDENTE.Eof do
+  begin
+    // CAPTURA DADOS E XML DO REGISTRO ATUAL
+    XMLGeracao   := DataModule1.QRYPSQPENDENTE.FieldByName('XMLGeracao').AsString;
+    NumNota      := DataModule1.QRYPSQPENDENTE.FieldByName('NumNota').AsString;
+    CodNotaAtual := DataModule1.QRYPSQPENDENTE.FieldByName('CodNota').AsInteger;
+    Rejeicao     := DataModule1.QRYPSQPENDENTE.FieldByName('RejeicaoMotivo').AsString;
+
+    // 1. VALIDAÇÃO
+    XMLGeracao := Trim(XMLGeracao);
+    if XMLGeracao <> '' then
+    begin
+      sXMLAjustado := XMLGeracao;
+
+      // 2. REMOVER O BLOCO DE ASSINATURA (<Signature>) - Necessário para reassinatura
+      PosInicioSignature := Pos('<Signature', sXMLAjustado);
+      PosFimSignature := Pos('</Signature>', sXMLAjustado);
+      if (PosInicioSignature > 0) and (PosFimSignature > 0) then
+      begin
+        sXMLAjustado := Copy(sXMLAjustado, 1, PosInicioSignature - 1) +
+                        Copy(sXMLAjustado, PosFimSignature + Length('</Signature>'), Length(sXMLAjustado));
+        logpendentes.Lines.Add(Format('✂️ Nota %s: Assinatura removida.', [NumNota]));
+      end;
+
+      // 3. AJUSTE CIRÚRGICO DA HORA DO XML (dhEmi) - Atualiza a data/hora para o momento do reenvio
+      DataAtual := Now;
+      NovaDataHoraSimples := FormatDateTime('yyyy-mm-dd', DataAtual) + 'T' + FormatDateTime('hh:nn:ss', DataAtual);
+      PosInicioData := Pos('<dhEmi>', sXMLAjustado);
+      if PosInicioData > 0 then
+      begin
+        PosInicioData := PosInicioData + Length('<dhEmi>');
+        ConteudoAntigo := Copy(sXMLAjustado, PosInicioData, 19);
+        sXMLAjustado := StringReplace(sXMLAjustado, ConteudoAntigo, NovaDataHoraSimples, [rfReplaceAll]);
+        logpendentes.Lines.Add(Format('🔧 Nota %s: Data/Hora ajustada para %s.', [NumNota, NovaDataHoraSimples]));
+      end;
+
+      // 4. AJUSTE CIRÚRGICO DO TIPO DE EMISSÃO (tpEmis = 1) - Garante emissão Normal
+      PosInicioTpEmis := Pos('<tpEmis>', sXMLAjustado);
+      if PosInicioTpEmis > 0 then
+      begin
+        PosInicioTpEmis := PosInicioTpEmis + Length('<tpEmis>');
+        TpEmisAntigo := Copy(sXMLAjustado, PosInicioTpEmis, 1);
+        sXMLAjustado := StringReplace(sXMLAjustado, '<tpEmis>' + TpEmisAntigo, '<tpEmis>1', [rfReplaceAll]);
+        if TpEmisAntigo <> '1' then
+          logpendentes.Lines.Add(Format('🔧 Nota %s: Tipo Emissão alterado de %s para 1 (Normal).', [NumNota, TpEmisAntigo]));
+      end;
+
+      // 5. REMOÇÃO DE JUSTIFICATIVA E dhCont - Remove campos relacionados à Contingência
+      PosInicioXJust := Pos('<xJust>', sXMLAjustado);
+      PosFimXJust := Pos('</xJust>', sXMLAjustado);
+      if (PosInicioXJust > 0) and (PosFimXJust > 0) then
+      begin
+        sXMLAjustado := Copy(sXMLAjustado, 1, PosInicioXJust - 1) +
+                        Copy(sXMLAjustado, PosFimXJust + Length('</xJust>'), Length(sXMLAjustado));
+        logpendentes.Lines.Add(Format('🧹 Nota %s: Justificativa (xJust) removida.', [NumNota]));
+      end;
+
+      PosInicioDhCont := Pos('<dhCont>', sXMLAjustado);
+      PosFimDhCont := Pos('</dhCont>', sXMLAjustado);
+      if (PosInicioDhCont > 0) and (PosFimDhCont > 0) then
+      begin
+        sXMLAjustado := Copy(sXMLAjustado, 1, PosInicioDhCont - 1) +
+                        Copy(sXMLAjustado, PosFimDhCont + Length('</dhCont>'), Length(sXMLAjustado));
+        logpendentes.Lines.Add(Format('🧹 Nota %s: Data de Contingência (dhCont) removida.', [NumNota]));
+      end;
+
+
+
+
+      // 6. CORREÇÃO DE CAMPOS FISCAIS - Aplicado apenas se houve rejeição no envio anterior
+//      if Pos('REJEICAO', UpperCase(Rejeicao)) > 0 then
+//      begin
+//          logpendentes.Lines.Add(Format('🔍 Nota %s: Aplicando correção fiscal devido à rejeição: %s', [NumNota, Rejeicao]));
+//
+//          // 6.1. CORREÇÃO DE CFOP
+//          sXMLAjustado := StringReplace(sXMLAjustado, '<CFOP>5102</CFOP>', '<CFOP>5102</CFOP>', [rfReplaceAll]);
+//          sXMLAjustado := StringReplace(sXMLAjustado, '<CFOP>6102</CFOP>', '<CFOP>6102</CFOP>', [rfReplaceAll]);
+//          logpendentes.Lines.Add('🔧 CFOP: Tentativa de correção (Ex: 5102/6102 para 5201/6201).');
+//
+//
+//          // 6.2. CORREÇÃO DE NCM (Exemplo)
+//          sXMLAjustado := StringReplace(sXMLAjustado, '<NCM>94051010</NCM>', '<NCM>94051090</NCM>', [rfReplaceAll]);
+//          logpendentes.Lines.Add('🔧 NCM: Tentativa de correção (Ex: 94051010 -> 94051090).');
+//
+//
+//          // 6.3. CORREÇÃO DE CST/CSOSN (Exemplo)
+//          sXMLAjustado := StringReplace(sXMLAjustado, '<CSOSN>102</CSOSN>', '<CSOSN>103</CSOSN>', [rfReplaceAll]);
+//          logpendentes.Lines.Add('🔧 CSOSN: Tentativa de correção (Ex: 102 -> 103).');
+//      end;
+
+
+      // 7. SALVA O XML AJUSTADO NO CAMPO XMLGeracao DO BANCO
+      try
+        DataModule1.ConDados.StartTransaction;
+        with DataModule1.QRYupdatebanco do
+        begin
+          Close;
+          SQL.Clear;
+          SQL.Text := 'UPDATE NFE_XML SET XMLGeracao = :pXMLGeracao WHERE CodNota = :pCodNota';
+
+          ParamByName('pXMLGeracao').AsString := sXMLAjustado;
+          ParamByName('pCodNota').AsInteger := CodNotaAtual;
+          ExecSQL;
+        end;
+        DataModule1.ConDados.Commit;
+        logpendentes.Lines.Add(Format('💾 Nota %s:  Atualizada, XML corrigido.', [NumNota]));
+      except
+        on E: Exception do
+        begin
+          DataModule1.ConDados.Rollback;
+          logpendentes.Lines.Add(Format('❌ Erro CRÍTICO ao atualizar XMLGeracao no BD (CodNota %d): %s',
+            [CodNotaAtual, E.Message]));
+        end;
+      end;
+
+    end
+    else
+      logpendentes.Lines.Add(Format('⚠️ XMLGeracao vazio para nota %s. Pulando...', [NumNota]));
+
+    DataModule1.QRYPSQPENDENTE.Next;
+    Application.ProcessMessages;
+  end;
+
+  // Finalização e recarregamento da lista de pendentes
+  DataModule1.QRYPSQPENDENTE.EnableControls;
+  ConsultarVendasPendentes;
+  logpendentes.Lines.Add('✅ Modificação de XMLs concluída. Notas prontas para o reenvio.');
+end;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+end.

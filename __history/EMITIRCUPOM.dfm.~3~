@@ -1,0 +1,152 @@
+object frmemitir: Tfrmemitir
+  Left = 0
+  Top = 0
+  Caption = 'frmemitir'
+  ClientHeight = 643
+  ClientWidth = 902
+  Color = clBtnFace
+  Font.Charset = ANSI_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -16
+  Font.Name = 'Segoe UI Semibold'
+  Font.Style = [fsBold]
+  OldCreateOrder = False
+  PixelsPerInch = 96
+  TextHeight = 21
+  object Panel1: TPanel
+    Left = 0
+    Top = 0
+    Width = 902
+    Height = 643
+    Align = alClient
+    BevelOuter = bvNone
+    TabOrder = 0
+    ExplicitLeft = 272
+    ExplicitTop = 224
+    ExplicitWidth = 185
+    ExplicitHeight = 41
+    object Label1: TLabel
+      Left = 0
+      Top = 97
+      Width = 902
+      Height = 25
+      Align = alTop
+      Alignment = taCenter
+      Caption = 'Vendas '
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -19
+      Font.Name = 'Segoe UI'
+      Font.Style = [fsBold]
+      ParentFont = False
+      ExplicitTop = 121
+      ExplicitWidth = 69
+    end
+    object Panel2: TPanel
+      Left = 0
+      Top = 0
+      Width = 902
+      Height = 97
+      Align = alTop
+      TabOrder = 0
+      object Label2: TLabel
+        Left = 24
+        Top = 21
+        Width = 160
+        Height = 21
+        Caption = 'Defina o Valor a Emitir'
+      end
+      object Edit1: TEdit
+        Left = 24
+        Top = 48
+        Width = 121
+        Height = 29
+        TabOrder = 0
+        Text = 'Edit1'
+      end
+      object BitBtn1: TBitBtn
+        AlignWithMargins = True
+        Left = 769
+        Top = 21
+        Width = 129
+        Height = 55
+        Margins.Top = 20
+        Margins.Bottom = 20
+        Align = alRight
+        Caption = 'Emitir Nfce'
+        TabOrder = 1
+        ExplicitLeft = 648
+        ExplicitTop = 56
+        ExplicitHeight = 59
+      end
+      object BitBtn2: TBitBtn
+        AlignWithMargins = True
+        Left = 634
+        Top = 21
+        Width = 129
+        Height = 55
+        Margins.Top = 20
+        Margins.Bottom = 20
+        Align = alRight
+        Caption = 'Consultar'
+        TabOrder = 2
+        ExplicitLeft = 648
+        ExplicitTop = 56
+        ExplicitHeight = 59
+      end
+    end
+    object Panel3: TPanel
+      Left = 0
+      Top = 528
+      Width = 902
+      Height = 115
+      Align = alBottom
+      TabOrder = 1
+      object Label3: TLabel
+        Left = 568
+        Top = 16
+        Width = 231
+        Height = 21
+        Caption = 'Valor Total Emitido (Nfce + Nfe)'
+      end
+      object Label4: TLabel
+        Left = 568
+        Top = 43
+        Width = 117
+        Height = 37
+        Caption = 'R$ 100,00'
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -27
+        Font.Name = 'Segoe UI Semibold'
+        Font.Style = [fsBold]
+        ParentFont = False
+      end
+      object Memo1: TMemo
+        AlignWithMargins = True
+        Left = 4
+        Top = 4
+        Width = 437
+        Height = 107
+        Align = alLeft
+        Lines.Strings = (
+          'Memo1')
+        ScrollBars = ssVertical
+        TabOrder = 0
+      end
+    end
+    object DBGrid1: TDBGrid
+      Left = 0
+      Top = 122
+      Width = 902
+      Height = 406
+      Align = alClient
+      TabOrder = 2
+      TitleFont.Charset = ANSI_CHARSET
+      TitleFont.Color = clWindowText
+      TitleFont.Height = -16
+      TitleFont.Name = 'Segoe UI Semibold'
+      TitleFont.Style = [fsBold]
+    end
+  end
+end

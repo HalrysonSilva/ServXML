@@ -1,0 +1,46 @@
+object FRMEMAIL: TFRMEMAIL
+  Left = 0
+  Top = 0
+  BorderStyle = bsNone
+  Caption = 'FRMEMAIL'
+  ClientHeight = 46
+  ClientWidth = 543
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
+  OldCreateOrder = False
+  Position = poDesktopCenter
+  PixelsPerInch = 96
+  TextHeight = 13
+  object LabelEMAIL: TLabel
+    Left = 0
+    Top = 0
+    Width = 543
+    Height = 29
+    Align = alClient
+    Alignment = taCenter
+    Caption = 'LabelEMAIL'
+    Font.Charset = ANSI_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -21
+    Font.Name = 'Segoe UI Semibold'
+    Font.Style = [fsBold]
+    ParentFont = False
+    ExplicitWidth = 110
+    ExplicitHeight = 30
+  end
+  object PBEMAIL: TProgressBar
+    Left = 0
+    Top = 29
+    Width = 543
+    Height = 17
+    Align = alBottom
+    TabOrder = 0
+    ExplicitLeft = 272
+    ExplicitTop = 192
+    ExplicitWidth = 150
+  end
+end

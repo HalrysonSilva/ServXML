@@ -1,0 +1,670 @@
+object Datamodule1: TDatamodule1
+  OldCreateOrder = False
+  OnCreate = DataModuleCreate
+  Height = 703
+  Width = 1030
+  object ConDados: TUniConnection
+    ProviderName = 'SQL Server'
+    Port = 1433
+    Database = 'Servsic'
+    Username = 'sa'
+    Server = '.\base'
+    ConnectDialog = UniConnectDialog1
+    LoginPrompt = False
+    Left = 24
+    Top = 24
+    EncryptedPassword = 'CEFFCDFFCCFF'
+  end
+  object UniSQLMonitor1: TUniSQLMonitor
+    Left = 24
+    Top = 144
+  end
+  object SQLServerUniProvider1: TSQLServerUniProvider
+    Left = 16
+    Top = 208
+  end
+  object UniConnectDialog1: TUniConnectDialog
+    DatabaseLabel = 'Database'
+    PortLabel = 'Port'
+    ProviderLabel = 'Provider'
+    Caption = 'Connect'
+    UsernameLabel = 'User Name'
+    PasswordLabel = 'Password'
+    ServerLabel = 'Server'
+    ConnectButton = 'Connect'
+    CancelButton = 'Cancel'
+    Left = 24
+    Top = 80
+  end
+  object QRYEMITENTE: TUniQuery
+    Connection = ConDados
+    SQL.Strings = (
+      'SELECT * FROM NFE_EMITENTE')
+    Left = 168
+    Top = 16
+  end
+  object DSQRYEMITENTE: TDataSource
+    DataSet = QRYEMITENTE
+    Left = 168
+    Top = 64
+  end
+  object QRYBUSCAXML: TUniQuery
+    Connection = ConDados
+    Left = 168
+    Top = 136
+  end
+  object DSQRYBUSCAXML: TDataSource
+    DataSet = QRYBUSCAXML
+    Left = 160
+    Top = 208
+  end
+  object QRYTIPONOTA: TUniQuery
+    Connection = ConDados
+    Left = 160
+    Top = 264
+  end
+  object QRYEMAILLOG: TUniQuery
+    Connection = ConDados
+    Left = 168
+    Top = 328
+  end
+  object QRYSERIE: TUniQuery
+    Connection = ConDados
+    Left = 168
+    Top = 408
+  end
+  object QRYCRIATABSERVXML: TUniQuery
+    Connection = ConDados
+    SQL.Strings = (
+      '-- Parte 1: Cria a tabela SERVXML se ela n'#227'o existir'
+      
+        'IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TAB' +
+        'LE_NAME = '#39'SERVXML'#39')'
+      'BEGIN'
+      '    CREATE TABLE SERVXML ('
+      '        Controle INT IDENTITY(1,1) PRIMARY KEY,'
+      '        CodNota INT NOT NULL,'
+      '        CodEmitente INT NOT NULL,'
+      '        NumNota INT NOT NULL,'
+      '        Num_Mod_Doc INT NOT NULL,'
+      '        Serie CHAR(10) COLLATE Latin1_General_CI_AS NOT NULL,'
+      
+        '        XMLTransmissao TEXT COLLATE Latin1_General_100_CI_AS, --' +
+        ' Ajustado para compatibilidade'
+      '        Data_emissao DATETIME DEFAULT GETDATE(),'
+      '        Status CHAR(1) COLLATE Latin1_General_CI_AS'
+      '    );'
+      'END;'
+      ''
+      ''
+      ''
+      ''
+      ''
+      '')
+    Left = 48
+    Top = 272
+  end
+  object QRYINSERESERVXML: TUniQuery
+    Connection = ConDados
+    Left = 272
+    Top = 32
+  end
+  object QRYVERIFICASERVXML: TUniQuery
+    Connection = ConDados
+    Left = 272
+    Top = 88
+  end
+  object QRYBUSCARVALOR: TUniQuery
+    Connection = ConDados
+    SQL.Strings = (
+      'SELECT SUM(NFE_CAB.Valor_Total_Nota) AS ValorTotalEmitido'
+      'FROM NFE_CAB'
+      'INNER JOIN NFE_XML ON NFE_CAB.Num_Nota_Fiscal = NFE_XML.NumNota'
+      'WHERE NFE_CAB.CodEmitente = :CodEmitente'
+      
+        'AND CAST(NFE_CAB.Data_Emissao AS DATE) BETWEEN :DataInicio AND :' +
+        'DataFim'
+      'AND NFE_XML.Status = '#39'T'#39
+      
+        'AND NFE_CAB.CFOP IN ('#39'5101'#39', '#39'5102'#39', '#39'5405'#39', '#39'6101'#39', '#39'6102'#39', '#39'64' +
+        '05'#39');')
+    Left = 272
+    Top = 152
+    ParamData = <
+      item
+        DataType = ftUnknown
+        Name = 'CodEmitente'
+        Value = nil
+      end
+      item
+        DataType = ftUnknown
+        Name = 'DataInicio'
+        Value = nil
+      end
+      item
+        DataType = ftUnknown
+        Name = 'DataFim'
+        Value = nil
+      end>
+  end
+  object QRYBUSCARNOTAS: TUniQuery
+    Connection = ConDados
+    Left = 272
+    Top = 208
+  end
+  object DSQRYBUSCARNOTAS: TDataSource
+    DataSet = QRYBUSCARNOTAS
+    Left = 272
+    Top = 264
+  end
+  object QRYADDTAREFA: TUniQuery
+    Connection = ConDados
+    Left = 400
+    Top = 24
+  end
+  object QRYSALVAARQXML: TUniQuery
+    Connection = ConDados
+    Left = 280
+    Top = 320
+  end
+  object QRYVERIFICAINUTILIZACAO: TUniQuery
+    Connection = ConDados
+    Left = 272
+    Top = 376
+  end
+  object QRYVERIFICANFE_XML: TUniQuery
+    Connection = ConDados
+    Left = 264
+    Top = 440
+  end
+  object QRYBUSCANTSALVARNFE_XML: TUniQuery
+    Connection = ConDados
+    Left = 272
+    Top = 504
+  end
+  object QRYBUSCANTSALVARSERVXML: TUniQuery
+    Connection = ConDados
+    Left = 256
+    Top = 576
+  end
+  object QRYTOTALEMITIDO: TUniQuery
+    Connection = ConDados
+    Left = 520
+    Top = 144
+  end
+  object QRYBUSCARSALVADORES: TUniQuery
+    Connection = ConDados
+    Left = 392
+    Top = 96
+  end
+  object QRYXMLNFeInutilizada: TUniQuery
+    Connection = ConDados
+    Left = 392
+    Top = 160
+  end
+  object QRYXMLNFeCab: TUniQuery
+    Connection = ConDados
+    Left = 400
+    Top = 232
+  end
+  object QRYXMLNFCeCab: TUniQuery
+    Connection = ConDados
+    Left = 400
+    Top = 312
+  end
+  object QRYXMLCanceladas: TUniQuery
+    Connection = ConDados
+    Left = 400
+    Top = 560
+  end
+  object QRYNOTASRECEBIDAS: TUniQuery
+    Connection = ConDados
+    Left = 536
+    Top = 24
+  end
+  object DsQRYNOTASRECEBIDAS: TDataSource
+    DataSet = QRYNOTASRECEBIDAS
+    Left = 536
+    Top = 72
+  end
+  object QRYNOTAPERDIDA: TUniQuery
+    Connection = ConDados
+    Left = 792
+    Top = 24
+  end
+  object DSQRYNOTAPERDIDA: TDataSource
+    DataSet = QRYNOTAPERDIDA
+    Left = 792
+    Top = 80
+  end
+  object QRYCORRIGEDADOS: TUniQuery
+    Connection = ConDados
+    SQL.Strings = (
+      '-- ************************************************************'
+      
+        '-- CORRE'#199#195'O DA ESTRUTURA PARA NFE_XML (CLIENTES) - Vers'#227'o Corrig' +
+        'ida'
+      '-- ************************************************************'
+      ''
+      '-- 1. CFOP: Garante que a coluna CFOP esteja presente (INT)'
+      'IF NOT EXISTS ('
+      '    SELECT 1'
+      '    FROM sys.columns '
+      '    WHERE name = '#39'CFOP'#39' AND object_id = OBJECT_ID('#39'dbo.NFE_XML'#39')'
+      ')'
+      'BEGIN'
+      '    ALTER TABLE dbo.NFE_XML ADD CFOP INT NULL;'
+      'END;'
+      ''
+      '-- 2. RejeicaoMotivo: Ajusta o tamanho para VARCHAR(255)'
+      'IF EXISTS ('
+      '    SELECT 1'
+      '    FROM sys.columns '
+      
+        '    WHERE name = '#39'RejeicaoMotivo'#39' AND object_id = OBJECT_ID('#39'dbo' +
+        '.NFE_XML'#39')'
+      ')'
+      'BEGIN'
+      
+        '    ALTER TABLE dbo.NFE_XML ALTER COLUMN RejeicaoMotivo VARCHAR(' +
+        '255) NULL;'
+      'END'
+      'ELSE'
+      'BEGIN'
+      
+        '    ALTER TABLE dbo.NFE_XML ADD RejeicaoMotivo VARCHAR(255) NULL' +
+        ';'
+      'END;'
+      ''
+      
+        '-- 3. AJUSTES DE TIPO DE DADOS (TEXT para VARCHAR(MAX) ou NVARCH' +
+        'AR(MAX))'
+      ''
+      '-- 3.1. XMLGeracao - de VARCHAR(MAX) para NVARCHAR(MAX)'
+      'IF NOT EXISTS ('
+      '    SELECT 1'
+      '    FROM sys.columns '
+      
+        '    WHERE name = '#39'XMLGeracao'#39' AND object_id = OBJECT_ID('#39'dbo.NFE' +
+        '_XML'#39')'
+      ')'
+      'BEGIN'
+      
+        '    ALTER TABLE dbo.NFE_XML ALTER COLUMN XMLGeracao NVARCHAR(MAX' +
+        ') NULL;'
+      'END;'
+      ''
+      '-- 3.2. XMLTransmissao - de VARCHAR(MAX) para NVARCHAR(MAX)'
+      'IF NOT EXISTS ('
+      '    SELECT 1'
+      '    FROM sys.columns '
+      
+        '    WHERE name = '#39'XMLTransmissao'#39' AND object_id = OBJECT_ID('#39'dbo' +
+        '.NFE_XML'#39')'
+      ')'
+      'BEGIN'
+      
+        '    ALTER TABLE dbo.NFE_XML ALTER COLUMN XMLTransmissao NVARCHAR' +
+        '(MAX) NULL;'
+      'END;'
+      ''
+      '-- 3.3. XMLCancelamento - de VARCHAR(MAX) para NVARCHAR(MAX)'
+      'IF NOT EXISTS ('
+      '    SELECT 1'
+      '    FROM sys.columns '
+      
+        '    WHERE name = '#39'XMLCancelamento'#39' AND object_id = OBJECT_ID('#39'db' +
+        'o.NFE_XML'#39')'
+      ')'
+      'BEGIN'
+      
+        '    ALTER TABLE dbo.NFE_XML ALTER COLUMN XMLCancelamento NVARCHA' +
+        'R(MAX) NULL;'
+      'END;'
+      ''
+      '-- 3.4. XMLInutilizacao'
+      'IF NOT EXISTS ('
+      '    SELECT 1'
+      '    FROM sys.columns '
+      
+        '    WHERE name = '#39'XMLInutilizacao'#39' AND object_id = OBJECT_ID('#39'db' +
+        'o.NFE_XML'#39')'
+      ')'
+      'BEGIN'
+      
+        '    ALTER TABLE dbo.NFE_XML ALTER COLUMN XMLInutilizacao VARCHAR' +
+        '(MAX) NULL;'
+      'END;'
+      ''
+      '-- 5. CRIA'#199#195'O DE COLUNAS AUSENTES'
+      ''
+      '-- 5.1. ST_Retorno (INT)'
+      'IF NOT EXISTS ('
+      '    SELECT 1'
+      '    FROM sys.columns '
+      
+        '    WHERE name = '#39'ST_Retorno'#39' AND object_id = OBJECT_ID('#39'dbo.NFE' +
+        '_XML'#39')'
+      ')'
+      'BEGIN'
+      '    ALTER TABLE dbo.NFE_XML ADD ST_Retorno INT NULL;'
+      'END;'
+      ''
+      '-- 5.2. Data_Rejeicao (DATETIME)'
+      'IF NOT EXISTS ('
+      '    SELECT 1'
+      '    FROM sys.columns '
+      
+        '    WHERE name = '#39'Data_Rejeicao'#39' AND object_id = OBJECT_ID('#39'dbo.' +
+        'NFE_XML'#39')'
+      ')'
+      'BEGIN'
+      '    ALTER TABLE dbo.NFE_XML ADD Data_Rejeicao DATETIME NULL;'
+      'END;'
+      ''
+      '-- 5.3. Rejeicao (VARCHAR(MAX))'
+      'IF NOT EXISTS ('
+      '    SELECT 1'
+      '    FROM sys.columns '
+      
+        '    WHERE name = '#39'Rejeicao'#39' AND object_id = OBJECT_ID('#39'dbo.NFE_X' +
+        'ML'#39')'
+      ')'
+      'BEGIN'
+      '    ALTER TABLE dbo.NFE_XML ADD Rejeicao VARCHAR(MAX) NULL;'
+      'END;'
+      ''
+      '-- ************************************************************'
+      '-- FIM DAS CORRE'#199#213'ES NA TABELA NFE_XML'
+      '-- ************************************************************')
+    Left = 48
+    Top = 336
+  end
+  object QRYVENDASPENDENTES: TUniQuery
+    Connection = ConDados
+    Left = 792
+    Top = 152
+  end
+  object DSVENDASPENDENTES: TDataSource
+    DataSet = QRYVENDASPENDENTES
+    Left = 792
+    Top = 208
+  end
+  object QRYLIMPANFCE: TUniQuery
+    Connection = ConDados
+    Left = 792
+    Top = 272
+  end
+  object QRYBUSCAULTIMANFCE: TUniQuery
+    Connection = ConDados
+    SQL.Strings = (
+      'SELECT'
+      '    MAX(NumNota) AS Registro'
+      'FROM'
+      '    NFE_XML'
+      'WHERE'
+      '    Serie = :serie'
+      '    AND Num_Mod_Doc = 65'
+      '    AND Status = '#39'T'#39)
+    Left = 792
+    Top = 328
+    ParamData = <
+      item
+        DataType = ftUnknown
+        Name = 'serie'
+        Value = Null
+      end>
+  end
+  object QRYNOVONUMNFCEMANUAL: TUniQuery
+    Connection = ConDados
+    Left = 784
+    Top = 408
+  end
+  object DSSequencia: TDataSource
+    DataSet = QRYSequencia
+    Left = 896
+    Top = 328
+  end
+  object QRYSequencia: TUniQuery
+    Connection = ConDados
+    Left = 888
+    Top = 256
+  end
+  object QRYupdatebanco: TUniQuery
+    Connection = ConDados
+    SQL.Strings = (
+      '-- 1. ATUALIZAR CodEmitente'
+      'UPDATE N_XML'
+      'SET CodEmitente = ('
+      '    SELECT TOP 1 C.CodEmitente'
+      '    FROM NFE_CAB C'
+      '    WHERE C.Num_Nota_Fiscal = N_XML.NumNota'
+      '      AND C.Num_Serie = N_XML.Serie'
+      '      AND C.Num_Mod_Doc = N_XML.Num_Mod_Doc'
+      ')'
+      'FROM NFE_XML N_XML'
+      'WHERE N_XML.CodEmitente IS NULL;'
+      ''
+      ''
+      '-- 2. ATUALIZAR Num_Mod_Doc'
+      'UPDATE N_XML'
+      'SET Num_Mod_Doc = ('
+      '    SELECT TOP 1 C.Num_Mod_Doc'
+      '    FROM NFE_CAB C'
+      '    WHERE C.Num_Nota_Fiscal = N_XML.NumNota'
+      '      AND C.Num_Serie = N_XML.Serie'
+      '      AND C.CodEmitente = N_XML.CodEmitente'
+      ')'
+      'FROM NFE_XML N_XML'
+      'WHERE N_XML.Num_Mod_Doc IS NULL OR N_XML.Num_Mod_Doc = 0;'
+      ''
+      ''
+      '-- 3. ATUALIZAR VALOR (CORRE'#199#195'O CR'#205'TICA)'
+      'UPDATE N_XML'
+      'SET valor = ('
+      '    SELECT TOP 1 C.Valor_Total_Nota'
+      '    FROM NFE_CAB C'
+      '    WHERE C.Num_Nota_Fiscal = N_XML.NumNota'
+      '      AND C.Num_Serie = N_XML.Serie'
+      '      AND C.Num_Mod_Doc = N_XML.Num_Mod_Doc'
+      '      AND C.CodEmitente = N_XML.CodEmitente'
+      ')'
+      'FROM NFE_XML N_XML'
+      'WHERE EXISTS ('
+      '    SELECT 1'
+      '    FROM NFE_CAB C'
+      '    WHERE C.Num_Nota_Fiscal = N_XML.NumNota'
+      '      AND C.Num_Serie = N_XML.Serie'
+      '      AND C.Num_Mod_Doc = N_XML.Num_Mod_Doc'
+      '      AND C.CodEmitente = N_XML.CodEmitente'
+      ');'
+      ''
+      ''
+      '-- 4. ATUALIZAR CFOP'
+      'UPDATE N_XML'
+      'SET CFOP = ('
+      '    SELECT TOP 1 C.CFOP'
+      '    FROM NFE_CAB C'
+      '    WHERE C.Num_Nota_Fiscal = N_XML.NumNota'
+      '      AND C.Num_Serie = N_XML.Serie'
+      '      AND C.Num_Mod_Doc = N_XML.Num_Mod_Doc'
+      '      AND C.CodEmitente = N_XML.CodEmitente'
+      ')'
+      'FROM NFE_XML N_XML'
+      'WHERE N_XML.CFOP IS NULL OR N_XML.CFOP = 0;'
+      ''
+      ''
+      ''
+      'UPDATE NFE_XML'
+      'SET'
+      '  Status = '#39'T'#39',  RejeicaoMotivo = '#39'Autorizado'#39
+      'WHERE Status NOT IN ('#39'T'#39', '#39'C'#39', '#39'I'#39')'
+      '  AND XMLTransmissao IS NOT NULL'
+      '  AND XMLTransmissao LIKE '#39'%<nfeProc%'#39
+      '  AND XMLTransmissao LIKE '#39'%<protNFe%'#39
+      '  AND ('
+      '    XMLTransmissao LIKE '#39'%<cStat>100</cStat>%'#39
+      '    OR XMLTransmissao LIKE '#39'%<cStat>150</cStat>%'#39
+      '  );'
+      ''
+      'UPDATE nfe_xml'
+      'SET xmlgeracao = temp.XMLTexto'
+      'FROM nfe_xmltemp temp'
+      'WHERE temp.Status = '#39'G'#39
+      '  AND temp.ChaveNFe = nfe_xml.xmlchave;'
+      ''
+      
+        '-- Atualiza o campo xmltransmissao com XMLTexto onde Status = '#39'T' +
+        #39
+      'UPDATE nfe_xml'
+      'SET xmltransmissao = temp.XMLTexto'
+      'FROM nfe_xmltemp temp'
+      'WHERE temp.Status = '#39'T'#39
+      '  AND temp.ChaveNFe = nfe_xml.xmlchave;')
+    Left = 40
+    Top = 400
+  end
+  object frxReportNotas: TfrxReport
+    Version = '6.4.13'
+    DotMatrixReport = False
+    IniFile = '\Software\Fast Reports'
+    PreviewOptions.Buttons = [pbPrint, pbLoad, pbSave, pbExport, pbZoom, pbFind, pbOutline, pbPageSetup, pbTools, pbEdit, pbNavigator, pbExportQuick, pbCopy, pbSelection]
+    PreviewOptions.Zoom = 1.000000000000000000
+    PrintOptions.Printer = 'Padr'#227'o'
+    PrintOptions.PrintOnSheet = 0
+    ReportOptions.CreateDate = 45904.715523645800000000
+    ReportOptions.LastChange = 45904.715523645800000000
+    ScriptLanguage = 'PascalScript'
+    ScriptText.Strings = (
+      'begin'
+      ''
+      'end.')
+    Left = 888
+    Top = 512
+    Datasets = <>
+    Variables = <>
+    Style = <>
+    object Data: TfrxDataPage
+      Height = 1000.000000000000000000
+      Width = 1000.000000000000000000
+    end
+    object Page1: TfrxReportPage
+      PaperWidth = 210.000000000000000000
+      PaperHeight = 297.000000000000000000
+      PaperSize = 9
+      LeftMargin = 10.000000000000000000
+      RightMargin = 10.000000000000000000
+      TopMargin = 10.000000000000000000
+      BottomMargin = 10.000000000000000000
+      Frame.Typ = []
+      MirrorMode = []
+      object ReportTitle1: TfrxReportTitle
+        FillType = ftBrush
+        Frame.Typ = []
+        Height = 37.795300000000000000
+        Top = 18.897650000000000000
+        Width = 718.110700000000000000
+        object Memo1: TfrxMemoView
+          Align = baClient
+          AllowVectorExport = True
+          Width = 718.110700000000000000
+          Height = 37.795300000000000000
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clBlack
+          Font.Height = -27
+          Font.Name = 'Segoe UI Semibold'
+          Font.Style = [fsBold]
+          Frame.Typ = []
+          HAlign = haCenter
+          Memo.UTF8W = (
+            'Rela'#231#227'o de Documentos Fiscais')
+          ParentFont = False
+        end
+      end
+    end
+  end
+  object frxdsNotas: TfrxDBDataset
+    UserName = 'frxDBDataset1'
+    CloseDataSource = False
+    FieldAliases.Strings = (
+      'CodigoEmitente=CodigoEmitente'
+      'NumeroNota=NumeroNota'
+      'StatusXML=StatusXML'
+      'StatusRetornoNF=StatusRetornoNF'
+      'ModeloDocumento=ModeloDocumento'
+      'Serie=Serie'
+      'DataEmissao=DataEmissao'
+      'ChaveAcesso=ChaveAcesso'
+      'ValorTotalNota=ValorTotalNota'
+      'RazaoSocialDestinatario=RazaoSocialDestinatario'
+      'CNPJCPTDestinatario=CNPJCPTDestinatario')
+    DataSource = DSQRYBUSCAXML
+    BCDToCurrency = False
+    Left = 888
+    Top = 576
+  end
+  object QRYVERITABEST3A: TUniQuery
+    Connection = ConDados
+    Left = 784
+    Top = 472
+  end
+  object QRYPSQPENDENTE: TUniQuery
+    Connection = ConDados
+    Left = 536
+    Top = 240
+  end
+  object QRYTOTALPENDENTE: TUniQuery
+    Connection = ConDados
+    Left = 536
+    Top = 360
+  end
+  object DSQRYPSQPENDENTE: TDataSource
+    Left = 536
+    Top = 296
+  end
+  object DSQRYTOTALPENDENTE: TDataSource
+    Left = 536
+    Top = 424
+  end
+  object QRYSALVAENVIO: TUniQuery
+    Connection = ConDados
+    Left = 536
+    Top = 488
+  end
+  object QRYDELETENFEINUT: TUniQuery
+    Connection = ConDados
+    Left = 408
+    Top = 376
+  end
+  object CDSCONSULTACHAVE: TClientDataSet
+    Aggregates = <>
+    Params = <>
+    Left = 656
+    Top = 192
+  end
+  object QRYNUMNOTASEFAZ: TUniQuery
+    Connection = ConDados
+    Left = 656
+    Top = 112
+  end
+  object DSCDSCONSULTACHAVE: TDataSource
+    DataSet = CDSCONSULTACHAVE
+    Left = 656
+    Top = 256
+  end
+  object QRYCORRIGEPENDENCIA: TUniQuery
+    Connection = ConDados
+    Left = 88
+    Top = 472
+  end
+  object QRYCARREGAVENDAS: TUniQuery
+    Connection = ConDados
+    Left = 648
+    Top = 328
+  end
+  object DSQRYCARREGAVENDAS: TDataSource
+    DataSet = QRYCARREGAVENDAS
+    Left = 648
+    Top = 384
+  end
+end

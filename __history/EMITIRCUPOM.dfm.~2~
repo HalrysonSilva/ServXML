@@ -1,0 +1,89 @@
+object frmemitir: Tfrmemitir
+  Left = 0
+  Top = 0
+  Caption = 'frmemitir'
+  ClientHeight = 643
+  ClientWidth = 902
+  Color = clBtnFace
+  Font.Charset = ANSI_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -16
+  Font.Name = 'Segoe UI Semibold'
+  Font.Style = [fsBold]
+  OldCreateOrder = False
+  PixelsPerInch = 96
+  TextHeight = 21
+  object Panel1: TPanel
+    Left = 0
+    Top = 0
+    Width = 902
+    Height = 643
+    Align = alClient
+    BevelOuter = bvNone
+    TabOrder = 0
+    ExplicitLeft = 272
+    ExplicitTop = 224
+    ExplicitWidth = 185
+    ExplicitHeight = 41
+    object Label1: TLabel
+      Left = 0
+      Top = 121
+      Width = 902
+      Height = 25
+      Align = alTop
+      Alignment = taCenter
+      Caption = 'Vendas '
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -19
+      Font.Name = 'Segoe UI'
+      Font.Style = [fsBold]
+      ParentFont = False
+      ExplicitWidth = 69
+    end
+    object Panel2: TPanel
+      Left = 0
+      Top = 0
+      Width = 902
+      Height = 121
+      Align = alTop
+      TabOrder = 0
+      object Label2: TLabel
+        Left = 24
+        Top = 24
+        Width = 160
+        Height = 21
+        Caption = 'Defina o Valor a Emitir'
+      end
+      object Edit1: TEdit
+        Left = 24
+        Top = 51
+        Width = 121
+        Height = 29
+        TabOrder = 0
+        Text = 'Edit1'
+      end
+    end
+    object Panel3: TPanel
+      Left = 0
+      Top = 528
+      Width = 902
+      Height = 115
+      Align = alBottom
+      TabOrder = 1
+    end
+    object DBGrid1: TDBGrid
+      Left = 0
+      Top = 146
+      Width = 902
+      Height = 382
+      Align = alClient
+      TabOrder = 2
+      TitleFont.Charset = ANSI_CHARSET
+      TitleFont.Color = clWindowText
+      TitleFont.Height = -16
+      TitleFont.Name = 'Segoe UI Semibold'
+      TitleFont.Style = [fsBold]
+    end
+  end
+end

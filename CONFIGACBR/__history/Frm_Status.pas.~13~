@@ -1,0 +1,44 @@
+﻿
+
+unit Frm_Status;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, StdCtrls, ExtCtrls;
+
+type
+  TfrmStatus = class(TForm)
+    Panel1: TPanel;
+    lbl1: TLabel;
+    lblStatus: TLabel;
+    Timer1: TTimer;
+    procedure Timer1Timer(Sender: TObject);
+
+  private
+    { Private declarations }
+  public
+
+  end;
+
+var
+  frmStatus: TfrmStatus;
+
+
+implementation
+
+{$R *.dfm}
+
+uses GERAXML;
+
+
+procedure TfrmStatus.Timer1Timer(Sender: TObject);
+begin
+
+  //MemoRetorno.Lines.Add('Novo retorno recebido em: ' + DateTimeToStr(Now));
+  MemoRetorno.SelStart;
+end;
+
+
+end.

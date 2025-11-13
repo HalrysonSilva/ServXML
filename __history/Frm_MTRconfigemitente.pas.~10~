@@ -1,0 +1,73 @@
+unit Frm_MTRconfigemitente;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.DBCtrls;
+
+type
+  TMTRemitente = class(TForm)
+    Panel1: TPanel;
+    cmbmtremitente: TComboBox;
+    Label1: TLabel;
+    editmtrcertificado: TEdit;
+    Label2: TLabel;
+    btnmtrbuscar: TButton;
+    cmbmtrmodelo: TComboBox;
+    Label3: TLabel;
+    Button1: TButton;
+    Button2: TButton;
+    DBTextmtremitente: TDBText;
+    procedure Button2Click(Sender: TObject);
+
+    procedure FormShow(Sender: TObject);
+    procedure cmbmtremitenteChange(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  MTRemitente: TMTRemitente;
+
+implementation
+
+{$R *.dfm}
+
+uses CONEXAOBD;
+
+procedure TMTRemitente.Button2Click(Sender: TObject);
+begin
+close;
+end;
+
+
+
+procedure TMTRemitente.cmbmtremitenteChange(Sender: TObject);
+begin
+  with DataModule1.QRYEMITENTE do
+  begin
+    Close;
+    SQL.Text := 'SELECT Razao_Social FROM NFe_Emitente WHERE Codigo = :Codigo';
+    ParamByName('Codigo').AsInteger := Integer(cmbmtremitente.Items.Objects[cmbmtremitente.ItemIndex]);
+    Open;
+
+    if not IsEmpty then
+      dbtextmtremitente.Caption := FieldByName('Razao_Social').AsString
+    else
+      dbtextmtremitente.Caption := 'Emitente não encontrado';
+  end;
+end;
+
+
+procedure TMTRemitente.FormShow(Sender: TObject);
+begin
+
+cmbmtrmodelo.Items.Add('55 - Nota Fiscal');
+  cmbmtrmodelo.Items.Add('65 - Cupom Fiscal');
+  cmbmtrmodelo.ItemIndex := -1; // Nenhum item selecionado inicialmente
+end;
+
+end.

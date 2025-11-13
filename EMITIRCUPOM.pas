@@ -1,0 +1,484 @@
+unit EMITIRCUPOM;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Data.DB, Vcl.StdCtrls, Vcl.Grids,
+  Vcl.DBGrids, Vcl.ExtCtrls, Vcl.Buttons, Vcl.ComCtrls,
+  ACBrDFe.Component, ACBrDFe.DANFe.DANFeRL, ACBrDFe.SSL, ACBrDFe.NFe, ACBrBase,
+  ACBrDFe, ACBrNFe;
+
+type
+  Tfrmemitir = class(TForm)
+    Panel1: TPanel;
+    Label1: TLabel;
+    Panel2: TPanel;
+    Panel3: TPanel;
+    GRIDVENDAS: TDBGrid;
+    Editvalorparaemitir: TEdit;
+    Label2: TLabel;
+    Label3: TLabel;
+    labelvaloremitido: TLabel;
+    memolog: TMemo;
+    btnemitir: TBitBtn;
+    Btnconsultar: TBitBtn;
+    Label5: TLabel;
+    datainicio: TDateTimePicker;
+    datafim: TDateTimePicker;
+    Label6: TLabel;
+    Label7: TLabel;
+    ACBrNFe1: TACBrNFe;
+    
+    procedure FormCreate(Sender: TObject);
+    procedure BtnconsultarClick(Sender: TObject);
+    procedure btnemitirClick(Sender: TObject);
+    procedure Label6Click(Sender: TObject);
+  private
+    procedure CarregarParametrosACBrDoEmitente;
+    procedure ConsultarVendasParaEmissao;
+    procedure AtualizarStatusVenda(Pedido: Integer; Status: String; ChaveAcesso: String; nProt: String; MotivoRejeicao: String);
+  public
+    { Public declarations }
+  end;
+
+var
+  frmemitir: Tfrmemitir;
+
+implementation
+
+{$R *.dfm}
+
+uses  Frm_ACBrNFe, CONEXAOBD;
+
+// --- Implementação das Procedures ---
+
+procedure Tfrmemitir.FormCreate(Sender: TObject);
+begin
+
+
+  datafim.Date := Date;
+  datainicio.Date := datafim.Date - 30;
+
+  CarregarParametrosACBrDoEmitente;
+end;
+
+procedure Tfrmemitir.CarregarParametrosACBrDoEmitente;
+begin
+  if not Assigned(Frm_ACBrNFe) then
+  begin
+    memolog.Lines.Add('Erro: Formulário Frm_ACBrNFe não está criado. Não foi possível carregar parâmetros do emitente.');
+    Exit;
+  end;
+
+  try
+    ACBrNFe1.Configuracoes.Geral.ModeloDFE := moNFCe;
+    ACBrNFe1.Configuracoes.Geral.SalvarXML := True;
+    ACBrNFe1.Configuracoes.Arquivos.PathNFe := 'C:\NFe\XMLs\';
+
+    ACBrNFe1.Configuracoes.Emitente.CNPJ := Frm_ACBrNFe.edtEmitCNPJ.Text;
+    ACBrNFe1.Configuracoes.Emitente.IE := Frm_ACBrNFe.edtEmitIE.Text;
+    ACBrNFe1.Configuracoes.Emitente.NomeFantasia := Frm_ACBrNFe.edtEmitFantasia.Text;
+    ACBrNFe1.Configuracoes.Emitente.RazaoSocial := Frm_ACBrNFe.edtEmitRazao.Text;
+    ACBrNFe1.Configuracoes.Emitente.Fone := Frm_ACBrNFe.edtEmitFone.Text;
+    ACBrNFe1.Configuracoes.Emitente.End.CEP := Frm_ACBrNFe.edtEmitCEP.Text;
+    ACBrNFe1.Configuracoes.Emitente.End.Logradouro := Frm_ACBrNFe.edtEmitLogradouro.Text;
+    ACBrNFe1.Configuracoes.Emitente.End.Numero := Frm_ACBrNFe.edtEmitNumero.Text;
+    ACBrNFe1.Configuracoes.Emitente.End.Bairro := Frm_ACBrNFe.edtEmitBairro.Text;
+    ACBrNFe1.Configuracoes.Emitente.End.cMun := Frm_ACBrNFe.edtEmitCodCidade.Text;
+    ACBrNFe1.Configuracoes.Emitente.End.xMun := Frm_ACBrNFe.edtEmitCidade.Text;
+    ACBrNFe1.Configuracoes.Emitente.End.UF := Frm_ACBrNFe.edtEmitUF.Text;
+
+    case Frm_ACBrNFe.cbTipoEmpresa.ItemIndex of
+      0: ACBrNFe1.Configuracoes.Emitente.CRT := crtSimplesNacional;
+      1: ACBrNFe1.Configuracoes.Emitente.CRT := crtSimplesNacionalExcessoSublimite;
+      2: ACBrNFe1.Configuracoes.Emitente.CRT := crtRegimeNormal;
+      else
+        ACBrNFe1.Configuracoes.Emitente.CRT := crtNaoInformado;
+        memolog.Lines.Add('Atenção: Regime Tributário não configurado no Frm_ACBrNFe.cbTipoEmpresa.');
+    end;
+
+    ACBrNFe1.Configuracoes.WebServices.UF := Frm_ACBrNFe.edtEmitUF.Text;
+    ACBrNFe1.Configuracoes.WebServices.Ambiente := TAmbiente(StrToIntDef(Frm_ACBrNFe.edtAmbienteNFe.Text, 2));
+    ACBrNFe1.Configuracoes.WebServices.CSC := Frm_ACBrNFe.edtCSC.Text;
+    ACBrNFe1.Configuracoes.WebServices.IdCSC := StrToIntDef(Frm_ACBrNFe.edtIDCSC.Text, 0);
+
+    ACBrNFe1.Configuracoes.Certificados.Arquivo := Frm_ACBrNFe.edtCaminhoCertificado.Text;
+    ACBrNFe1.Configuracoes.Certificados.Senha := Frm_ACBrNFe.edtSenhaCertificado.Text;
+    ACBrNFe1.Configuracoes.Certificados.Tipo := ctA1;
+
+    memolog.Lines.Add('Parâmetros da empresa carregados com sucesso a partir do Frm_ACBrNFe.');
+  except
+    on E: Exception do
+      memolog.Lines.Add('Erro ao carregar parâmetros da empresa do Frm_ACBrNFe: ' + E.Message);
+  end;
+end;
+
+procedure Tfrmemitir.ConsultarVendasParaEmissao;
+var
+  DataInicial, DataFinal: TDateTime;
+  ValorTotalEmitidoPeriodo: Currency;
+begin
+  memolog.Lines.Clear;
+  ValorTotalEmitidoPeriodo := 0;
+  labelvaloremitido.Caption := FormatCurr('R$ #,##0.00', 0);
+
+  try
+    DataInicial := datainicio.Date;
+    DataFinal := datafim.Date;
+
+    // --- Consulta para buscar vendas NÃO emitidas (tabest3a) ---
+    DataModule1.QRYBUSCARVENDAS.Close; // <-- COM PREFIXO
+    DataModule1.QRYBUSCARVENDAS.SQL.Clear; // <-- COM PREFIXO
+
+    DataModule1.QRYBUSCARVENDAS.SQL.Add('SELECT sa.PEDIDO, sa.Data, sa.TOTAL, sa.Status, sa.Chave_Acesso, sa.nProt');
+    DataModule1.QRYBUSCARVENDAS.SQL.Add('FROM tabest3a sa');
+    DataModule1.QRYBUSCARVENDAS.SQL.Add('WHERE sa.Data >= :DataIni AND sa.Data <= :DataFim');
+    DataModule1.QRYBUSCARVENDAS.SQL.Add('AND NOT EXISTS (');
+    DataModule1.QRYBUSCARVENDAS.SQL.Add('  SELECT 1 FROM nfe_xml nx');
+    DataModule1.QRYBUSCARVENDAS.SQL.Add('  WHERE nx.PEDIDO = sa.PEDIDO');
+    DataModule1.QRYBUSCARVENDAS.SQL.Add('  AND nx.Status = ''T''');
+    DataModule1.QRYBUSCARVENDAS.SQL.Add(')');
+    DataModule1.QRYBUSCARVENDAS.SQL.Add('ORDER BY sa.Data DESC, sa.PEDIDO DESC');
+
+    DataModule1.QRYBUSCARVENDAS.ParamByName('DataIni').AsDateTime := DataInicial;
+    DataModule1.QRYBUSCARVENDAS.ParamByName('DataFim').AsDateTime := DataFinal;
+
+    DataModule1.QRYBUSCARVENDAS.Open;
+
+    if not DataModule1.QRYBUSCARVENDAS.IsEmpty then
+    begin
+      memolog.Lines.Add(Format('Encontradas %d vendas para emissão no período selecionado.', [DataModule1.QRYBUSCARVENDAS.RecordCount]));
+    else
+      memolog.Lines.Add('Nenhuma venda para emissão encontrada no período selecionado.');
+    end;
+
+    // --- Lógica para calcular e exibir o "Valor Total Emitido" (já transmitido) ---
+    DataModule1.QRYTOTALEMITIDO.Close; // <-- COM PREFIXO
+    DataModule1.QRYTOTALEMITIDO.SQL.Clear; // <-- COM PREFIXO
+    DataModule1.QRYTOTALEMITIDO.SQL.Add('SELECT SUM(sa.TOTAL) AS TotalEmitido');
+    DataModule1.QRYTOTALEMITIDO.SQL.Add('FROM tabest3a sa');
+    DataModule1.QRYTOTALEMITIDO.SQL.Add('INNER JOIN nfe_xml nx ON sa.PEDIDO = nx.PEDIDO');
+    DataModule1.QRYTOTALEMITIDO.SQL.Add('WHERE sa.Data >= :DataIni AND sa.Data <= :DataFim');
+    DataModule1.QRYTOTALEMITIDO.SQL.Add('AND nx.Status = ''T''');
+
+    DataModule1.QRYTOTALEMITIDO.ParamByName('DataIni').AsDateTime := DataInicial;
+    DataModule1.QRYTOTALEMITIDO.ParamByName('DataFim').AsDateTime := DataFinal;
+    DataModule1.QRYTOTALEMITIDO.Open;
+
+    if not DataModule1.QRYTOTALEMITIDO.IsEmpty and
+       not DataModule1.QRYTOTALEMITIDO.FieldByName('TotalEmitido').IsNull then
+    begin
+      ValorTotalEmitidoPeriodo := DataModule1.QRYTOTALEMITIDO.FieldByName('TotalEmitido').AsCurrency;
+      labelvaloremitido.Caption := FormatCurr('R$ #,##0.00', ValorTotalEmitidoPeriodo);
+      memolog.Lines.Add(Format('Valor total de NFC-e(s) autorizadas no período: %s', [labelvaloremitido.Caption]));
+    else
+      labelvaloremitido.Caption := FormatCurr('R$ #,##0.00', 0);
+      memolog.Lines.Add('Nenhum valor de NFC-e autorizada encontrado no período para o cálculo.');
+    end;
+
+  except
+    on E: Exception do
+      memolog.Lines.Add('Erro ao consultar vendas: ' + E.Message);
+  end;
+end;
+
+procedure Tfrmemitir.AtualizarStatusVenda(Pedido: Integer; Status: String; ChaveAcesso: String; nProt: String; MotivoRejeicao: String);
+begin
+  try
+    DataModule1.QRYATUALIZAVENDA.Close; // <-- COM PREFIXO
+    DataModule1.QRYATUALIZAVENDA.SQL.Clear; // <-- COM PREFIXO
+    DataModule1.QRYATUALIZAVENDA.SQL.Add('UPDATE tabest3a SET Status = :Status, Chave_Acesso = :Chave, nProt = :nProt, NFCe_Data = :DataHora, MotivoRejeicao = :MotivoRej WHERE PEDIDO = :Pedido');
+    DataModule1.QRYATUALIZAVENDA.ParamByName('Status').AsString := Status;
+    DataModule1.QRYATUALIZAVENDA.ParamByName('Chave').AsString := ChaveAcesso;
+    DataModule1.QRYATUALIZAVENDA.ParamByName('nProt').AsString := nProt;
+    DataModule1.QRYATUALIZAVENDA.ParamByName('DataHora').AsDateTime := Now;
+    DataModule1.QRYATUALIZAVENDA.ParamByName('MotivoRej').AsString := MotivoRejeicao;
+    DataModule1.QRYATUALIZAVENDA.ParamByName('Pedido').AsInteger := Pedido;
+    DataModule1.QRYATUALIZAVENDA.ExecSQL;
+
+    if Status = 'A' then
+    begin
+      DataModule1.QRYATUALIZAVENDA.SQL.Clear;
+      DataModule1.QRYATUALIZAVENDA.SQL.Add('INSERT INTO nfe_xml (PEDIDO, Status, Chave_Acesso, nProt, DataHoraEmissao, XML)');
+      DataModule1.QRYATUALIZAVENDA.SQL.Add('VALUES (:Pedido, :Status, :Chave, :nProt, :DataHora, :XML)');
+      DataModule1.QRYATUALIZAVENDA.ParamByName('Pedido').AsInteger := Pedido;
+      DataModule1.QRYATUALIZAVENDA.ParamByName('Status').AsString := 'T';
+      DataModule1.QRYATUALIZAVENDA.ParamByName('Chave').AsString := ChaveAcesso;
+      DataModule1.QRYATUALIZAVENDA.ParamByName('nProt').AsString := nProt;
+      DataModule1.QRYATUALIZAVENDA.ParamByName('DataHora').AsDateTime := Now;
+      DataModule1.QRYATUALIZAVENDA.ParamByName('XML').AsString := ACBrNFe1.NotasFiscais.Items[0].XML.Text;
+      DataModule1.QRYATUALIZAVENDA.ExecSQL;
+    end;
+
+    memolog.Lines.Add(Format('Status da venda %d atualizado para %s.', [Pedido, Status]));
+  except
+    on E: Exception do
+      memolog.Lines.Add(Format('Erro ao atualizar status da venda %d: %s', [Pedido, E.Message]));
+  end;
+end;
+
+procedure Tfrmemitir.BtnconsultarClick(Sender: TObject);
+begin
+  ConsultarVendasParaEmissao;
+end;
+
+procedure Tfrmemitir.btnemitirClick(Sender: TObject);
+var
+  ValorMaximoEmitir: Currency;
+  ValorJaEmitidoSessao: Currency;
+  PedidoAtual: Integer;
+  TotalVenda: Currency;
+  ACBrRetorno: IACBrNFeRetorno;
+  ACBrNFeDados: IACBrNFe;
+begin
+  if DataModule1.QRYBUSCARVENDAS.IsEmpty then // <-- COM PREFIXO
+  begin
+    memolog.Lines.Add('Não há vendas para emitir. Consulte primeiro.');
+    Exit;
+  end;
+
+  if not TryStrToCurr(Editvalorparaemitir.Text, ValorMaximoEmitir) then
+  begin
+    memolog.Lines.Add('Por favor, digite um valor válido para emissão no campo "Defina o Valor a Emitir".');
+    Exit;
+  end;
+
+  if ValorMaximoEmitir <= 0 then
+  begin
+    memolog.Lines.Add('O valor a emitir deve ser maior que zero.');
+    Exit;
+  end;
+
+  memolog.Lines.Add('Iniciando emissão de NFC-e...');
+  ValorJaEmitidoSessao := 0;
+
+  DataModule1.QRYBUSCARVENDAS.First; // <-- COM PREFIXO
+  while not DataModule1.QRYBUSCARVENDAS.Eof do // <-- COM PREFIXO
+  begin
+    PedidoAtual := DataModule1.QRYBUSCARVENDAS.FieldByName('PEDIDO').AsInteger; // <-- COM PREFIXO
+    TotalVenda := DataModule1.QRYBUSCARVENDAS.FieldByName('TOTAL').AsCurrency; // <-- COM PREFIXO
+
+    if (ValorJaEmitidoSessao + TotalVenda) > ValorMaximoEmitir then
+    begin
+      memolog.Lines.Add(Format('Limite de R$ %s atingido. Parando a emissão.', [FormatCurr('#,##0.00', ValorMaximoEmitir)]));
+      Break;
+    end;
+
+    memolog.Lines.Add(Format('Processando Pedido: %d (Total: %s)', [PedidoAtual, FormatCurr('#,##0.00', TotalVenda)]));
+
+    try
+      ACBrNFe1.NotasFiscais.Clear;
+      ACBrNFeDados := ACBrNFe1.NotasFiscais.Adicionar;
+
+      // 1. Preencher Dados do Cabeçalho (tabest3a)
+      DataModule1.QRYATUALIZAVENDA.Close; // <-- COM PREFIXO
+      DataModule1.QRYATUALIZAVENDA.SQL.Clear; // <-- COM PREFIXO
+      DataModule1.QRYATUALIZAVENDA.SQL.Add('SELECT * FROM tabest3a WHERE PEDIDO = :Pedido');
+      DataModule1.QRYATUALIZAVENDA.ParamByName('Pedido').AsInteger := PedidoAtual;
+      DataModule1.QRYATUALIZAVENDA.Open;
+
+      if not DataModule1.QRYATUALIZAVENDA.IsEmpty then
+      begin
+        ACBrNFeDados.Ide.tpAmb := ACBrNFe1.Configuracoes.WebServices.Ambiente;
+        ACBrNFeDados.Ide.natOp := 'VENDA CONSUMIDOR';
+        ACBrNFeDados.Ide.indPag := ipAVista;
+        ACBrNFeDados.Ide.mod := moNFCe;
+        ACBrNFeDados.Ide.serie := StrToIntDef(DataModule1.QRYATUALIZAVENDA.FieldByName('Serie').AsString, 1);
+        ACBrNFeDados.Ide.nNF := DataModule1.QRYATUALIZAVENDA.FieldByName('Nota').AsInteger;
+        ACBrNFeDados.Ide.dhEmi := DataModule1.QRYATUALIZAVENDA.FieldByName('Data').AsDateTime;
+        ACBrNFeDados.Ide.tpEmis := teNormal;
+        ACBrNFeDados.Ide.cMunFg := ACBrNFe1.Configuracoes.Emitente.End.cMun;
+        ACBrNFeDados.Ide.tpNF := tnfSaida;
+        ACBrNFeDados.Ide.idDest := idLocal;
+        ACBrNFeDados.Ide.indFinal := ifConsumidorFinal;
+        ACBrNFeDados.Ide.indPres := ipPresencial;
+        ACBrNFeDados.Ide.procEmi := peAplicativoContribuinte;
+        ACBrNFeDados.Ide.verProc := '1.00';
+
+        if (not DataModule1.QRYATUALIZAVENDA.FieldByName('CPF_CNPJ').IsNull) and
+           (DataModule1.QRYATUALIZAVENDA.FieldByName('CPF_CNPJ').AsString <> '') then
+        begin
+          if Length(DataModule1.QRYATUALIZAVENDA.FieldByName('CPF_CNPJ').AsString) = 11 then
+            ACBrNFeDados.Dest.CPF := DataModule1.QRYATUALIZAVENDA.FieldByName('CPF_CNPJ').AsString
+          else
+            ACBrNFeDados.Dest.CNPJ := DataModule1.QRYATUALIZAVENDA.FieldByName('CPF_CNPJ').AsString;
+        end;
+        ACBrNFeDados.Dest.xNome := DataModule1.QRYATUALIZAVENDA.FieldByName('Cliente').AsString;
+        ACBrNFeDados.Dest.End.xLgr := DataModule1.QRYATUALIZAVENDA.FieldByName('Endereco').AsString;
+        ACBrNFeDados.Dest.End.nro := DataModule1.QRYATUALIZAVENDA.FieldByName('Numero').AsString;
+        ACBrNFeDados.Dest.End.xCpl := DataModule1.QRYATUALIZAVENDA.FieldByName('ComplEnd').AsString;
+        ACBrNFeDados.Dest.End.xBairro := DataModule1.QRYATUALIZAVENDA.FieldByName('Bairro').AsString;
+        ACBrNFeDados.Dest.End.cMun := DataModule1.QRYATUALIZAVENDA.FieldByName('Cod_Mun').AsString;
+        ACBrNFeDados.Dest.End.xMun := DataModule1.QRYATUALIZAVENDA.FieldByName('Cidade').AsString;
+        ACBrNFeDados.Dest.End.UF := DataModule1.QRYATUALIZAVENDA.FieldByName('UF').AsString;
+        ACBrNFeDados.Dest.End.CEP := DataModule1.QRYATUALIZAVENDA.FieldByName('CEP').AsString;
+        ACBrNFeDados.Dest.fone := DataModule1.QRYATUALIZAVENDA.FieldByName('Telefone').AsString;
+        ACBrNFeDados.Dest.email := DataModule1.QRYATUALIZAVENDA.FieldByName('eMail').AsString;
+
+        // 2. Preencher Dados dos Itens (tabest3b)
+        DataModule1.QRYITENSVENDA.Close; // <-- COM PREFIXO
+        DataModule1.QRYITENSVENDA.SQL.Clear; // <-- COM PREFIXO
+        DataModule1.QRYITENSVENDA.SQL.Add('SELECT * FROM tabest3b WHERE PEDIDO = :Pedido');
+        DataModule1.QRYITENSVENDA.ParamByName('Pedido').AsInteger := PedidoAtual;
+        DataModule1.QRYITENSVENDA.Open;
+
+        if not DataModule1.QRYITENSVENDA.IsEmpty then
+        begin
+          DataModule1.QRYITENSVENDA.First;
+          while not DataModule1.QRYITENSVENDA.Eof do
+          begin
+            with ACBrNFeDados.Det.Add do
+            begin
+              nItem := DataModule1.QRYITENSVENDA.FieldByName('Item').AsInteger;
+
+              Prod.cProd := DataModule1.QRYITENSVENDA.FieldByName('LkProduto').AsString;
+              Prod.xProd := DataModule1.QRYITENSVENDA.FieldByName('Produto').AsString;
+              Prod.NCM := DataModule1.QRYITENSVENDA.FieldByName('NCM').AsString;
+              Prod.CEST := DataModule1.QRYITENSVENDA.FieldByName('CEST').AsString;
+              Prod.CFOP := DataModule1.QRYITENSVENDA.FieldByName('CFOP').AsString;
+              Prod.uCom := DataModule1.QRYITENSVENDA.FieldByName('Unidade').AsString;
+              Prod.qCom := DataModule1.QRYITENSVENDA.FieldByName('Quantidade').AsFloat;
+              Prod.vUnCom := DataModule1.QRYITENSVENDA.FieldByName('VlUnitario').AsFloat;
+              Prod.vProd := DataModule1.QRYITENSVENDA.FieldByName('Total').AsFloat;
+              Prod.vDesc := DataModule1.QRYITENSVENDA.FieldByName('Desconto').AsFloat;
+              Prod.vOutro := DataModule1.QRYITENSVENDA.FieldByName('Acrescimo').AsFloat;
+
+              Prod.uTrib := Prod.uCom;
+              Prod.qTrib := Prod.qCom;
+              Prod.vUnTrib := Prod.vUnCom;
+
+              Imposto.ICMS.orig := TOrigemMercadoria(StrToIntDef(DataModule1.QRYITENSVENDA.FieldByName('OrigemMercadoria').AsString, 0));
+              Imposto.ICMS.CST := DataModule1.QRYITENSVENDA.FieldByName('CST').AsString;
+              Imposto.ICMS.vICMS := DataModule1.QRYITENSVENDA.FieldByName('ICMS').AsFloat;
+
+              Imposto.PIS.CST := DataModule1.QRYITENSVENDA.FieldByName('CSTPIS').AsString;
+              Imposto.PIS.vBC := Prod.vProd;
+              Imposto.PIS.pPIS := DataModule1.QRYITENSVENDA.FieldByName('pPIS').AsFloat;
+              Imposto.PIS.vPIS := DataModule1.QRYITENSVENDA.FieldByName('vPIS').AsFloat;
+
+              Imposto.COFINS.CST := DataModule1.QRYITENSVENDA.FieldByName('CSTCOFINS').AsString;
+              Imposto.COFINS.vBC := Prod.vProd;
+              Imposto.COFINS.pCOFINS := DataModule1.QRYITENSVENDA.FieldByName('pCOFINS').AsFloat;
+              Imposto.COFINS.vCOFINS := DataModule1.QRYITENSVENDA.FieldByName('vCOFINS').AsFloat;
+            end;
+            DataModule1.QRYITENSVENDA.Next; // <-- COM PREFIXO
+          end;
+        else
+          memolog.Lines.Add(Format('Erro: Nenhum item encontrado para o Pedido %d. Pulando...', [PedidoAtual]));
+          DataModule1.QRYATUALIZAVENDA.Close; // <-- COM PREFIXO
+          DataModule1.QRYBUSCARVENDAS.Next; // <-- COM PREFIXO
+          Continue;
+        end;
+
+        // 3. Preencher Dados de Pagamento (tabest3c)
+        DataModule1.QRYPAGAMENTOSVENDA.Close; // <-- COM PREFIXO
+        DataModule1.QRYPAGAMENTOSVENDA.SQL.Clear; // <-- COM PREFIXO
+        DataModule1.QRYPAGAMENTOSVENDA.SQL.Add('SELECT * FROM tabest3c WHERE PEDIDO = :Pedido');
+        DataModule1.QRYPAGAMENTOSVENDA.ParamByName('Pedido').AsInteger := PedidoAtual;
+        DataModule1.QRYPAGAMENTOSVENDA.Open;
+
+        if not DataModule1.QRYPAGAMENTOSVENDA.IsEmpty then
+        begin
+          DataModule1.QRYPAGAMENTOSVENDA.First; // <-- COM PREFIXO
+          while not DataModule1.QRYPAGAMENTOSVENDA.Eof do // <-- COM PREFIXO
+          begin
+            with ACBrNFeDados.Pag.Add do
+            begin
+              vPag := DataModule1.QRYPAGAMENTOSVENDA.FieldByName('VALOR').AsFloat;
+              case DataModule1.QRYPAGAMENTOSVENDA.FieldByName('LKTIPO').AsInteger of
+                1: tPag := tpDinheiro;
+                3: tPag := tpCartaoCredito;
+                4: tPag := tpCartaoDebito;
+                17: tPag := tpPix;
+                else tPag := tpOutro;
+              end;
+
+              if (tPag = tpCartaoCredito) or (tPag = tpCartaoDebito) then
+              begin
+                with Card.Add do
+                begin
+                  tpIntegra := tiPos;
+                  CNPJ := DataModule1.QRYPAGAMENTOSVENDA.FieldByName('CNPJCredenciadora').AsString;
+                  cAut := DataModule1.QRYPAGAMENTOSVENDA.FieldByName('cAut').AsString;
+                  case DataModule1.QRYPAGAMENTOSVENDA.FieldByName('BandeiraCartao').AsString of
+                    '01': tBand := bcVisa;
+                    '02': tBand := bcMastercard;
+                    '03': tBand := bcAmericanExpress;
+                    '04': tBand := bcSorocred;
+                    '05': tBand := bcDinersClub;
+                    '06': tBand := bcElo;
+                    '07': tBand := bcHipercard;
+                    '08': tBand := bcAura;
+                    '09': tBand := bcAlelo;
+                    '10': tBand := bcSodexo;
+                    '11': tBand := bcVoucher;
+                    '12': tBand := bcOutros;
+                    else tBand := bcOutros;
+                  end;
+                end;
+              end;
+            end;
+            DataModule1.QRYPAGAMENTOSVENDA.Next; // <-- COM PREFIXO
+          end;
+        else
+          memolog.Lines.Add(Format('Atenção: Nenhum pagamento encontrado para o Pedido %d. A NFC-e pode ser rejeitada por falta de informações de pagamento.', [PedidoAtual]));
+        end;
+
+        ACBrNFe1.LimparLista;
+        memolog.Lines.Add(Format('Enviando NFC-e do Pedido %d para a Sefaz...', [PedidoAtual]));
+        ACBrNFe1.Enviar;
+
+        ACBrRetorno := ACBrNFe1.NotasFiscais.Items[0];
+
+        if ACBrRetorno.Retorno.cStat = 100 then
+        begin
+          memolog.Lines.Add(Format('NFC-e do Pedido %d AUTORIZADA! Chave: %s, Protocolo: %s',
+            [PedidoAtual, ACBrRetorno.NFe.Chave, ACBrRetorno.Retorno.nProt]));
+
+          AtualizarStatusVenda(PedidoAtual, 'A', ACBrRetorno.NFe.Chave, ACBrRetorno.Retorno.nProt, '');
+
+          ACBrNFe1.Imprimir;
+          memolog.Lines.Add('DANFE NFC-e impresso.');
+
+          ValorJaEmitidoSessao := ValorJaEmitidoSessao + TotalVenda;
+          labelvaloremitido.Caption := FormatCurr('R$ #,##0.00', ValorJaEmitidoSessao);
+        else if ACBrRetorno.Retorno.cStat >= 200 then
+        begin
+          memolog.Lines.Add(Format('NFC-e Pedido %d REJEITADA/DENEGADA: %s - %s',
+            [PedidoAtual, ACBrRetorno.Retorno.cStat.ToString, ACBrRetorno.Retorno.xMotivo]));
+
+          if ACBrRetorno.Retorno.cStat = 110 then
+            AtualizarStatusVenda(PedidoAtual, 'D', '', '', ACBrRetorno.Retorno.xMotivo)
+          else
+            AtualizarStatusVenda(PedidoAtual, 'R', '', '', ACBrRetorno.Retorno.xMotivo);
+        else
+          memolog.Lines.Add(Format('NFC-e Pedido %d STATUS DESCONHECIDO: %s - %s',
+            [PedidoAtual, ACBrRetorno.Retorno.cStat.ToString, ACBrRetorno.Retorno.xMotivo]));
+        end;
+      else
+        memolog.Lines.Add(Format('Erro: Venda com PEDIDO %d não encontrada na tabest3a durante o processamento (detalhe).', [PedidoAtual]));
+      end;
+    except
+      on E: Exception do
+        memolog.Lines.Add(Format('Erro inesperado ao emitir NFC-e para Pedido %d: %s', [PedidoAtual, E.Message]));
+    end;
+
+    DataModule1.QRYATUALIZAVENDA.Close; // <-- COM PREFIXO
+    DataModule1.QRYITENSVENDA.Close; // <-- COM PREFIXO
+    DataModule1.QRYPAGAMENTOSVENDA.Close; // <-- COM PREFIXO
+
+    DataModule1.QRYBUSCARVENDAS.Next; // <-- COM PREFIXO
+    Application.ProcessMessages;
+  end;
+
+  memolog.Lines.Add('Processo de emissão de NFC-e concluído.');
+  ConsultarVendasParaEmissao;
+end;
+
+procedure Tfrmemitir.Label6Click(Sender: TObject);
+begin
+  // Evento vazio
+end;
+
+end.

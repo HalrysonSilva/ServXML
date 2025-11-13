@@ -1,0 +1,29 @@
+program SERVXML;
+
+uses
+  Vcl.Forms,
+  GERAXML in 'GERAXML.pas' {Form1},
+  CONEXAOBD in 'CONEXAOBD.pas' {Datamodule1: TDataModule},
+  Vcl.Themes,
+  Vcl.Styles,
+  Frm_ACBrNFe in 'CONFIGACBR\Frm_ACBrNFe.pas' {frmACBrNFe},
+  Frm_ConfiguraSerial in 'CONFIGACBR\Frm_ConfiguraSerial.pas' {frmConfiguraSerial},
+  Frm_SelecionarCertificado in 'CONFIGACBR\Frm_SelecionarCertificado.pas' {frmSelecionarCertificado},
+  Frm_Status in 'CONFIGACBR\Frm_Status.pas' {frmStatus},
+  FRMESPERA in 'FRMESPERA.pas' {Esperaform};
+
+{$R *.res}
+
+begin
+  Application.Initialize;
+  Application.MainFormOnTaskbar := True;
+  TStyleManager.TrySetStyle('Glow');
+  Application.CreateForm(TDatamodule1, Datamodule1);
+  Application.CreateForm(TForm1, Form1);
+  Application.CreateForm(TfrmACBrNFe, frmACBrNFe);
+  Application.CreateForm(TfrmConfiguraSerial, frmConfiguraSerial);
+  Application.CreateForm(TfrmSelecionarCertificado, frmSelecionarCertificado);
+  Application.CreateForm(TfrmStatus, frmStatus);
+  Application.CreateForm(TEsperaform, Esperaform);
+  Application.Run;
+end.

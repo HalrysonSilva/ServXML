@@ -1,0 +1,2596 @@
+object dmNFCe: TdmNFCe
+  OldCreateOrder = False
+  OnCreate = DataModuleCreate
+  Height = 474
+  Width = 537
+  object ACBrNFe1: TACBrNFe
+    Configuracoes.Geral.SSLLib = libWinCrypt
+    Configuracoes.Geral.SSLCryptLib = cryWinCrypt
+    Configuracoes.Geral.SSLHttpLib = httpWinHttp
+    Configuracoes.Geral.SSLXmlSignLib = xsLibXml2
+    Configuracoes.Geral.FormatoAlerta = 'TAG:%TAGNIVEL% ID:%ID%/%TAG%(%DESCRICAO%) - %MSG%.'
+    Configuracoes.Geral.ValidarDigest = False
+    Configuracoes.Geral.ModeloDF = moNFCe
+    Configuracoes.Geral.AtualizarXMLCancelado = True
+    Configuracoes.Arquivos.OrdenacaoPath = <>
+    Configuracoes.WebServices.UF = 'SP'
+    Configuracoes.WebServices.AguardarConsultaRet = 0
+    Configuracoes.WebServices.QuebradeLinha = '|'
+    Configuracoes.RespTec.IdCSRT = 0
+    DANFE = DANFeESCPOS1
+    Left = 192
+    Top = 24
+  end
+  object qryInfVenda: TUniQuery
+    Connection = DmDados.DadosMS
+    SQL.Strings = (
+      'SELECT a.pedido, '
+      
+        #9'(SELECT sum(VLTROCO) AS VlTroco FROM TabEst3C c WHERE a.Pedido ' +
+        '= c.PEDIDO) AS Troco,'
+      '    a.Chave_Acesso, Nota, Serie, num_mod_doc'
+      'FROM TabEst3A a  with(nolock) WHERE a.Pedido =:ped')
+    CachedUpdates = True
+    Left = 96
+    Top = 120
+    ParamData = <
+      item
+        DataType = ftInteger
+        Name = 'ped'
+        ParamType = ptInput
+        Value = nil
+      end>
+    object qryInfVendapedido: TIntegerField
+      FieldName = 'pedido'
+    end
+    object qryInfVendaTroco: TFloatField
+      FieldName = 'Troco'
+      ReadOnly = True
+    end
+    object qryInfVendaChave_Acesso: TStringField
+      FieldName = 'Chave_Acesso'
+      Size = 44
+    end
+    object qryInfVendaNota: TIntegerField
+      FieldName = 'Nota'
+    end
+    object qryInfVendaSerie: TStringField
+      FieldName = 'Serie'
+      Size = 2
+    end
+    object qryInfVendanum_mod_doc: TIntegerField
+      FieldName = 'num_mod_doc'
+    end
+  end
+  object qry: TUniQuery
+    Connection = DmDados.DadosMS
+    CachedUpdates = True
+    Left = 80
+    Top = 184
+  end
+  object DANFEFastReport_: TACBrNFeDANFEFR
+    MostraSetup = True
+    Sistema = 'Servsic -> NFC-e'
+    Site = 'www.compuservedobrasil.com'
+    Email = 'atendimento@compuservedobrasil.com'
+    MargemInferior = 0.200000000000000000
+    MargemSuperior = 0.200000000000000000
+    MargemEsquerda = 0.200000000000000000
+    MargemDireita = 0.200000000000000000
+    ExpandeLogoMarcaConfig.Altura = 0
+    ExpandeLogoMarcaConfig.Esquerda = 0
+    ExpandeLogoMarcaConfig.Topo = 0
+    ExpandeLogoMarcaConfig.Largura = 0
+    ExpandeLogoMarcaConfig.Dimensionar = False
+    ExpandeLogoMarcaConfig.Esticar = True
+    CasasDecimais.Formato = tdetInteger
+    CasasDecimais.qCom = 2
+    CasasDecimais.vUnCom = 2
+    CasasDecimais.MaskqCom = ',0.00'
+    CasasDecimais.MaskvUnCom = ',0.00'
+    CasasDecimais.Aliquota = 2
+    CasasDecimais.MaskAliquota = ',0.00'
+    TipoDANFE = tiNFCe
+    ImprimeNomeFantasia = True
+    EspessuraBorda = 1
+    MarcaDaguaMSG = 'NFCeServ'
+    BorderIcon = [biSystemMenu, biMinimize, biMaximize]
+    ThreadSafe = False
+    Left = 432
+    Top = 344
+  end
+  object qryVena: TUniQuery
+    SQLInsert.Strings = (
+      'INSERT INTO tabest3a'
+      
+        '  (Controle, Data, LkTipo, Nota, Serie, Pedido, LkReceb, LkVende' +
+        'dor, LkCliente, LkFornec, TagCliente, Comissao, Obs, Venda, LkUs' +
+        'er, CFOP, Cancelada, TipoDoc, LkOrca, Cliente, Endereco, Bairro,' +
+        ' Cidade, UF, TOTAL, DESCONTO, ACRESCIMO, SUBTOTAL, VLPAGO, Entra' +
+        'da, Faturado, Km, Placa, HoraIni, HoraFim, Descricao, LkTurno, D' +
+        'ataTurno, DataSaida, Venda_Servico, idEmpresa, Contrato, Cupom, ' +
+        'LkECF, QtdItens, DataEntrega, RG_INSC, CPF_CNPJ, Vendedor, Statu' +
+        's, bloqueado, LkCaixa, LkUsuario, Saldo_limite, VlBonus, ComplEn' +
+        'd, Telefone, eMail, lkConvenio, ComissaoItemValor, ComissaoNota,' +
+        ' Codigo, ORCAMENTO, LkCxFecha, LkAtendente, Numero, LkEntregador' +
+        ', LkFidelidade, Num_Mod_Doc, Chave_Acesso, nProt, NFCe_Data, NFC' +
+        'e_enviada, Cod_Mun, CEP)'
+      'VALUES'
+      
+        '  (:Controle, :Data, :LkTipo, :Nota, :Serie, :Pedido, :LkReceb, ' +
+        ':LkVendedor, :LkCliente, :LkFornec, :TagCliente, :Comissao, :Obs' +
+        ', :Venda, :LkUser, :CFOP, :Cancelada, :TipoDoc, :LkOrca, :Client' +
+        'e, :Endereco, :Bairro, :Cidade, :UF, :TOTAL, :DESCONTO, :ACRESCI' +
+        'MO, :SUBTOTAL, :VLPAGO, :Entrada, :Faturado, :Km, :Placa, :HoraI' +
+        'ni, :HoraFim, :Descricao, :LkTurno, :DataTurno, :DataSaida, :Ven' +
+        'da_Servico, :idEmpresa, :Contrato, :Cupom, :LkECF, :QtdItens, :D' +
+        'ataEntrega, :RG_INSC, :CPF_CNPJ, :Vendedor, :Status, :bloqueado,' +
+        ' :LkCaixa, :LkUsuario, :Saldo_limite, :VlBonus, :ComplEnd, :Tele' +
+        'fone, :eMail, :lkConvenio, :ComissaoItemValor, :ComissaoNota, :C' +
+        'odigo, :ORCAMENTO, :LkCxFecha, :LkAtendente, :Numero, :LkEntrega' +
+        'dor, :LkFidelidade, :Num_Mod_Doc, :Chave_Acesso, :nProt, :NFCe_D' +
+        'ata, :NFCe_enviada, :Cod_Mun, :CEP)'
+      'SET :IdControle = SCOPE_IDENTITY()')
+    SQLDelete.Strings = (
+      'DELETE FROM tabest3a'
+      'WHERE'
+      
+        '  Controle = :Old_Controle AND Pedido = :Old_Pedido AND idEmpres' +
+        'a = :Old_idEmpresa')
+    SQLUpdate.Strings = (
+      'UPDATE tabest3a'
+      'SET'
+      
+        '  Controle = :Controle, Data = :Data, LkTipo = :LkTipo, Nota = :' +
+        'Nota, Serie = :Serie, Pedido = :Pedido, LkReceb = :LkReceb, LkVe' +
+        'ndedor = :LkVendedor, LkCliente = :LkCliente, LkFornec = :LkForn' +
+        'ec, TagCliente = :TagCliente, Comissao = :Comissao, Obs = :Obs, ' +
+        'Venda = :Venda, LkUser = :LkUser, CFOP = :CFOP, Cancelada = :Can' +
+        'celada, TipoDoc = :TipoDoc, LkOrca = :LkOrca, Cliente = :Cliente' +
+        ', Endereco = :Endereco, Bairro = :Bairro, Cidade = :Cidade, UF =' +
+        ' :UF, TOTAL = :TOTAL, DESCONTO = :DESCONTO, ACRESCIMO = :ACRESCI' +
+        'MO, SUBTOTAL = :SUBTOTAL, VLPAGO = :VLPAGO, Entrada = :Entrada, ' +
+        'Faturado = :Faturado, Km = :Km, Placa = :Placa, HoraIni = :HoraI' +
+        'ni, HoraFim = :HoraFim, Descricao = :Descricao, LkTurno = :LkTur' +
+        'no, DataTurno = :DataTurno, DataSaida = :DataSaida, Venda_Servic' +
+        'o = :Venda_Servico, idEmpresa = :idEmpresa, Contrato = :Contrato' +
+        ', Cupom = :Cupom, LkECF = :LkECF, QtdItens = :QtdItens, DataEntr' +
+        'ega = :DataEntrega, RG_INSC = :RG_INSC, CPF_CNPJ = :CPF_CNPJ, Ve' +
+        'ndedor = :Vendedor, Status = :Status, bloqueado = :bloqueado, Lk' +
+        'Caixa = :LkCaixa, LkUsuario = :LkUsuario, Saldo_limite = :Saldo_' +
+        'limite, VlBonus = :VlBonus, ComplEnd = :ComplEnd, Telefone = :Te' +
+        'lefone, eMail = :eMail, lkConvenio = :lkConvenio, ComissaoItemVa' +
+        'lor = :ComissaoItemValor, ComissaoNota = :ComissaoNota, Codigo =' +
+        ' :Codigo, ORCAMENTO = :ORCAMENTO, LkCxFecha = :LkCxFecha, LkAten' +
+        'dente = :LkAtendente, Numero = :Numero, LkEntregador = :LkEntreg' +
+        'ador, LkFidelidade = :LkFidelidade, Num_Mod_Doc = :Num_Mod_Doc, ' +
+        'Chave_Acesso = :Chave_Acesso, nProt = :nProt, NFCe_Data = :NFCe_' +
+        'Data, NFCe_enviada = :NFCe_enviada, Cod_Mun = :Cod_Mun, CEP = :C' +
+        'EP'
+      'WHERE'
+      
+        '  Controle = :Old_Controle AND Pedido = :Old_Pedido AND idEmpres' +
+        'a = :Old_idEmpresa')
+    SQLLock.Strings = (
+      'SELECT * FROM tabest3a'
+      'WITH (UPDLOCK, ROWLOCK, HOLDLOCK)'
+      'WHERE'
+      
+        '  Controle = :Old_Controle AND Pedido = :Old_Pedido AND idEmpres' +
+        'a = :Old_idEmpresa')
+    SQLRefresh.Strings = (
+      
+        'SELECT Controle, Data, LkTipo, Nota, Serie, Pedido, LkReceb, LkV' +
+        'endedor, LkCliente, LkFornec, TagCliente, Comissao, Obs, Venda, ' +
+        'LkUser, CFOP, Cancelada, TipoDoc, LkOrca, Cliente, Endereco, Bai' +
+        'rro, Cidade, UF, TOTAL, DESCONTO, ACRESCIMO, SUBTOTAL, VLPAGO, E' +
+        'ntrada, Faturado, Km, Placa, HoraIni, HoraFim, Descricao, LkTurn' +
+        'o, DataTurno, DataSaida, Venda_Servico, idEmpresa, Contrato, Cup' +
+        'om, LkECF, QtdItens, DataEntrega, RG_INSC, CPF_CNPJ, Vendedor, S' +
+        'tatus, bloqueado, LkCaixa, LkUsuario, Saldo_limite, VlBonus, Com' +
+        'plEnd, Telefone, eMail, lkConvenio, ComissaoItemValor, ComissaoN' +
+        'ota, Codigo, ORCAMENTO, LkCxFecha, LkAtendente, Numero, LkEntreg' +
+        'ador, LkFidelidade, Num_Mod_Doc, Chave_Acesso, nProt, NFCe_Data,' +
+        ' NFCe_enviada, Cod_Mun, CEP FROM tabest3a'
+      'WHERE'
+      
+        '  Controle = :Old_Controle AND Pedido = :Old_Pedido AND idEmpres' +
+        'a = :Old_idEmpresa')
+    SQLRecCount.Strings = (
+      'SET :PCOUNT = (SELECT COUNT(*) FROM tabest3a'
+      ')')
+    Connection = DmDados.DadosMS
+    SQL.Strings = (
+      'select * from tabest3a  with(nolock)  where pedido=:pedido')
+    CachedUpdates = True
+    Options.DefaultValues = True
+    Left = 272
+    Top = 130
+    ParamData = <
+      item
+        DataType = ftInteger
+        Name = 'pedido'
+        ParamType = ptInput
+        Value = -1
+      end>
+    object qryVenaControle: TIntegerField
+      FieldName = 'Controle'
+    end
+    object qryVenaData: TDateTimeField
+      FieldName = 'Data'
+    end
+    object qryVenaLkTipo: TIntegerField
+      FieldName = 'LkTipo'
+    end
+    object qryVenaNota: TIntegerField
+      FieldName = 'Nota'
+    end
+    object qryVenaSerie: TStringField
+      FieldName = 'Serie'
+      Size = 2
+    end
+    object qryVenaPedido: TIntegerField
+      FieldName = 'Pedido'
+      DisplayFormat = '##,###,###,000'
+    end
+    object qryVenaLkReceb: TIntegerField
+      FieldName = 'LkReceb'
+    end
+    object qryVenaLkVendedor: TIntegerField
+      FieldName = 'LkVendedor'
+    end
+    object qryVenaLkCliente: TIntegerField
+      FieldName = 'LkCliente'
+    end
+    object qryVenaLkFornec: TIntegerField
+      FieldName = 'LkFornec'
+    end
+    object qryVenaTagCliente: TIntegerField
+      FieldName = 'TagCliente'
+    end
+    object qryVenaComissao: TFloatField
+      FieldName = 'Comissao'
+    end
+    object qryVenaObs: TStringField
+      FieldName = 'Obs'
+      Size = 200
+    end
+    object qryVenaVenda: TBooleanField
+      FieldName = 'Venda'
+    end
+    object qryVenaLkUser: TIntegerField
+      FieldName = 'LkUser'
+    end
+    object qryVenaCFOP: TStringField
+      FieldName = 'CFOP'
+      Size = 3
+    end
+    object qryVenaCancelada: TBooleanField
+      FieldName = 'Cancelada'
+    end
+    object qryVenaTipoDoc: TStringField
+      FieldName = 'TipoDoc'
+      Size = 2
+    end
+    object qryVenaLkOrca: TIntegerField
+      FieldName = 'LkOrca'
+    end
+    object qryVenaCliente: TStringField
+      FieldName = 'Cliente'
+      Size = 40
+    end
+    object qryVenaBairro: TStringField
+      FieldName = 'Bairro'
+    end
+    object qryVenaEndereco: TStringField
+      FieldName = 'Endereco'
+      Size = 80
+    end
+    object qryVenaCidade: TStringField
+      FieldName = 'Cidade'
+    end
+    object qryVenaUF: TStringField
+      FieldName = 'UF'
+      Size = 2
+    end
+    object qryVenaTOTAL: TFloatField
+      DefaultExpression = '0'
+      FieldName = 'TOTAL'
+      DisplayFormat = '###,##0.00'
+    end
+    object qryVenaDESCONTO: TFloatField
+      DefaultExpression = '0'
+      FieldName = 'DESCONTO'
+      DisplayFormat = '###,##0.00'
+    end
+    object qryVenaACRESCIMO: TFloatField
+      DefaultExpression = '0'
+      FieldName = 'ACRESCIMO'
+      DisplayFormat = '###,##0.00'
+    end
+    object qryVenaSUBTOTAL: TFloatField
+      DefaultExpression = '0'
+      FieldName = 'SUBTOTAL'
+      DisplayFormat = '###,##0.00'
+    end
+    object qryVenaVLPAGO: TFloatField
+      DefaultExpression = '0'
+      FieldName = 'VLPAGO'
+      DisplayFormat = '###,##0.00'
+    end
+    object qryVenaEntrada: TFloatField
+      DefaultExpression = '0'
+      FieldName = 'Entrada'
+      DisplayFormat = '###,##0.00'
+    end
+    object qryVenaFaturado: TFloatField
+      DefaultExpression = '0'
+      FieldName = 'Faturado'
+      DisplayFormat = '###,##0.00'
+    end
+    object qryVenaKm: TIntegerField
+      FieldName = 'Km'
+    end
+    object qryVenaPlaca: TStringField
+      FieldName = 'Placa'
+      Size = 8
+    end
+    object qryVenaHoraIni: TStringField
+      FieldName = 'HoraIni'
+      Size = 5
+    end
+    object qryVenaHoraFim: TStringField
+      FieldName = 'HoraFim'
+      Size = 5
+    end
+    object qryVenaDescricao: TStringField
+      FieldName = 'Descricao'
+      Size = 30
+    end
+    object qryVenaLkTurno: TIntegerField
+      FieldName = 'LkTurno'
+    end
+    object qryVenaDataTurno: TDateTimeField
+      FieldName = 'DataTurno'
+    end
+    object qryVenaDataSaida: TDateTimeField
+      FieldName = 'DataSaida'
+    end
+    object qryVenaVenda_Servico: TStringField
+      FieldName = 'Venda_Servico'
+      Size = 1
+    end
+    object qryVenaidEmpresa: TIntegerField
+      FieldName = 'idEmpresa'
+    end
+    object qryVenaContrato: TIntegerField
+      DefaultExpression = '0'
+      FieldName = 'Contrato'
+    end
+    object qryVenaCupom: TIntegerField
+      FieldName = 'Cupom'
+      DisplayFormat = '#,000,000'
+    end
+    object qryVenaLkECF: TIntegerField
+      DefaultExpression = '0'
+      FieldName = 'LkECF'
+    end
+    object qryVenaQtdItens: TIntegerField
+      DefaultExpression = '0'
+      FieldName = 'QtdItens'
+      DisplayFormat = '#00'
+    end
+    object qryVenaDataEntrega: TDateTimeField
+      DefaultExpression = 'getdate()'
+      FieldName = 'DataEntrega'
+    end
+    object qryVenaRG_INSC: TStringField
+      FieldName = 'RG_INSC'
+    end
+    object qryVenaCPF_CNPJ: TStringField
+      FieldName = 'CPF_CNPJ'
+      Size = 14
+    end
+    object qryVenaIdControle: TIntegerField
+      AutoGenerateValue = arAutoInc
+      FieldName = 'IdControle'
+      ReadOnly = True
+    end
+    object qryVenaVendedor: TStringField
+      FieldName = 'Vendedor'
+    end
+    object qryVenaStatus: TStringField
+      DefaultExpression = #39'V'#39
+      FieldName = 'Status'
+      FixedChar = True
+      Size = 1
+    end
+    object qryVenabloqueado: TIntegerField
+      DefaultExpression = '0'
+      FieldName = 'bloqueado'
+    end
+    object qryVenaLkCaixa: TIntegerField
+      DefaultExpression = '1'
+      FieldName = 'LkCaixa'
+    end
+    object qryVenaLkUsuario: TIntegerField
+      DefaultExpression = '1'
+      FieldName = 'LkUsuario'
+    end
+    object qryVenaSaldo_limite: TFloatField
+      DefaultExpression = '0'
+      FieldName = 'Saldo_limite'
+      DisplayFormat = '###,##0.00'
+    end
+    object qryVenaVlBonus: TFloatField
+      DefaultExpression = '0'
+      FieldName = 'VlBonus'
+      DisplayFormat = '###,##0.00'
+    end
+    object qryVenaComplEnd: TStringField
+      FieldName = 'ComplEnd'
+      Size = 80
+    end
+    object qryVenaTelefone: TStringField
+      FieldName = 'Telefone'
+      Size = 12
+    end
+    object qryVenaeMail: TStringField
+      FieldName = 'eMail'
+      Size = 40
+    end
+    object qryVenalkConvenio: TIntegerField
+      FieldName = 'lkConvenio'
+    end
+    object qryVenaComissaoItemValor: TFloatField
+      DefaultExpression = '0'
+      FieldName = 'ComissaoItemValor'
+      DisplayFormat = '###,##0.00'
+    end
+    object qryVenaComissaoNota: TFloatField
+      FieldName = 'ComissaoNota'
+    end
+    object qryVenaCodigo: TStringField
+      FieldName = 'Codigo'
+      Size = 8
+    end
+    object qryVenaORCAMENTO: TIntegerField
+      FieldName = 'ORCAMENTO'
+    end
+    object qryVenac_Status: TStringField
+      FieldKind = fkCalculated
+      FieldName = 'c_Status'
+      Size = 30
+      Calculated = True
+    end
+    object qryVenaTagFisica: TBooleanField
+      FieldKind = fkCalculated
+      FieldName = 'TagFisica'
+      Calculated = True
+    end
+    object qryVenaC_Bloqueado: TStringField
+      FieldKind = fkCalculated
+      FieldName = 'C_Bloqueado'
+      Size = 40
+      Calculated = True
+    end
+    object qryVenac_PerDesconto: TFloatField
+      FieldKind = fkCalculated
+      FieldName = 'c_PerDesconto'
+      DisplayFormat = '#,#00.00'#39'%'#39
+      Calculated = True
+    end
+    object qryVenac_PerAcrescimo: TFloatField
+      FieldKind = fkCalculated
+      FieldName = 'c_PerAcrescimo'
+      DisplayFormat = '#,#00.00'#39'%'#39
+      Calculated = True
+    end
+    object qryVenac_LucroPercentual: TFloatField
+      FieldKind = fkCalculated
+      FieldName = 'c_LucroPercentual'
+      DisplayFormat = '#,#00.00'#39'%'#39
+      Calculated = True
+    end
+    object qryVenac_LucroTotal: TFloatField
+      FieldKind = fkCalculated
+      FieldName = 'c_LucroTotal'
+      Calculated = True
+    end
+    object qryVenaLkCxFecha: TIntegerField
+      DefaultExpression = '0'
+      FieldKind = fkInternalCalc
+      FieldName = 'LkCxFecha'
+    end
+    object qryVenac_Diferenca: TFloatField
+      FieldKind = fkCalculated
+      FieldName = 'c_Diferenca'
+      Calculated = True
+    end
+    object qryVenaNumero: TStringField
+      FieldKind = fkInternalCalc
+      FieldName = 'Numero'
+      FixedChar = True
+      Size = 10
+    end
+    object qryVenaNum_Mod_Doc: TIntegerField
+      FieldName = 'Num_Mod_Doc'
+    end
+    object qryVenanProt: TStringField
+      FieldName = 'nProt'
+      Size = 15
+    end
+    object qryVenaNFCe_Data: TDateTimeField
+      FieldName = 'NFCe_Data'
+    end
+    object qryVenaNFCe_enviada: TIntegerField
+      FieldName = 'NFCe_enviada'
+    end
+    object qryVenaCod_Mun: TIntegerField
+      FieldName = 'Cod_Mun'
+    end
+    object qryVenaCEP: TStringField
+      FieldName = 'CEP'
+      Size = 8
+    end
+  end
+  object qryVenb: TUniQuery
+    SQLInsert.Strings = (
+      'INSERT INTO tabest3b'
+      
+        '  (Controle, PEDIDO, LkEst3A, Quantidade, LkProduto, Total, TotV' +
+        'enda, Lucro, Acrescimo, DataInc, ICMS, QuantCanc, LkVendedor, Qt' +
+        'dSaldo, HoraIni, HoraFim, Comissao, LkGuiche, LkBaixa, Venda_Ser' +
+        'vico, Cor, idEmpresa, Unidade, MARCA, VlUnitario, lkClienteItem,' +
+        ' lkVarejo_Atacado, CFOP, CST, QtdReal, CodInterno, Produto, CodO' +
+        'rigem, lkPreco, TipoOper, Vendedor, Desconto, PrCusto, PrecoVend' +
+        'a, Peso, QtdAtacado, CstECF, VlBonus, Servico, LkCxFecha, FracUN' +
+        ', FracQtd, FracQtdTotal, Item, Entrega, LkPreVenda)'
+      'VALUES'
+      
+        '  (:Controle, :PEDIDO, :LkEst3A, :Quantidade, :LkProduto, :Total' +
+        ', :TotVenda, :Lucro, :Acrescimo, :DataInc, :ICMS, :QuantCanc, :L' +
+        'kVendedor, :QtdSaldo, :HoraIni, :HoraFim, :Comissao, :LkGuiche, ' +
+        ':LkBaixa, :Venda_Servico, :Cor, :idEmpresa, :Unidade, :MARCA, :V' +
+        'lUnitario, :lkClienteItem, :lkVarejo_Atacado, :CFOP, :CST, :QtdR' +
+        'eal, :CodInterno, :Produto, :CodOrigem, :lkPreco, :TipoOper, :Ve' +
+        'ndedor, :Desconto, :PrCusto, :PrecoVenda, :Peso, :QtdAtacado, :C' +
+        'stECF, :VlBonus, :Servico, :LkCxFecha, :FracUN, :FracQtd, :FracQ' +
+        'tdTotal, :Item, :Entrega, :LkPreVenda)'
+      'SET :IdControle = SCOPE_IDENTITY()')
+    SQLDelete.Strings = (
+      'DELETE FROM tabest3b'
+      'WHERE'
+      
+        '  Controle = :Old_Controle AND PEDIDO = :Old_PEDIDO AND LkEst3A ' +
+        '= :Old_LkEst3A')
+    SQLUpdate.Strings = (
+      'UPDATE tabest3b'
+      'SET'
+      
+        '  Controle = :Controle, PEDIDO = :PEDIDO, LkEst3A = :LkEst3A, Qu' +
+        'antidade = :Quantidade, LkProduto = :LkProduto, Total = :Total, ' +
+        'TotVenda = :TotVenda, Lucro = :Lucro, Acrescimo = :Acrescimo, Da' +
+        'taInc = :DataInc, ICMS = :ICMS, QuantCanc = :QuantCanc, LkVended' +
+        'or = :LkVendedor, QtdSaldo = :QtdSaldo, HoraIni = :HoraIni, Hora' +
+        'Fim = :HoraFim, Comissao = :Comissao, LkGuiche = :LkGuiche, LkBa' +
+        'ixa = :LkBaixa, Venda_Servico = :Venda_Servico, Cor = :Cor, idEm' +
+        'presa = :idEmpresa, Unidade = :Unidade, MARCA = :MARCA, VlUnitar' +
+        'io = :VlUnitario, lkClienteItem = :lkClienteItem, lkVarejo_Ataca' +
+        'do = :lkVarejo_Atacado, CFOP = :CFOP, CST = :CST, QtdReal = :Qtd' +
+        'Real, CodInterno = :CodInterno, Produto = :Produto, CodOrigem = ' +
+        ':CodOrigem, lkPreco = :lkPreco, TipoOper = :TipoOper, Vendedor =' +
+        ' :Vendedor, Desconto = :Desconto, PrCusto = :PrCusto, PrecoVenda' +
+        ' = :PrecoVenda, Peso = :Peso, QtdAtacado = :QtdAtacado, CstECF =' +
+        ' :CstECF, VlBonus = :VlBonus, Servico = :Servico, LkCxFecha = :L' +
+        'kCxFecha, FracUN = :FracUN, FracQtd = :FracQtd, FracQtdTotal = :' +
+        'FracQtdTotal, Item = :Item, Entrega = :Entrega, LkPreVenda = :Lk' +
+        'PreVenda'
+      'WHERE'
+      
+        '  Controle = :Old_Controle AND PEDIDO = :Old_PEDIDO AND LkEst3A ' +
+        '= :Old_LkEst3A')
+    SQLLock.Strings = (
+      'SELECT * FROM tabest3b'
+      'WITH (UPDLOCK, ROWLOCK, HOLDLOCK)'
+      'WHERE'
+      
+        '  Controle = :Old_Controle AND PEDIDO = :Old_PEDIDO AND LkEst3A ' +
+        '= :Old_LkEst3A')
+    SQLRefresh.Strings = (
+      
+        'SELECT Controle, PEDIDO, LkEst3A, Quantidade, LkProduto, Total, ' +
+        'TotVenda, Lucro, Acrescimo, DataInc, ICMS, QuantCanc, LkVendedor' +
+        ', QtdSaldo, HoraIni, HoraFim, Comissao, LkGuiche, LkBaixa, Venda' +
+        '_Servico, Cor, idEmpresa, Unidade, MARCA, VlUnitario, lkClienteI' +
+        'tem, lkVarejo_Atacado, CFOP, CST, QtdReal, CodInterno, Produto, ' +
+        'CodOrigem, lkPreco, TipoOper, Vendedor, Desconto, PrCusto, Preco' +
+        'Venda, Peso, QtdAtacado, CstECF, VlBonus, Servico, LkCxFecha, Fr' +
+        'acUN, FracQtd, FracQtdTotal, Item, Entrega, LkPreVenda FROM tabe' +
+        'st3b'
+      'WHERE'
+      
+        '  Controle = :Old_Controle AND PEDIDO = :Old_PEDIDO AND LkEst3A ' +
+        '= :Old_LkEst3A')
+    SQLRecCount.Strings = (
+      'SET :PCOUNT = (SELECT COUNT(*) FROM tabest3b'
+      ')')
+    Connection = DmDados.DadosMS
+    SQL.Strings = (
+      'declare @Entrega int'
+      'set @Entrega =:Entrega'
+      'Select '
+      
+        '   i.Controle, i.Item, i.idEmpresa, i.idControle, i.PEDIDO,  i.L' +
+        'kEst3A,'
+      
+        '   i.LkProduto, i.Produto, i.CodInterno, i.CodORIGEM, i.QtdAtaca' +
+        'do, I.Peso, i.Servico,'
+      
+        '   i.Quantidade, i.VlUnitario,  i.Total, i.Acrescimo, i.Desconto' +
+        ', i.Comissao,  i.PrecoVenda,'
+      
+        '   i.Cor, i.CST,  i.CFOP,   i.DataInc, i.HoraFim, i.HoraIni, i.I' +
+        'CMS, I.CSTECF,'
+      '   i.LkBaixa, i.lkClienteItem,  i.LkGuiche, i.lkPreco,'
+      
+        '   i.lkVarejo_Atacado, i.LkVendedor, I.Vendedor, i.Lucro, i.MARC' +
+        'A,  '
+      '   i.QtdReal, i.QtdSaldo, QuantCanc,  i.TipoOper,'
+      
+        '   i.TotVenda, i.Unidade, i.Venda_Servico, i.VlBonus, i.PrCusto,' +
+        ' '
+      '   i.FracUN, i.FracQtd, i.FracQtdTotal, i.LkCxFecha, '
+      '   i.Entrega, i.LkPrevenda'
+      '   from tabest3b i with(nolock) '
+      'where pedido =:pedido'
+      'and entrega = ISNULL('
+      #9#9#9' (CASE WHEN @Entrega = 0 THEN 0'
+      #9#9#9'       WHEN @Entrega = 1 THEN 1'
+      #9#9#9'       ELSE null END)'
+      #9#9#9' ,Entrega)'
+      '')
+    MasterSource = DsQryVena
+    CachedUpdates = True
+    Left = 279
+    Top = 228
+    ParamData = <
+      item
+        DataType = ftInteger
+        Name = 'Entrega'
+        ParamType = ptInput
+        Value = 1
+      end
+      item
+        DataType = ftInteger
+        Name = 'Pedido'
+        ParamType = ptInput
+        Value = -1
+      end>
+    object qryVenbControle: TIntegerField
+      FieldName = 'Controle'
+      ProviderFlags = [pfInUpdate, pfInWhere, pfInKey]
+    end
+    object qryVenbidEmpresa: TIntegerField
+      FieldName = 'idEmpresa'
+    end
+    object qryVenbPEDIDO: TIntegerField
+      FieldName = 'PEDIDO'
+      ProviderFlags = [pfInUpdate, pfInWhere, pfInKey]
+    end
+    object qryVenbLkEst3A: TIntegerField
+      FieldName = 'LkEst3A'
+      ProviderFlags = [pfInUpdate, pfInWhere, pfInKey]
+    end
+    object qryVenbLkProduto: TIntegerField
+      FieldName = 'LkProduto'
+    end
+    object qryVenbProduto: TStringField
+      FieldName = 'Produto'
+      Size = 50
+    end
+    object qryVenbCodInterno: TStringField
+      FieldName = 'CodInterno'
+    end
+    object qryVenbCodORIGEM: TStringField
+      FieldName = 'CodORIGEM'
+    end
+    object qryVenbQtdAtacado: TFloatField
+      FieldName = 'QtdAtacado'
+      DisplayFormat = '###,##0.00#'
+    end
+    object qryVenbPeso: TFloatField
+      FieldName = 'Peso'
+      DisplayFormat = '###,##0.00#'
+    end
+    object qryVenbServico: TBooleanField
+      FieldName = 'Servico'
+    end
+    object qryVenbQuantidade: TFloatField
+      DefaultExpression = '0'
+      FieldName = 'Quantidade'
+      DisplayFormat = '###,##0.00#'
+      EditFormat = '##,##0.00#'
+    end
+    object qryVenbVlUnitario: TFloatField
+      DefaultExpression = '0'
+      FieldName = 'VlUnitario'
+      DisplayFormat = '##,##0.00#'
+      EditFormat = '##,##0.00#'
+    end
+    object qryVenbTotal: TFloatField
+      DefaultExpression = '0'
+      FieldName = 'Total'
+      DisplayFormat = '##,##0.00'
+    end
+    object qryVenbAcrescimo: TFloatField
+      DefaultExpression = '0'
+      FieldName = 'Acrescimo'
+      DisplayFormat = '##,##0.00'
+    end
+    object qryVenbDesconto: TFloatField
+      DefaultExpression = '0'
+      FieldName = 'Desconto'
+      DisplayFormat = '##,##0.00'
+    end
+    object qryVenbComissao: TFloatField
+      DefaultExpression = '0'
+      FieldName = 'Comissao'
+      DisplayFormat = '##,##0.00'
+    end
+    object qryVenbPrecoVenda: TFloatField
+      DefaultExpression = '0'
+      FieldName = 'PrecoVenda'
+      DisplayFormat = '##,##0.00'
+    end
+    object qryVenbCor: TStringField
+      FieldName = 'Cor'
+      Size = 25
+    end
+    object qryVenbCST: TIntegerField
+      FieldName = 'CST'
+    end
+    object qryVenbCFOP: TIntegerField
+      FieldName = 'CFOP'
+    end
+    object qryVenbDataInc: TDateTimeField
+      FieldName = 'DataInc'
+    end
+    object qryVenbHoraFim: TStringField
+      FieldName = 'HoraFim'
+      Size = 5
+    end
+    object qryVenbHoraIni: TStringField
+      FieldName = 'HoraIni'
+      Size = 5
+    end
+    object qryVenbICMS: TFloatField
+      FieldName = 'ICMS'
+    end
+    object qryVenbCSTECF: TStringField
+      FieldName = 'CSTECF'
+      Size = 5
+    end
+    object qryVenbLkBaixa: TIntegerField
+      FieldName = 'LkBaixa'
+    end
+    object qryVenblkClienteItem: TIntegerField
+      FieldName = 'lkClienteItem'
+    end
+    object qryVenbLkGuiche: TIntegerField
+      FieldName = 'LkGuiche'
+    end
+    object qryVenblkPreco: TIntegerField
+      FieldName = 'lkPreco'
+    end
+    object qryVenblkVarejo_Atacado: TIntegerField
+      FieldName = 'lkVarejo_Atacado'
+    end
+    object qryVenbLkVendedor: TIntegerField
+      FieldName = 'LkVendedor'
+    end
+    object qryVenbVendedor: TStringField
+      FieldName = 'Vendedor'
+      Size = 30
+    end
+    object qryVenbLucro: TFloatField
+      FieldName = 'Lucro'
+      DisplayFormat = '##,##0.00'
+    end
+    object qryVenbMARCA: TStringField
+      FieldName = 'MARCA'
+    end
+    object qryVenbQtdReal: TFloatField
+      FieldName = 'QtdReal'
+      DisplayFormat = '###,##0.00#'
+    end
+    object qryVenbQtdSaldo: TFloatField
+      FieldName = 'QtdSaldo'
+      DisplayFormat = '###,##0.00#'
+    end
+    object qryVenbQuantCanc: TFloatField
+      FieldName = 'QuantCanc'
+    end
+    object qryVenbTipoOper: TIntegerField
+      FieldName = 'TipoOper'
+    end
+    object qryVenbTotVenda: TFloatField
+      FieldName = 'TotVenda'
+      DisplayFormat = '##,##0.00'
+    end
+    object qryVenbUnidade: TStringField
+      FieldName = 'Unidade'
+      Size = 2
+    end
+    object qryVenbVenda_Servico: TStringField
+      FieldName = 'Venda_Servico'
+      Size = 1
+    end
+    object qryVenbVlBonus: TFloatField
+      FieldName = 'VlBonus'
+      DisplayFormat = '##,##0.00'
+    end
+    object qryVenbPrCusto: TFloatField
+      FieldName = 'PrCusto'
+    end
+    object qryVenbidControle: TIntegerField
+      AutoGenerateValue = arAutoInc
+      FieldName = 'idControle'
+      ReadOnly = True
+    end
+    object qryVenbFracUN: TStringField
+      FieldName = 'FracUN'
+      Size = 3
+    end
+    object qryVenbFracQtd: TFloatField
+      FieldName = 'FracQtd'
+      DisplayFormat = '##,##0.00'
+    end
+    object qryVenbFracQtdTotal: TFloatField
+      FieldName = 'FracQtdTotal'
+      DisplayFormat = '##,##0.00'
+    end
+    object qryVenbLkCxFecha: TIntegerField
+      FieldName = 'LkCxFecha'
+    end
+    object qryVenbItem: TIntegerField
+      FieldName = 'Item'
+    end
+    object qryVenbcItem: TIntegerField
+      FieldKind = fkCalculated
+      FieldName = 'cItem'
+      DisplayFormat = '#,000'
+      Calculated = True
+    end
+    object qryVenbEntrega: TIntegerField
+      FieldName = 'Entrega'
+    end
+    object qryVenbLkPrevenda: TIntegerField
+      FieldName = 'LkPrevenda'
+    end
+  end
+  object DsQryVena: TDataSource
+    DataSet = qryVena
+    Left = 396
+    Top = 140
+  end
+  object RDprint: TRDprint
+    ImpressoraPersonalizada.NomeImpressora = '40_COLUNAS'
+    ImpressoraPersonalizada.AvancaOitavos = '27 48'
+    ImpressoraPersonalizada.AvancaSextos = '27 50'
+    ImpressoraPersonalizada.SaltoPagina = ' '
+    ImpressoraPersonalizada.TamanhoPagina = ' '
+    ImpressoraPersonalizada.Negrito = '27 69'
+    ImpressoraPersonalizada.Italico = '27 52'
+    ImpressoraPersonalizada.Sublinhado = ' '
+    ImpressoraPersonalizada.Expandido = '27 14'
+    ImpressoraPersonalizada.Normal10 = '27 77'
+    ImpressoraPersonalizada.Comprimir12 = '18 27 77'
+    ImpressoraPersonalizada.Comprimir17 = '27 80 27 15'
+    ImpressoraPersonalizada.Comprimir20 = '27 77 27 15'
+    ImpressoraPersonalizada.Reset = ' '
+    ImpressoraPersonalizada.Inicializar = ' '
+    OpcoesPreview.PaginaZebrada = False
+    OpcoesPreview.MostrarSETUP = True
+    OpcoesPreview.Remalina = False
+    OpcoesPreview.CaptionPreview = 'Impressao da Nota'
+    OpcoesPreview.PreviewZoom = 100
+    OpcoesPreview.CorPapelPreview = clWhite
+    OpcoesPreview.CorLetraPreview = clBlack
+    OpcoesPreview.Preview = True
+    OpcoesPreview.BotaoSetup = Ativo
+    OpcoesPreview.BotaoImprimir = Ativo
+    OpcoesPreview.BotaoGravar = Ativo
+    OpcoesPreview.BotaoLer = Ativo
+    OpcoesPreview.BotaoProcurar = Ativo
+    OpcoesPreview.BotaoPDF = Ativo
+    OpcoesPreview.BotaoEMAIL = Ativo
+    OpcoesPreview.ExtraBtnStatus = Invisivel
+    OpcoesPreview.ExtraBtnWidth = 80
+    OpcoesPreview.ExtraBtnCaption = 'Extra Btn'
+    Margens.Left = 10
+    Margens.Right = 10
+    Margens.Top = 10
+    Margens.Bottom = 10
+    Autor = Deltress
+    RegistroUsuario.NomeRegistro = 'COMPUSERVE'
+    RegistroUsuario.SerieProduto = 'SINGLE 6.3 - 785/1218 (DX103)'
+    RegistroUsuario.AutorizacaoKey = 'C4GV7-XCSOZ-LM886-3RN5K-8XM01-ATXBT-LTHS8'
+    About = 'RDprint 6.3'
+    Acentuacao = SemAcento
+    CaptionSetup = 'CONFIGURA'#199#195'O DE IMPRESSAO'
+    TitulodoRelatorio = 'PEDIDO'
+    UsaGerenciadorImpr = True
+    CorForm = clBtnFace
+    CorFonte = clBlack
+    Impressora = Bobina
+    Mapeamento.Strings = (
+      '//--- Grafico Compativel com Windows/USB ---//'
+      '//'
+      'GRAFICO=GRAFICO'
+      'HP=GRAFICO'
+      'DESKJET=GRAFICO'
+      'LASERJET=GRAFICO'
+      'INKJET=GRAFICO'
+      'STYLUS=GRAFICO'
+      'EPL=GRAFICO'
+      'USB=GRAFICO'
+      '//'
+      '//--- Linha Epson Matricial 9 e 24 agulhas ---//'
+      '//'
+      'EPSON=EPSON'
+      'GENERICO=EPSON'
+      'LX-300=EPSON'
+      'LX-810=EPSON'
+      'FX-2170=EPSON'
+      'FX-1170=EPSON'
+      'LQ-1170=EPSON'
+      'LQ-2170=EPSON'
+      'OKIDATA=EPSON'
+      '//'
+      '//--- Rima e Emilia ---//'
+      '//'
+      'RIMA=RIMA'
+      'EMILIA=RIMA'
+      '//'
+      '//--- Linha HP/Xerox padr'#227'o PCL ---//'
+      '//'
+      'PCL=HP'
+      '//'
+      '//--- Impressoras 40 Colunas ---//'
+      '//'
+      'DARUMA=BOBINA'
+      'SIGTRON=BOBINA'
+      'SWEDA=BOBINA'
+      'BEMATECH=BOBINA')
+    PortaComunicacao = 'LPT1'
+    MostrarProgresso = True
+    TamanhoQteLinhas = 20
+    TamanhoQteColunas = 48
+    TamanhoQteLPP = Seis
+    NumerodeCopias = 1
+    FonteTamanhoPadrao = S10cpp
+    FonteEstiloPadrao = []
+    Orientacao = poPortrait
+    FonteGrafica = sCourierNew
+    ReduzParaCaber = True
+    Left = 81
+    Top = 276
+  end
+  object HTTPRIO1: THTTPRIO
+    Converter.Options = [soSendMultiRefObj, soTryAllSchema, soRootRefNodesToBody, soCacheMimeResponse, soUTF8EncodeXML]
+    Left = 176
+    Top = 264
+  end
+  object DANFeESCPOS1: TACBrNFeDANFeESCPOS
+    NomeDocumento = 'CupomNFCe.pdf'
+    MostraSetup = True
+    Sistema = 'Servsic - Sistema Integrado Comercial - COMPUSERVE'
+    Site = 'www.compuservedobrasil.com'
+    Email = 'atendimento@compuservedorbrasil.com'
+    MargemInferior = 0.800000000000000000
+    MargemSuperior = 0.800000000000000000
+    MargemEsquerda = 0.600000000000000000
+    MargemDireita = 0.510000000000000000
+    ExpandeLogoMarcaConfig.Altura = 0
+    ExpandeLogoMarcaConfig.Esquerda = 0
+    ExpandeLogoMarcaConfig.Topo = 0
+    ExpandeLogoMarcaConfig.Largura = 0
+    ExpandeLogoMarcaConfig.Dimensionar = False
+    ExpandeLogoMarcaConfig.Esticar = True
+    CasasDecimais.Formato = tdetInteger
+    CasasDecimais.qCom = 2
+    CasasDecimais.vUnCom = 2
+    CasasDecimais.MaskqCom = ',0.00'
+    CasasDecimais.MaskvUnCom = ',0.00'
+    CasasDecimais.Aliquota = 2
+    CasasDecimais.MaskAliquota = ',0.00'
+    ACBrNFe = ACBrNFe1
+    TipoDANFE = tiNFCe
+    ImprimeNomeFantasia = True
+    ImprimeQRCodeLateral = True
+    PosPrinter = ACBrPosPrinter1
+    Left = 280
+    Top = 24
+  end
+  object ACBrPosPrinter1: TACBrPosPrinter
+    Modelo = ppEscEpsonP2
+    ConfigBarras.MostrarCodigo = False
+    ConfigBarras.LarguraLinha = 0
+    ConfigBarras.Altura = 0
+    ConfigBarras.Margem = 0
+    ConfigQRCode.Tipo = 2
+    ConfigQRCode.LarguraModulo = 4
+    ConfigQRCode.ErrorLevel = 0
+    LinhasEntreCupons = 0
+    ControlePorta = True
+    Left = 184
+    Top = 184
+  end
+  object DANFEFastReport: TACBrNFeDANFCEFR
+    NomeDocumento = 'ServSicNFCe.pdf'
+    MostraSetup = True
+    Sistema = 'Compuserve'
+    Site = 'www.compuservedobrasil.com'
+    MargemInferior = 0.800000000000000000
+    MargemSuperior = 0.800000000000000000
+    MargemEsquerda = 0.600000000000000000
+    MargemDireita = 0.510000000000000000
+    ExpandeLogoMarcaConfig.Altura = 0
+    ExpandeLogoMarcaConfig.Esquerda = 0
+    ExpandeLogoMarcaConfig.Topo = 0
+    ExpandeLogoMarcaConfig.Largura = 0
+    ExpandeLogoMarcaConfig.Dimensionar = False
+    ExpandeLogoMarcaConfig.Esticar = True
+    CasasDecimais.Formato = tdetInteger
+    CasasDecimais.qCom = 2
+    CasasDecimais.vUnCom = 2
+    CasasDecimais.MaskqCom = ',0.00'
+    CasasDecimais.MaskvUnCom = ',0.00'
+    CasasDecimais.Aliquota = 2
+    CasasDecimais.MaskAliquota = ',0.00'
+    ImprimeQRCodeLateral = True
+    FastFile = 'pdv\DANFeNFCe.fr3'
+    FastFileEvento = 'pdv\EVENTOS.fr3'
+    BorderIcon = [biSystemMenu, biMinimize, biMaximize]
+    ThreadSafe = False
+    Left = 384
+    Top = 24
+  end
+  object qVendaXml: TUniQuery
+    Connection = DmDados.DadosMS
+    Left = 424
+    Top = 240
+  end
+  object dsCfg_Venda: TDataSource
+    DataSet = qryCfg_Venda
+    Left = 97
+    Top = 66
+  end
+  object qryCfg_Venda: TUniQuery
+    SQLInsert.Strings = (
+      'INSERT INTO cfg_venda'
+      
+        '  (AUTOCADASTRO, OBSVENDA, DESCONTO, LANCAVENDA, TIPODESCONTO, A' +
+        'LTERADATA, TROCO, ImprimeNota, ESTOQUEINSUFICIENTE, PRECOMENOR, ' +
+        'IMPRIMEDESC, BloqueiaProdutoSemPreco, TURNO, DATATURNO, DESCONTO' +
+        '2, ACRESCIMO, ATIVABLOQUEIO, FARMACIA, DESBLOQ_CLI_AUTO, SEL_VEN' +
+        'DEDOR_VENDA, ModoGravacaoForcado, BloqueiaVendaAtacado, EXCLUI_C' +
+        'AIXA_CANCELAMENTO, PapelParedeMenu, INIBEMARCAS, MenuRelatorio, ' +
+        'NfcSolicitaCPF, VerificaECF, PrefPreencheNulos, PrefPreVenda, FR' +
+        'ACAO, FINALIZA_POR_TECLA, SelecionaSerie, BloqueiaFormaPagto, Va' +
+        'lidaVendedor, ValidaItensServicos, NrCasaDecimais, DescGrupoAuto' +
+        'matico, DevolucaoSenha, AvisaItemLancado, BloqueiaImpressaoVenda' +
+        'SemFormaPagamento, ImpEnvelopeOrientacao, MEIO_A_MEIO, CARTAO_EM' +
+        'ITE_CUPOM_AUTO, CupomTrocaAutomatico, CupomTrocaTexto)'
+      'VALUES'
+      
+        '  (:AUTOCADASTRO, :OBSVENDA, :DESCONTO, :LANCAVENDA, :TIPODESCON' +
+        'TO, :ALTERADATA, :TROCO, :ImprimeNota, :ESTOQUEINSUFICIENTE, :PR' +
+        'ECOMENOR, :IMPRIMEDESC, :BloqueiaProdutoSemPreco, :TURNO, :DATAT' +
+        'URNO, :DESCONTO2, :ACRESCIMO, :ATIVABLOQUEIO, :FARMACIA, :DESBLO' +
+        'Q_CLI_AUTO, :SEL_VENDEDOR_VENDA, :ModoGravacaoForcado, :Bloqueia' +
+        'VendaAtacado, :EXCLUI_CAIXA_CANCELAMENTO, :PapelParedeMenu, :INI' +
+        'BEMARCAS, :MenuRelatorio, :NfcSolicitaCPF, :VerificaECF, :PrefPr' +
+        'eencheNulos, :PrefPreVenda, :FRACAO, :FINALIZA_POR_TECLA, :Selec' +
+        'ionaSerie, :BloqueiaFormaPagto, :ValidaVendedor, :ValidaItensSer' +
+        'vicos, :NrCasaDecimais, :DescGrupoAutomatico, :DevolucaoSenha, :' +
+        'AvisaItemLancado, :BloqueiaImpressaoVendaSemFormaPagamento, :Imp' +
+        'EnvelopeOrientacao, :MEIO_A_MEIO, :CARTAO_EMITE_CUPOM_AUTO, :Cup' +
+        'omTrocaAutomatico, :CupomTrocaTexto)')
+    SQLDelete.Strings = (
+      'DELETE FROM cfg_venda'
+      'WHERE'
+      
+        '  AUTOCADASTRO = :Old_AUTOCADASTRO AND LANCAVENDA = :Old_LANCAVE' +
+        'NDA AND TIPODESCONTO = :Old_TIPODESCONTO AND ALTERADATA = :Old_A' +
+        'LTERADATA AND ESTOQUEINSUFICIENTE = :Old_ESTOQUEINSUFICIENTE AND' +
+        ' PRECOMENOR = :Old_PRECOMENOR AND IMPRIMEDESC = :Old_IMPRIMEDESC' +
+        ' AND BloqueiaProdutoSemPreco = :Old_BloqueiaProdutoSemPreco AND ' +
+        'ATIVABLOQUEIO = :Old_ATIVABLOQUEIO AND ModoGravacaoForcado = :Ol' +
+        'd_ModoGravacaoForcado AND BloqueiaVendaAtacado = :Old_BloqueiaVe' +
+        'ndaAtacado')
+    SQLUpdate.Strings = (
+      'UPDATE cfg_venda'
+      'SET'
+      
+        '  AUTOCADASTRO = :AUTOCADASTRO, OBSVENDA = :OBSVENDA, DESCONTO =' +
+        ' :DESCONTO, LANCAVENDA = :LANCAVENDA, TIPODESCONTO = :TIPODESCON' +
+        'TO, ALTERADATA = :ALTERADATA, TROCO = :TROCO, ImprimeNota = :Imp' +
+        'rimeNota, ESTOQUEINSUFICIENTE = :ESTOQUEINSUFICIENTE, PRECOMENOR' +
+        ' = :PRECOMENOR, IMPRIMEDESC = :IMPRIMEDESC, BloqueiaProdutoSemPr' +
+        'eco = :BloqueiaProdutoSemPreco, TURNO = :TURNO, DATATURNO = :DAT' +
+        'ATURNO, DESCONTO2 = :DESCONTO2, ACRESCIMO = :ACRESCIMO, ATIVABLO' +
+        'QUEIO = :ATIVABLOQUEIO, FARMACIA = :FARMACIA, DESBLOQ_CLI_AUTO =' +
+        ' :DESBLOQ_CLI_AUTO, SEL_VENDEDOR_VENDA = :SEL_VENDEDOR_VENDA, Mo' +
+        'doGravacaoForcado = :ModoGravacaoForcado, BloqueiaVendaAtacado =' +
+        ' :BloqueiaVendaAtacado, EXCLUI_CAIXA_CANCELAMENTO = :EXCLUI_CAIX' +
+        'A_CANCELAMENTO, PapelParedeMenu = :PapelParedeMenu, INIBEMARCAS ' +
+        '= :INIBEMARCAS, MenuRelatorio = :MenuRelatorio, NfcSolicitaCPF =' +
+        ' :NfcSolicitaCPF, VerificaECF = :VerificaECF, PrefPreencheNulos ' +
+        '= :PrefPreencheNulos, PrefPreVenda = :PrefPreVenda, FRACAO = :FR' +
+        'ACAO, FINALIZA_POR_TECLA = :FINALIZA_POR_TECLA, SelecionaSerie =' +
+        ' :SelecionaSerie, BloqueiaFormaPagto = :BloqueiaFormaPagto, Vali' +
+        'daVendedor = :ValidaVendedor, ValidaItensServicos = :ValidaItens' +
+        'Servicos, NrCasaDecimais = :NrCasaDecimais, DescGrupoAutomatico ' +
+        '= :DescGrupoAutomatico, DevolucaoSenha = :DevolucaoSenha, AvisaI' +
+        'temLancado = :AvisaItemLancado, BloqueiaImpressaoVendaSemFormaPa' +
+        'gamento = :BloqueiaImpressaoVendaSemFormaPagamento, ImpEnvelopeO' +
+        'rientacao = :ImpEnvelopeOrientacao, MEIO_A_MEIO = :MEIO_A_MEIO, ' +
+        'CARTAO_EMITE_CUPOM_AUTO = :CARTAO_EMITE_CUPOM_AUTO, CupomTrocaAu' +
+        'tomatico = :CupomTrocaAutomatico, CupomTrocaTexto = :CupomTrocaT' +
+        'exto'
+      'WHERE'
+      
+        '  AUTOCADASTRO = :Old_AUTOCADASTRO AND LANCAVENDA = :Old_LANCAVE' +
+        'NDA AND TIPODESCONTO = :Old_TIPODESCONTO AND ALTERADATA = :Old_A' +
+        'LTERADATA AND ESTOQUEINSUFICIENTE = :Old_ESTOQUEINSUFICIENTE AND' +
+        ' PRECOMENOR = :Old_PRECOMENOR AND IMPRIMEDESC = :Old_IMPRIMEDESC' +
+        ' AND BloqueiaProdutoSemPreco = :Old_BloqueiaProdutoSemPreco AND ' +
+        'ATIVABLOQUEIO = :Old_ATIVABLOQUEIO AND ModoGravacaoForcado = :Ol' +
+        'd_ModoGravacaoForcado AND BloqueiaVendaAtacado = :Old_BloqueiaVe' +
+        'ndaAtacado')
+    SQLLock.Strings = (
+      'SELECT * FROM cfg_venda'
+      'WITH (UPDLOCK, ROWLOCK, HOLDLOCK)'
+      'WHERE'
+      
+        '  AUTOCADASTRO = :Old_AUTOCADASTRO AND LANCAVENDA = :Old_LANCAVE' +
+        'NDA AND TIPODESCONTO = :Old_TIPODESCONTO AND ALTERADATA = :Old_A' +
+        'LTERADATA AND ESTOQUEINSUFICIENTE = :Old_ESTOQUEINSUFICIENTE AND' +
+        ' PRECOMENOR = :Old_PRECOMENOR AND IMPRIMEDESC = :Old_IMPRIMEDESC' +
+        ' AND BloqueiaProdutoSemPreco = :Old_BloqueiaProdutoSemPreco AND ' +
+        'ATIVABLOQUEIO = :Old_ATIVABLOQUEIO AND ModoGravacaoForcado = :Ol' +
+        'd_ModoGravacaoForcado AND BloqueiaVendaAtacado = :Old_BloqueiaVe' +
+        'ndaAtacado')
+    SQLRefresh.Strings = (
+      
+        'SELECT AUTOCADASTRO, OBSVENDA, DESCONTO, LANCAVENDA, TIPODESCONT' +
+        'O, ALTERADATA, TROCO, ImprimeNota, ESTOQUEINSUFICIENTE, PRECOMEN' +
+        'OR, IMPRIMEDESC, BloqueiaProdutoSemPreco, TURNO, DATATURNO, DESC' +
+        'ONTO2, ACRESCIMO, ATIVABLOQUEIO, FARMACIA, DESBLOQ_CLI_AUTO, SEL' +
+        '_VENDEDOR_VENDA, ModoGravacaoForcado, BloqueiaVendaAtacado, EXCL' +
+        'UI_CAIXA_CANCELAMENTO, PapelParedeMenu, INIBEMARCAS, MenuRelator' +
+        'io, NfcSolicitaCPF, VerificaECF, PrefPreencheNulos, PrefPreVenda' +
+        ', FRACAO, FINALIZA_POR_TECLA, SelecionaSerie, BloqueiaFormaPagto' +
+        ', ValidaVendedor, ValidaItensServicos, NrCasaDecimais, DescGrupo' +
+        'Automatico, DevolucaoSenha, AvisaItemLancado, BloqueiaImpressaoV' +
+        'endaSemFormaPagamento, ImpEnvelopeOrientacao, MEIO_A_MEIO, CARTA' +
+        'O_EMITE_CUPOM_AUTO, CupomTrocaAutomatico, CupomTrocaTexto FROM c' +
+        'fg_venda'
+      'WHERE'
+      
+        '  AUTOCADASTRO = :AUTOCADASTRO AND LANCAVENDA = :LANCAVENDA AND ' +
+        'TIPODESCONTO = :TIPODESCONTO AND ALTERADATA = :ALTERADATA AND ES' +
+        'TOQUEINSUFICIENTE = :ESTOQUEINSUFICIENTE AND PRECOMENOR = :PRECO' +
+        'MENOR AND IMPRIMEDESC = :IMPRIMEDESC AND BloqueiaProdutoSemPreco' +
+        ' = :BloqueiaProdutoSemPreco AND ATIVABLOQUEIO = :ATIVABLOQUEIO A' +
+        'ND ModoGravacaoForcado = :ModoGravacaoForcado AND BloqueiaVendaA' +
+        'tacado = :BloqueiaVendaAtacado')
+    SQLRecCount.Strings = (
+      'SET :PCOUNT = (SELECT COUNT(*) FROM cfg_venda'
+      ')')
+    Connection = DmDados.DadosMS
+    SQL.Strings = (
+      'select * from cfg_venda')
+    Left = 40
+    Top = 16
+    object qryCfg_VendaAUTOCADASTRO: TStringField
+      FieldName = 'AUTOCADASTRO'
+      Size = 50
+    end
+    object qryCfg_VendaOBSVENDA: TStringField
+      FieldName = 'OBSVENDA'
+      Size = 50
+    end
+    object qryCfg_VendaDESCONTO: TStringField
+      FieldName = 'DESCONTO'
+      Size = 50
+    end
+    object qryCfg_VendaLANCAVENDA: TStringField
+      FieldName = 'LANCAVENDA'
+      Size = 50
+    end
+    object qryCfg_VendaTIPODESCONTO: TStringField
+      FieldName = 'TIPODESCONTO'
+      Size = 50
+    end
+    object qryCfg_VendaALTERADATA: TStringField
+      FieldName = 'ALTERADATA'
+      Size = 50
+    end
+    object qryCfg_VendaTROCO: TStringField
+      FieldName = 'TROCO'
+      Size = 50
+    end
+    object qryCfg_VendaImprimeNota: TStringField
+      FieldName = 'ImprimeNota'
+      Size = 50
+    end
+    object qryCfg_VendaESTOQUEINSUFICIENTE: TStringField
+      FieldName = 'ESTOQUEINSUFICIENTE'
+      Size = 50
+    end
+    object qryCfg_VendaPRECOMENOR: TStringField
+      FieldName = 'PRECOMENOR'
+      Size = 50
+    end
+    object qryCfg_VendaIMPRIMEDESC: TStringField
+      FieldName = 'IMPRIMEDESC'
+      Size = 50
+    end
+    object qryCfg_VendaBloqueiaProdutoSemPreco: TStringField
+      FieldName = 'BloqueiaProdutoSemPreco'
+      Size = 50
+    end
+    object qryCfg_VendaTURNO: TStringField
+      FieldName = 'TURNO'
+      Size = 50
+    end
+    object qryCfg_VendaDATATURNO: TStringField
+      FieldName = 'DATATURNO'
+      Size = 50
+    end
+    object qryCfg_VendaDESCONTO2: TStringField
+      FieldName = 'DESCONTO2'
+      Size = 50
+    end
+    object qryCfg_VendaACRESCIMO: TStringField
+      FieldName = 'ACRESCIMO'
+      Size = 50
+    end
+    object qryCfg_VendaATIVABLOQUEIO: TStringField
+      FieldName = 'ATIVABLOQUEIO'
+      Size = 50
+    end
+    object qryCfg_VendaFARMACIA: TStringField
+      FieldName = 'FARMACIA'
+      Size = 30
+    end
+    object qryCfg_VendaDESBLOQ_CLI_AUTO: TStringField
+      FieldName = 'DESBLOQ_CLI_AUTO'
+      Size = 30
+    end
+    object qryCfg_VendaSEL_VENDEDOR_VENDA: TStringField
+      FieldName = 'SEL_VENDEDOR_VENDA'
+      Size = 30
+    end
+    object qryCfg_VendaModoGravacaoForcado: TStringField
+      FieldName = 'ModoGravacaoForcado'
+      Size = 30
+    end
+    object qryCfg_VendaBloqueiaVendaAtacado: TStringField
+      FieldName = 'BloqueiaVendaAtacado'
+      Size = 5
+    end
+    object qryCfg_VendaEXCLUI_CAIXA_CANCELAMENTO: TStringField
+      FieldName = 'EXCLUI_CAIXA_CANCELAMENTO'
+      Size = 2
+    end
+    object qryCfg_VendaPapelParedeMenu: TStringField
+      FieldName = 'PapelParedeMenu'
+      Size = 2
+    end
+    object qryCfg_VendaINIBEMARCAS: TStringField
+      FieldName = 'INIBEMARCAS'
+      Size = 30
+    end
+    object qryCfg_VendaMenuRelatorio: TStringField
+      FieldName = 'MenuRelatorio'
+      Size = 2
+    end
+    object qryCfg_VendaNfcSolicitaCPF: TStringField
+      FieldName = 'NfcSolicitaCPF'
+      Size = 2
+    end
+    object qryCfg_VendaVerificaECF: TStringField
+      FieldName = 'VerificaECF'
+      Size = 2
+    end
+    object qryCfg_VendaPrefPreencheNulos: TStringField
+      FieldName = 'PrefPreencheNulos'
+      Size = 2
+    end
+    object qryCfg_VendaPrefPreVenda: TStringField
+      FieldName = 'PrefPreVenda'
+      Size = 2
+    end
+    object qryCfg_VendaFRACAO: TStringField
+      FieldName = 'FRACAO'
+      Size = 2
+    end
+    object qryCfg_VendaFINALIZA_POR_TECLA: TStringField
+      FieldName = 'FINALIZA_POR_TECLA'
+      Size = 2
+    end
+    object qryCfg_VendaSelecionaSerie: TStringField
+      FieldName = 'SelecionaSerie'
+      Size = 2
+    end
+    object qryCfg_VendaBloqueiaFormaPagto: TStringField
+      FieldName = 'BloqueiaFormaPagto'
+      Size = 2
+    end
+    object qryCfg_VendaValidaVendedor: TStringField
+      FieldName = 'ValidaVendedor'
+      Size = 2
+    end
+    object qryCfg_VendaValidaItensServicos: TStringField
+      FieldName = 'ValidaItensServicos'
+      Size = 2
+    end
+    object qryCfg_VendaNrCasaDecimais: TStringField
+      FieldName = 'NrCasaDecimais'
+      Size = 2
+    end
+    object qryCfg_VendaDescGrupoAutomatico: TStringField
+      FieldName = 'DescGrupoAutomatico'
+      Size = 2
+    end
+    object qryCfg_VendaDevolucaoSenha: TStringField
+      FieldName = 'DevolucaoSenha'
+      Size = 2
+    end
+    object qryCfg_VendaAvisaItemLancado: TStringField
+      FieldName = 'AvisaItemLancado'
+      Size = 2
+    end
+    object qryCfg_VendaBloqueiaImpressaoVendaSemFormaPagamento: TStringField
+      FieldName = 'BloqueiaImpressaoVendaSemFormaPagamento'
+      FixedChar = True
+      Size = 1
+    end
+    object qryCfg_VendaImpEnvelopeOrientacao: TStringField
+      FieldName = 'ImpEnvelopeOrientacao'
+      Size = 2
+    end
+    object qryCfg_VendaMEIO_A_MEIO: TBooleanField
+      FieldName = 'MEIO_A_MEIO'
+    end
+    object qryCfg_VendaCARTAO_EMITE_CUPOM_AUTO: TBooleanField
+      FieldName = 'CARTAO_EMITE_CUPOM_AUTO'
+    end
+    object qryCfg_VendaCupomTrocaAutomatico: TBooleanField
+      FieldName = 'CupomTrocaAutomatico'
+    end
+    object qryCfg_VendaCupomTrocaTexto: TMemoField
+      FieldName = 'CupomTrocaTexto'
+      BlobType = ftMemo
+    end
+  end
+  object tmrTransmitir: TTimer
+    Enabled = False
+    OnTimer = tmrTransmitirTimer
+    Left = 280
+    Top = 376
+  end
+  object qryVendaNrNFCe: TUniQuery
+    Connection = DmDados.DadosMS
+    SQL.Strings = (
+      'SELECT '
+      '    V.Controle, '
+      '    V.Pedido, '
+      '    V.Nota, '
+      '    V.Serie, '
+      '    Xml.Num_Nota_Fiscal, '
+      '    Xml.Num_Serie, '
+      '    Xml.ChaveNFe, '
+      '    Xml.Status AS StatusNFCe, '
+      '    Xml.CodEmitente, '
+      '    Xml.Tipo_Amb, '
+      '    Xml.DataCriacao, '
+      '    Xml.XMLTexto,'
+      
+        '    CAST(Xml.XMLTexto AS XML).value('#39'(/nfeProc/protNFe/infProt/n' +
+        'Prot)[1]'#39', '#39'NVARCHAR(50)'#39') AS nProt'
+      'FROM '
+      '    TabEst3A AS V'
+      'INNER JOIN '
+      '    NFe_XMLTemp AS Xml '
+      'ON '
+      '    V.Pedido = Xml.CodVenda'
+      'WHERE '
+      '    V.Pedido = :Pedido'
+      '  AND Xml.Status = '#39'T'#39';'
+      '')
+    Left = 32
+    Top = 104
+    ParamData = <
+      item
+        DataType = ftInteger
+        Name = 'Pedido'
+        ParamType = ptInputOutput
+        Value = Null
+      end>
+    object qryVendaNrNFCeControle: TIntegerField
+      FieldName = 'Controle'
+      Required = True
+    end
+    object qryVendaNrNFCePedido: TIntegerField
+      FieldName = 'Pedido'
+      Required = True
+    end
+    object qryVendaNrNFCeNota: TIntegerField
+      FieldName = 'Nota'
+    end
+    object qryVendaNrNFCeSerie: TStringField
+      FieldName = 'Serie'
+      Size = 2
+    end
+    object qryVendaNrNFCeNum_Nota_Fiscal: TIntegerField
+      FieldName = 'Num_Nota_Fiscal'
+      ReadOnly = True
+    end
+    object qryVendaNrNFCeNum_Serie: TIntegerField
+      FieldName = 'Num_Serie'
+      ReadOnly = True
+    end
+    object qryVendaNrNFCeChaveNFe: TStringField
+      FieldName = 'ChaveNFe'
+      ReadOnly = True
+      Size = 44
+    end
+    object qryVendaNrNFCeStatusNFCe: TStringField
+      FieldName = 'StatusNFCe'
+      ReadOnly = True
+      FixedChar = True
+      Size = 1
+    end
+    object qryVendaNrNFCeCodEmitente: TIntegerField
+      FieldName = 'CodEmitente'
+      ReadOnly = True
+    end
+    object qryVendaNrNFCeTipo_Amb: TIntegerField
+      FieldName = 'Tipo_Amb'
+      ReadOnly = True
+    end
+    object qryVendaNrNFCeDataCriacao: TDateTimeField
+      FieldName = 'DataCriacao'
+      ReadOnly = True
+    end
+    object qryVendaNrNFCeXMLTexto: TMemoField
+      FieldName = 'XMLTexto'
+      ReadOnly = True
+      BlobType = ftMemo
+    end
+    object qryVendaNrNFCenProt: TWideStringField
+      FieldName = 'nProt'
+      ReadOnly = True
+      Size = 50
+    end
+  end
+  object frxReport1: TfrxReport
+    Tag = 1
+    Version = '6.4.13'
+    DotMatrixReport = False
+    IniFile = '\Software\Fast Reports'
+    PreviewOptions.Buttons = [pbPrint, pbLoad, pbSave, pbExport, pbZoom, pbFind, pbOutline, pbPageSetup, pbTools, pbEdit, pbNavigator, pbExportQuick, pbCopy, pbSelection]
+    PreviewOptions.Zoom = 1.000000000000000000
+    PrintOptions.Printer = 'Default'
+    PrintOptions.PrintOnSheet = 0
+    ReportOptions.CreateDate = 40401.475989294000000000
+    ReportOptions.LastChange = 45932.378701423610000000
+    ScriptLanguage = 'PascalScript'
+    ScriptText.Strings = (
+      ''
+      'procedure Page1OnBeforePrint(Sender: TfrxComponent);'
+      'begin'
+      
+        '       if <Parametros."Imagem"> = '#39#39' then                       ' +
+        '                                               '
+      '       begin                              '
+      
+        '               ReportTitle1.Visible := false;                   ' +
+        '                                    '
+      '       end;'
+      
+        '       // esconde informa'#231#227'o do protocolo quando em contingencia' +
+        '                                                                ' +
+        '                                                                ' +
+        '                      '
+      '       if <Parametros."Contingencia_Valor"> = '#39#39' then'
+      '       begin'
+      
+        '               Memo5.Visible := false;                          ' +
+        '                                        '
+      
+        '       end;                                                     ' +
+        '                                    '
+      'end;'
+      ''
+      'begin'
+      ''
+      'end.')
+    OnReportPrint = 'frxReportOnReportPrint'
+    Left = 464
+    Top = 96
+    Datasets = <
+      item
+        DataSetName = 'CalculoImposto'
+      end
+      item
+        DataSetName = 'DadosProdutos'
+      end
+      item
+        DataSetName = 'Destinatario'
+      end
+      item
+        DataSetName = 'Duplicatas'
+      end
+      item
+        DataSetName = 'Emitente'
+      end
+      item
+        DataSetName = 'Eventos'
+      end
+      item
+        DataSetName = 'Fatura'
+      end
+      item
+        DataSetName = 'Identificacao'
+      end
+      item
+        DataSetName = 'InformacoesAdicionais'
+      end
+      item
+        DataSetName = 'ISSQN'
+      end
+      item
+        DataSetName = 'LocalEntrega'
+      end
+      item
+        DataSetName = 'LocalRetirada'
+      end
+      item
+        DataSetName = 'Pagamento'
+      end
+      item
+        DataSetName = 'Parametros'
+      end
+      item
+        DataSetName = 'Transportador'
+      end
+      item
+        DataSetName = 'Veiculo'
+      end
+      item
+        DataSetName = 'Volumes'
+      end>
+    Variables = <>
+    Style = <>
+    object Data: TfrxDataPage
+      Height = 1000.000000000000000000
+      Width = 1000.000000000000000000
+    end
+    object Page1: TfrxReportPage
+      PaperWidth = 80.000000000000000000
+      PaperHeight = 4004.000000000000000000
+      PaperSize = 129
+      LeftMargin = 5.000000000000000000
+      RightMargin = 5.000000000000000000
+      TopMargin = 0.500000000000000000
+      Frame.Typ = []
+      LargeDesignHeight = True
+      MirrorMode = []
+      PrintIfEmpty = False
+      OnBeforePrint = 'Page1OnBeforePrint'
+      object ValorTributos: TfrxMasterData
+        FillType = ftBrush
+        Frame.Typ = []
+        Height = 24.456692910000000000
+        Top = 563.149970000000000000
+        Width = 264.567100000000000000
+        RowCount = 1
+        Stretched = True
+        object Memo17: TfrxMemoView
+          Align = baWidth
+          AllowVectorExport = True
+          Top = 7.425196850000000000
+          Width = 264.567100000000000000
+          Height = 11.338577800000000000
+          StretchMode = smActualHeight
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clBlack
+          Font.Height = -8
+          Font.Name = 'Segoe UI Semibold'
+          Font.Style = [fsBold]
+          Frame.Typ = []
+          Frame.Width = 0.500000000000000000
+          Memo.UTF8W = (
+            
+              'Informa'#231#227'o dos Tributos Totais Incidentes (Lei Federal 12.741/20' +
+              '12): [CalculoImposto."vTotTrib" #n%2,2m] [CalculoImposto."VTribF' +
+              'onte"]'
+            '[InformacoesAdicionais."OBS"]')
+          ParentFont = False
+        end
+        object Line4: TfrxLineView
+          Align = baWidth
+          AllowVectorExport = True
+          Top = 3.779530000000020000
+          Width = 264.567100000000000000
+          Color = clBlack
+          Frame.Typ = []
+          Diagonal = True
+        end
+        object Line5: TfrxLineView
+          Align = baWidth
+          AllowVectorExport = True
+          Top = 22.677180000000000000
+          Width = 264.567100000000000000
+          Color = clBlack
+          Frame.Typ = []
+          Diagonal = True
+        end
+      end
+      object MensagemFiscal: TfrxMasterData
+        FillType = ftBrush
+        Frame.Typ = []
+        Height = 115.165412910000000000
+        Top = 612.283860000000000000
+        Width = 264.567100000000000000
+        RowCount = 1
+        Stretched = True
+        object Memo3: TfrxMemoView
+          Align = baWidth
+          AllowVectorExport = True
+          Top = 52.677180000000000000
+          Width = 264.567100000000000000
+          Height = 26.456710000000000000
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clBlack
+          Font.Height = -9
+          Font.Name = 'Segoe UI Semibold'
+          Font.Style = [fsBold]
+          Frame.Typ = []
+          Frame.Width = 0.500000000000000000
+          HAlign = haCenter
+          Memo.UTF8W = (
+            'Consulte pela chave de acesso em:'
+            '[Identificacao."URL"]')
+          ParentFont = False
+          VAlign = vaCenter
+        end
+        object Memo1: TfrxMemoView
+          Align = baWidth
+          AllowVectorExport = True
+          Top = 81.252010000000000000
+          Width = 264.567100000000000000
+          Height = 11.338590000000000000
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clBlack
+          Font.Height = -9
+          Font.Name = 'Arial'
+          Font.Style = [fsBold]
+          Frame.Typ = []
+          Frame.Width = 0.500000000000000000
+          HAlign = haCenter
+          Memo.UTF8W = (
+            'CHAVE DE ACESSO')
+          ParentFont = False
+          VAlign = vaCenter
+        end
+        object Memo13: TfrxMemoView
+          Align = baWidth
+          AllowVectorExport = True
+          Top = 18.559060000000000000
+          Width = 264.567100000000000000
+          Height = 26.456710000000000000
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clBlack
+          Font.Height = -11
+          Font.Name = 'Segoe UI Semibold'
+          Font.Style = [fsBold]
+          Frame.Typ = []
+          Frame.Width = 0.500000000000000000
+          HAlign = haCenter
+          Memo.UTF8W = (
+            
+              'N'#250'mero: [Identificacao."NNF"] - S'#233'rie: [Identificacao."Serie" #n' +
+              '#000]'
+            
+              'Emiss'#227'o [Identificacao."DEmi"] - [Parametros."DescricaoViaEstabe' +
+              'lec"]')
+          ParentFont = False
+          WordWrap = False
+        end
+        object Memo8: TfrxMemoView
+          Align = baWidth
+          AllowVectorExport = True
+          Top = 95.047292910000000000
+          Width = 264.567100000000000000
+          Height = 11.338590000000000000
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clBlack
+          Font.Height = -11
+          Font.Name = 'Segoe UI Semibold'
+          Font.Style = [fsBold]
+          Frame.Typ = []
+          Frame.Width = 0.500000000000000000
+          HAlign = haCenter
+          Memo.UTF8W = (
+            '[Identificacao."Chave"]')
+          ParentFont = False
+          VAlign = vaBottom
+        end
+        object Memo6: TfrxMemoView
+          Align = baWidth
+          AllowVectorExport = True
+          Top = 1.220469999999980000
+          Width = 264.567100000000000000
+          Height = 15.118120000000000000
+          StretchMode = smActualHeight
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clBlack
+          Font.Height = -9
+          Font.Name = 'Arial'
+          Font.Style = [fsBold]
+          Frame.Typ = []
+          Frame.Width = 0.500000000000000000
+          HAlign = haCenter
+          Memo.UTF8W = (
+            '[Identificacao."MensagemFiscal"]')
+          ParentFont = False
+          WordBreak = True
+        end
+        object Line6: TfrxLineView
+          Align = baWidth
+          AllowVectorExport = True
+          Top = 49.133889999999900000
+          Width = 264.567100000000000000
+          Color = clBlack
+          Frame.Typ = []
+          Diagonal = True
+        end
+        object Line7: TfrxLineView
+          Align = baWidth
+          AllowVectorExport = True
+          Top = 113.385900000000000000
+          Width = 264.567100000000000000
+          Color = clBlack
+          Frame.Typ = []
+          Diagonal = True
+        end
+      end
+      object Consumidor: TfrxMasterData
+        FillType = ftBrush
+        Frame.Typ = []
+        Height = 45.354298980000000000
+        Top = 752.126470000000000000
+        Width = 264.567100000000000000
+        RowCount = 1
+        Stretched = True
+        object Memo58: TfrxMemoView
+          Align = baWidth
+          AllowVectorExport = True
+          Top = 0.779530000000023000
+          Width = 264.567100000000000000
+          Height = 16.251970940000000000
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clBlack
+          Font.Height = -9
+          Font.Name = 'Arial'
+          Font.Style = [fsBold]
+          Frame.Typ = []
+          Frame.Width = 0.500000000000000000
+          HAlign = haCenter
+          Memo.UTF8W = (
+            'CONSUMIDOR')
+          ParentFont = False
+          VAlign = vaBottom
+        end
+        object Memo46: TfrxMemoView
+          Align = baWidth
+          AllowVectorExport = True
+          Top = 20.787369840000000000
+          Width = 264.567100000000000000
+          Height = 17.007839840000000000
+          StretchMode = smActualHeight
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clBlack
+          Font.Height = -9
+          Font.Name = 'Arial'
+          Font.Style = []
+          Frame.Typ = []
+          Frame.Width = 0.500000000000000000
+          GapX = 5.000000000000000000
+          HAlign = haCenter
+          Memo.UTF8W = (
+            '[Destinatario."Consumidor"]')
+          ParentFont = False
+        end
+        object Line8: TfrxLineView
+          Align = baWidth
+          AllowVectorExport = True
+          Top = 41.574830000000000000
+          Width = 264.567100000000000000
+          Color = clBlack
+          Frame.Typ = []
+          Diagonal = True
+        end
+      end
+      object Rodape: TfrxMasterData
+        FillType = ftBrush
+        Frame.Typ = []
+        Height = 175.637892910000000000
+        Top = 820.158010000000000000
+        Width = 264.567100000000000000
+        RowCount = 1
+        object ImgQrCode: TfrxPictureView
+          Align = baWidth
+          AllowVectorExport = True
+          Top = 20.322834650000000000
+          Width = 264.567100000000000000
+          Height = 117.165322600000000000
+          Center = True
+          Frame.Color = clFuchsia
+          Frame.Typ = []
+          HightQuality = False
+          Transparent = False
+          TransparentColor = clWhite
+        end
+        object Memo22: TfrxMemoView
+          Align = baWidth
+          AllowVectorExport = True
+          Top = 158.181200000000000000
+          Width = 264.567100000000000000
+          Height = 13.228344020000000000
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clBlack
+          Font.Height = -9
+          Font.Name = 'Arial'
+          Font.Style = []
+          Frame.Typ = []
+          Frame.Width = 0.500000000000000000
+          HAlign = haCenter
+          Memo.UTF8W = (
+            '[Parametros."Contingencia_Valor"]')
+          ParentFont = False
+          VAlign = vaBottom
+        end
+        object Memo4: TfrxMemoView
+          Align = baWidth
+          AllowVectorExport = True
+          Top = 3.779530000000020000
+          Width = 264.567100000000000000
+          Height = 15.118120000000000000
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clBlack
+          Font.Height = -9
+          Font.Name = 'Arial'
+          Font.Style = []
+          Frame.Typ = []
+          Frame.Width = 0.500000000000000000
+          HAlign = haCenter
+          Memo.UTF8W = (
+            'Consulta via leitor de QR Code')
+          ParentFont = False
+          VAlign = vaCenter
+        end
+        object Memo5: TfrxMemoView
+          Align = baWidth
+          AllowVectorExport = True
+          Top = 141.401670000000000000
+          Width = 264.567100000000000000
+          Height = 13.228344020000000000
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clBlack
+          Font.Height = -9
+          Font.Name = 'Arial'
+          Font.Style = []
+          Frame.Typ = []
+          Frame.Width = 0.500000000000000000
+          HAlign = haCenter
+          Memo.UTF8W = (
+            'Protocolo de Autoriza'#231#227'o')
+          ParentFont = False
+          VAlign = vaBottom
+        end
+        object Line9: TfrxLineView
+          Align = baWidth
+          AllowVectorExport = True
+          Top = 173.858380000000000000
+          Width = 264.567100000000000000
+          Color = clBlack
+          Frame.Typ = []
+          Diagonal = True
+        end
+      end
+      object DadosProdutos: TfrxMasterData
+        FillType = ftBrush
+        Frame.Typ = []
+        Height = 37.795292680000000000
+        Top = 377.953000000000000000
+        Width = 264.567100000000000000
+        DataSetName = 'DadosProdutos'
+        RowCount = 0
+        Stretched = True
+        object Memo131: TfrxMemoView
+          AllowVectorExport = True
+          ShiftMode = smDontShift
+          Width = 68.031500940000000000
+          Height = 15.118112680000000000
+          StretchMode = smMaxHeight
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clBlack
+          Font.Height = -9
+          Font.Name = 'Segoe UI Semibold'
+          Font.Style = [fsBold]
+          Frame.Typ = []
+          Frame.Width = 0.500000000000000000
+          Memo.UTF8W = (
+            '[DadosProdutos."CProd"]')
+          ParentFont = False
+          WordWrap = False
+        end
+        object Memo132: TfrxMemoView
+          Align = baWidth
+          AllowVectorExport = True
+          ShiftMode = smDontShift
+          Left = 68.031500940000000000
+          Width = 196.535599060000000000
+          Height = 15.118112680000000000
+          StretchMode = smMaxHeight
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clBlack
+          Font.Height = -9
+          Font.Name = 'Segoe UI Semibold'
+          Font.Style = [fsBold]
+          Frame.Typ = []
+          Frame.Width = 0.500000000000000000
+          Memo.UTF8W = (
+            '[DadosProdutos."DescricaoProduto"]')
+          ParentFont = False
+          WordWrap = False
+        end
+        object Memo136: TfrxMemoView
+          Align = baRight
+          AllowVectorExport = True
+          ShiftMode = smDontShift
+          Left = 143.622103390000000000
+          Top = 21.055125430000000000
+          Width = 22.677165350000000000
+          Height = 15.118112680000000000
+          StretchMode = smMaxHeight
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clBlack
+          Font.Height = -9
+          Font.Name = 'Segoe UI Semibold'
+          Font.Style = [fsBold]
+          Frame.Typ = []
+          Frame.Width = 0.500000000000000000
+          HAlign = haCenter
+          Memo.UTF8W = (
+            '[DadosProdutos."UCom"]')
+          ParentFont = False
+          WordWrap = False
+        end
+        object memqCom: TfrxMemoView
+          Align = baRight
+          AllowVectorExport = True
+          ShiftMode = smDontShift
+          Left = 113.385900000000000000
+          Top = 21.055125430000000000
+          Width = 30.236203390000000000
+          Height = 15.118112680000000000
+          StretchMode = smMaxHeight
+          DisplayFormat.DecimalSeparator = ','
+          DisplayFormat.FormatStr = '%2.2f'
+          DisplayFormat.Kind = fkNumeric
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clBlack
+          Font.Height = -9
+          Font.Name = 'Segoe UI Semibold'
+          Font.Style = [fsBold]
+          Frame.Typ = []
+          Frame.Width = 0.500000000000000000
+          HAlign = haCenter
+          Memo.UTF8W = (
+            '[DadosProdutos."QCom"]')
+          ParentFont = False
+          WordWrap = False
+        end
+        object memvUnCom: TfrxMemoView
+          Align = baRight
+          AllowVectorExport = True
+          ShiftMode = smDontShift
+          Left = 166.299268740000000000
+          Top = 21.055125430000000000
+          Width = 41.574768980000000000
+          Height = 15.118112680000000000
+          StretchMode = smMaxHeight
+          DisplayFormat.DecimalSeparator = ','
+          DisplayFormat.FormatStr = '%2.2f'
+          DisplayFormat.Kind = fkNumeric
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clBlack
+          Font.Height = -9
+          Font.Name = 'Segoe UI Semibold'
+          Font.Style = [fsBold]
+          Frame.Typ = []
+          Frame.Width = 0.500000000000000000
+          HAlign = haCenter
+          Memo.UTF8W = (
+            '[DadosProdutos."VUnTrib"]')
+          ParentFont = False
+          WordWrap = False
+        end
+        object Memo140: TfrxMemoView
+          Align = baRight
+          AllowVectorExport = True
+          Left = 207.874037720000000000
+          Top = 21.055125430000000000
+          Width = 56.693062280000000000
+          Height = 15.118112680000000000
+          StretchMode = smMaxHeight
+          DisplayFormat.DecimalSeparator = ','
+          DisplayFormat.FormatStr = '%2.2f'
+          DisplayFormat.Kind = fkNumeric
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clBlack
+          Font.Height = -9
+          Font.Name = 'Segoe UI Semibold'
+          Font.Style = [fsBold]
+          Frame.Typ = []
+          Frame.Width = 0.500000000000000000
+          HAlign = haCenter
+          Memo.UTF8W = (
+            '[DadosProdutos."VProd"]')
+          ParentFont = False
+          WordWrap = False
+        end
+      end
+      object DadosProdutosHeader: TfrxGroupHeader
+        FillType = ftBrush
+        Frame.Typ = []
+        Height = 35.149620940000000000
+        Top = 321.260050000000000000
+        Width = 264.567100000000000000
+        Condition = 'DadosProdutos."ChaveNFe"'
+        object Memo121: TfrxMemoView
+          Align = baRight
+          AllowVectorExport = True
+          Left = 143.622103390000000000
+          Top = 20.251978270000000000
+          Width = 22.677165350000000000
+          Height = 11.338582680000000000
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clBlack
+          Font.Height = -8
+          Font.Name = 'Segoe UI Semibold'
+          Font.Style = [fsBold]
+          Frame.Typ = []
+          Frame.Width = 0.500000000000000000
+          GapY = 2.000000000000000000
+          HAlign = haCenter
+          Memo.UTF8W = (
+            'UN')
+          ParentFont = False
+          WordWrap = False
+          VAlign = vaCenter
+        end
+        object Memo123: TfrxMemoView
+          Align = baRight
+          AllowVectorExport = True
+          Left = 166.299268740000000000
+          Top = 20.251978270000000000
+          Width = 41.574768980000000000
+          Height = 11.338582680000000000
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clBlack
+          Font.Height = -8
+          Font.Name = 'Segoe UI Semibold'
+          Font.Style = [fsBold]
+          Frame.Typ = []
+          Frame.Width = 0.500000000000000000
+          GapY = 2.000000000000000000
+          HAlign = haCenter
+          Memo.UTF8W = (
+            'VL.UNIT')
+          ParentFont = False
+          WordWrap = False
+          VAlign = vaCenter
+        end
+        object Memo116: TfrxMemoView
+          AllowVectorExport = True
+          Top = 5.133858270000000000
+          Width = 68.031500940000000000
+          Height = 13.228346460000000000
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clBlack
+          Font.Height = -8
+          Font.Name = 'Segoe UI Semibold'
+          Font.Style = [fsBold]
+          Frame.Typ = []
+          Frame.Width = 0.500000000000000000
+          GapY = 2.000000000000000000
+          Memo.UTF8W = (
+            'C'#211'DIGO')
+          ParentFont = False
+          WordWrap = False
+          VAlign = vaCenter
+        end
+        object Memo117: TfrxMemoView
+          AllowVectorExport = True
+          Left = 68.472440940000000000
+          Top = 5.133858270000000000
+          Width = 204.094659060000000000
+          Height = 13.228346460000000000
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clBlack
+          Font.Height = -8
+          Font.Name = 'Segoe UI Semibold'
+          Font.Style = [fsBold]
+          Frame.Typ = []
+          Frame.Width = 0.500000000000000000
+          GapY = 2.000000000000000000
+          Memo.UTF8W = (
+            'DESCRI'#199#195'O')
+          ParentFont = False
+          WordWrap = False
+          VAlign = vaCenter
+        end
+        object Memo122: TfrxMemoView
+          Align = baRight
+          AllowVectorExport = True
+          Left = 113.385900000000000000
+          Top = 20.251978270000000000
+          Width = 30.236203390000000000
+          Height = 11.338582680000000000
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clBlack
+          Font.Height = -8
+          Font.Name = 'Segoe UI Semibold'
+          Font.Style = [fsBold]
+          Frame.Typ = []
+          Frame.Width = 0.500000000000000000
+          GapY = 2.000000000000000000
+          HAlign = haCenter
+          Memo.UTF8W = (
+            'QTD')
+          ParentFont = False
+          WordWrap = False
+          VAlign = vaCenter
+        end
+        object Memo125: TfrxMemoView
+          Align = baRight
+          AllowVectorExport = True
+          Left = 207.874037720000000000
+          Top = 20.251978270000000000
+          Width = 56.693062280000000000
+          Height = 11.338572910000000000
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clBlack
+          Font.Height = -8
+          Font.Name = 'Segoe UI Semibold'
+          Font.Style = [fsBold]
+          Frame.Typ = []
+          Frame.Width = 0.500000000000000000
+          GapY = 2.000000000000000000
+          HAlign = haCenter
+          Memo.UTF8W = (
+            'VL.TOTAL')
+          ParentFont = False
+          WordWrap = False
+          VAlign = vaCenter
+        end
+        object Line1: TfrxLineView
+          Align = baWidth
+          AllowVectorExport = True
+          Top = 2.000000000000000000
+          Width = 264.567100000000000000
+          Color = clBlack
+          Frame.Typ = []
+          Diagonal = True
+        end
+        object Line2: TfrxLineView
+          Align = baWidth
+          AllowVectorExport = True
+          Top = 34.015770000000000000
+          Width = 264.567100000000000000
+          Color = clBlack
+          Frame.Typ = []
+          Diagonal = True
+        end
+      end
+      object DadosPagamentoHeader: TfrxGroupHeader
+        FillType = ftBrush
+        Frame.Typ = []
+        Height = 64.385860940000000000
+        Top = 438.425480000000000000
+        Width = 264.567100000000000000
+        Condition = 'DadosProdutos."ChaveNFe"'
+        ReprintOnNewPage = True
+        object Memo25: TfrxMemoView
+          Align = baLeft
+          AllowVectorExport = True
+          Top = 51.692950000000000000
+          Width = 128.504020000000000000
+          Height = 12.472440940000000000
+          DisplayFormat.DecimalSeparator = ','
+          DisplayFormat.FormatStr = '%2.2m'
+          DisplayFormat.Kind = fkNumeric
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clBlack
+          Font.Height = -9
+          Font.Name = 'Segoe UI Semibold'
+          Font.Style = [fsBold]
+          Frame.Typ = []
+          Frame.Width = 0.500000000000000000
+          GapX = 3.000000000000000000
+          Memo.UTF8W = (
+            'FORMA DE PAGAMENTO')
+          ParentFont = False
+          WordWrap = False
+          VAlign = vaCenter
+        end
+        object Memo26: TfrxMemoView
+          Align = baRight
+          AllowVectorExport = True
+          Left = 136.063080000000000000
+          Top = 51.692950000000000000
+          Width = 128.504020000000000000
+          Height = 12.472440940000000000
+          DisplayFormat.DecimalSeparator = ','
+          DisplayFormat.FormatStr = '%2.2n'
+          DisplayFormat.Kind = fkNumeric
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clBlack
+          Font.Height = -9
+          Font.Name = 'Segoe UI Semibold'
+          Font.Style = [fsBold]
+          Frame.Typ = []
+          Frame.Width = 0.500000000000000000
+          GapX = 3.000000000000000000
+          HAlign = haRight
+          Memo.UTF8W = (
+            'VALOR PAGO')
+          ParentFont = False
+          WordWrap = False
+          VAlign = vaCenter
+        end
+        object Memo196: TfrxMemoView
+          Align = baLeft
+          AllowVectorExport = True
+          Top = 6.338590000000000000
+          Width = 128.504020000000000000
+          Height = 12.472440940000000000
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clBlack
+          Font.Height = -9
+          Font.Name = 'Segoe UI Semibold'
+          Font.Style = [fsBold]
+          Frame.Typ = []
+          Frame.Width = 0.500000000000000000
+          GapX = 3.000000000000000000
+          Memo.UTF8W = (
+            'QTD. TOTAL DE ITENS')
+          ParentFont = False
+          WordWrap = False
+          VAlign = vaCenter
+        end
+        object Memo197: TfrxMemoView
+          Align = baLeft
+          AllowVectorExport = True
+          Top = 36.267740940000000000
+          Width = 128.504020000000000000
+          Height = 12.472440940000000000
+          DisplayFormat.DecimalSeparator = ','
+          DisplayFormat.FormatStr = '%2.2m'
+          DisplayFormat.Kind = fkNumeric
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clBlack
+          Font.Height = -9
+          Font.Name = 'Segoe UI Semibold'
+          Font.Style = [fsBold]
+          Frame.Typ = []
+          Frame.Width = 0.500000000000000000
+          GapX = 3.000000000000000000
+          Memo.UTF8W = (
+            'VALOR TOTAL R$')
+          ParentFont = False
+          WordWrap = False
+          VAlign = vaCenter
+        end
+        object Memo32: TfrxMemoView
+          Align = baRight
+          AllowVectorExport = True
+          Left = 136.063080000000000000
+          Top = 6.338590000000000000
+          Width = 128.504020000000000000
+          Height = 12.472440940000000000
+          DataField = 'QtdeItens'
+          DataSetName = 'Parametros'
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clBlack
+          Font.Height = -9
+          Font.Name = 'Segoe UI Semibold'
+          Font.Style = [fsBold]
+          Frame.Typ = []
+          Frame.Width = 0.500000000000000000
+          GapX = 3.000000000000000000
+          HAlign = haRight
+          Memo.UTF8W = (
+            '[Parametros."QtdeItens"]')
+          ParentFont = False
+          WordWrap = False
+          VAlign = vaCenter
+        end
+        object Memo33: TfrxMemoView
+          Align = baRight
+          AllowVectorExport = True
+          Left = 136.063080000000000000
+          Top = 36.267740940000000000
+          Width = 128.504020000000000000
+          Height = 12.472440940000000000
+          DisplayFormat.DecimalSeparator = ','
+          DisplayFormat.FormatStr = '%2.2n'
+          DisplayFormat.Kind = fkNumeric
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clBlack
+          Font.Height = -9
+          Font.Name = 'Segoe UI Semibold'
+          Font.Style = [fsBold]
+          Frame.Typ = []
+          Frame.Width = 0.500000000000000000
+          GapX = 3.000000000000000000
+          HAlign = haRight
+          Memo.UTF8W = (
+            '[CalculoImposto."VProd"]')
+          ParentFont = False
+          WordWrap = False
+          VAlign = vaCenter
+        end
+        object Memo24: TfrxMemoView
+          Align = baLeft
+          AllowVectorExport = True
+          Top = 21.456710000000000000
+          Width = 128.504020000000000000
+          Height = 12.472440940000000000
+          DisplayFormat.DecimalSeparator = ','
+          DisplayFormat.FormatStr = '%2.2m'
+          DisplayFormat.Kind = fkNumeric
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clBlack
+          Font.Height = -9
+          Font.Name = 'Segoe UI Semibold'
+          Font.Style = [fsBold]
+          Frame.Typ = []
+          Frame.Width = 0.500000000000000000
+          GapX = 3.000000000000000000
+          Memo.UTF8W = (
+            'Valor Desconto R$')
+          ParentFont = False
+          WordWrap = False
+          VAlign = vaCenter
+        end
+        object Memo27: TfrxMemoView
+          Align = baRight
+          AllowVectorExport = True
+          Left = 136.063080000000000000
+          Top = 21.456710000000000000
+          Width = 128.504020000000000000
+          Height = 12.472440940000000000
+          DisplayFormat.DecimalSeparator = ','
+          DisplayFormat.FormatStr = '%2.2n'
+          DisplayFormat.Kind = fkNumeric
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clBlack
+          Font.Height = -9
+          Font.Name = 'Segoe UI Semibold'
+          Font.Style = [fsBold]
+          Frame.Typ = []
+          Frame.Width = 0.500000000000000000
+          GapX = 3.000000000000000000
+          HAlign = haRight
+          Memo.UTF8W = (
+            '[CalculoImposto."VDesc"]')
+          ParentFont = False
+          WordWrap = False
+          VAlign = vaCenter
+        end
+        object Line3: TfrxLineView
+          Align = baWidth
+          AllowVectorExport = True
+          Top = 3.779530000000020000
+          Width = 264.567100000000000000
+          Color = clBlack
+          Frame.Typ = []
+          Diagonal = True
+        end
+      end
+      object DadosPagamento: TfrxMasterData
+        FillType = ftBrush
+        Frame.Typ = []
+        Height = 14.740159920000000000
+        Top = 525.354670000000000000
+        Width = 264.567100000000000000
+        DataSetName = 'Pagamento'
+        RowCount = 0
+        Stretched = True
+        object Memo19: TfrxMemoView
+          Align = baLeft
+          AllowVectorExport = True
+          Top = 2.000000000000000000
+          Width = 128.504020000000000000
+          Height = 12.472440940000000000
+          DataSetName = 'Pagamento'
+          DisplayFormat.DecimalSeparator = ','
+          DisplayFormat.FormatStr = '%2.2m'
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clBlack
+          Font.Height = -9
+          Font.Name = 'Segoe UI Semibold'
+          Font.Style = [fsBold]
+          Frame.Typ = []
+          Frame.Width = 0.500000000000000000
+          GapX = 3.000000000000000000
+          Memo.UTF8W = (
+            '[Pagamento."tPag"]')
+          ParentFont = False
+          WordWrap = False
+          VAlign = vaCenter
+        end
+        object Memo18: TfrxMemoView
+          Align = baRight
+          AllowVectorExport = True
+          Left = 136.063080000000000000
+          Top = 2.110233780000000000
+          Width = 128.504020000000000000
+          Height = 12.472440940000000000
+          DataSetName = 'Pagamento'
+          DisplayFormat.DecimalSeparator = ','
+          DisplayFormat.FormatStr = '%2.2n'
+          DisplayFormat.Kind = fkNumeric
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clBlack
+          Font.Height = -9
+          Font.Name = 'Segoe UI Semibold'
+          Font.Style = [fsBold]
+          Frame.Typ = []
+          Frame.Width = 0.500000000000000000
+          GapX = 3.000000000000000000
+          HAlign = haRight
+          Memo.UTF8W = (
+            '[Pagamento."vPag"]')
+          ParentFont = False
+          WordWrap = False
+          VAlign = vaCenter
+        end
+      end
+      object ReportTitle1: TfrxReportTitle
+        FillType = ftBrush
+        Frame.Typ = []
+        Height = 83.149660000000000000
+        Top = 18.897650000000000000
+        Width = 264.567100000000000000
+        Child = frxReport1.Child1
+        PrintChildIfInvisible = True
+      end
+      object ImgLogo: TfrxPictureView
+        AllowVectorExport = True
+        Left = 45.354360000000000000
+        Top = 18.677180000000000000
+        Width = 177.637910000000000000
+        Height = 64.252010000000000000
+        Center = True
+        DataField = 'LogoCarregado'
+        DataSetName = 'Parametros'
+        Frame.Typ = []
+        HightQuality = False
+        Transparent = False
+        TransparentColor = clWhite
+      end
+      object Child1: TfrxChild
+        FillType = ftBrush
+        Frame.Typ = []
+        Height = 136.063080000000000000
+        Top = 124.724490000000000000
+        Width = 264.567100000000000000
+        ToNRows = 0
+        ToNRowsMode = rmCount
+        object Memo9: TfrxMemoView
+          Align = baWidth
+          AllowVectorExport = True
+          Top = 94.944960000000000000
+          Width = 264.567100000000000000
+          Height = 22.677180000000000000
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clBlack
+          Font.Height = -9
+          Font.Name = 'Arial'
+          Font.Style = [fsBold]
+          Frame.Typ = []
+          Frame.Width = 0.500000000000000000
+          HAlign = haCenter
+          Memo.UTF8W = (
+            'DANFE NFC-e - Documento Auxiliar '
+            'da Nota Fiscal Eletr'#244'nica de Consumidor Eletr'#244'nica')
+          ParentFont = False
+          VAlign = vaCenter
+        end
+        object Memo37: TfrxMemoView
+          Align = baWidth
+          AllowVectorExport = True
+          Top = 119.385900000000000000
+          Width = 264.567100000000000000
+          Height = 15.118120000000000000
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clBlack
+          Font.Height = -9
+          Font.Name = 'Arial'
+          Font.Style = []
+          Frame.Typ = []
+          Frame.Width = 0.500000000000000000
+          HAlign = haCenter
+          Memo.UTF8W = (
+            'N'#227'o permite aproveitamento de cr'#233'dito do ICMS')
+          ParentFont = False
+          VAlign = vaCenter
+        end
+        object Memo2: TfrxMemoView
+          Align = baWidth
+          AllowVectorExport = True
+          Top = 3.779530000000000000
+          Width = 264.567100000000000000
+          Height = 77.480341810000000000
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clBlack
+          Font.Height = -11
+          Font.Name = 'Segoe UI'
+          Font.Style = [fsBold]
+          Frame.Typ = [ftBottom]
+          HAlign = haCenter
+          LineSpacing = 4.000000000000000000
+          Memo.UTF8W = (
+            '[Emitente."XNome"]'
+            
+              'CNPJ: [Emitente."CNPJ"] - IE: [Emitente."IE"] - IM: [Emitente."I' +
+              'M"]'
+            '[Emitente."XLgr"], [Emitente."nro"] - [Emitente."xBairro"]'
+            '[Emitente."XMun"] - [Emitente."UF"]')
+          ParentFont = False
+          Formats = <
+            item
+            end
+            item
+            end
+            item
+            end
+            item
+            end
+            item
+            end
+            item
+            end
+            item
+            end
+            item
+            end
+            item
+            end>
+        end
+      end
+    end
+  end
+end

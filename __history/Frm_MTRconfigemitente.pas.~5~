@@ -1,0 +1,41 @@
+unit Frm_MTRconfigemitente;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.DBCtrls;
+
+type
+  TMTRemitente = class(TForm)
+    Panel1: TPanel;
+    cmbmtremitente: TComboBox;
+    Label1: TLabel;
+    editmtrcertificado: TEdit;
+    Label2: TLabel;
+    btnmtrbuscar: TButton;
+    ComboBox1: TComboBox;
+    Label3: TLabel;
+    Button1: TButton;
+    Button2: TButton;
+    DBText1: TDBText;
+    procedure Button2Click(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  MTRemitente: TMTRemitente;
+
+implementation
+
+{$R *.dfm}
+
+procedure TMTRemitente.Button2Click(Sender: TObject);
+begin
+close;
+end;
+
+end.

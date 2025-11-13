@@ -1,0 +1,40 @@
+object FRMESPERA: TFRMESPERA
+  Left = 0
+  Top = 0
+  Align = alClient
+  AlphaBlend = True
+  AlphaBlendValue = 100
+  BorderStyle = bsNone
+  Caption = 'ESPERA'
+  ClientHeight = 534
+  ClientWidth = 979
+  Color = clBlack
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
+  FormStyle = fsStayOnTop
+  OldCreateOrder = False
+  PixelsPerInch = 96
+  TextHeight = 13
+  object Label1: TLabel
+    Left = 0
+    Top = 0
+    Width = 979
+    Height = 534
+    Align = alClient
+    Alignment = taCenter
+    Caption = 'Carregando...'
+    Font.Charset = ANSI_CHARSET
+    Font.Color = clWhite
+    Font.Height = -67
+    Font.Name = 'Segoe UI Semibold'
+    Font.Style = [fsBold]
+    ParentFont = False
+    Layout = tlCenter
+    StyleElements = []
+    ExplicitWidth = 404
+    ExplicitHeight = 89
+  end
+end

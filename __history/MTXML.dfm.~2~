@@ -1,0 +1,93 @@
+object Form2: TForm2
+  Left = 0
+  Top = 0
+  Caption = 'Form2'
+  ClientHeight = 590
+  ClientWidth = 686
+  Color = clBtnFace
+  Font.Charset = ANSI_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -16
+  Font.Name = 'Segoe UI Semibold'
+  Font.Style = [fsBold]
+  OldCreateOrder = False
+  PixelsPerInch = 96
+  TextHeight = 21
+  object Panel1: TPanel
+    Left = 0
+    Top = 0
+    Width = 686
+    Height = 590
+    Align = alClient
+    TabOrder = 0
+    ExplicitTop = 8
+    object Panel2: TPanel
+      Left = 1
+      Top = 1
+      Width = 684
+      Height = 80
+      Align = alTop
+      TabOrder = 0
+      ExplicitLeft = 2
+      ExplicitTop = 0
+      object Label1: TLabel
+        Left = 1
+        Top = 1
+        Width = 682
+        Height = 21
+        Align = alTop
+        Alignment = taCenter
+        Caption = 'Monitor de Inutiliza'#231#227'o'
+        ExplicitWidth = 169
+      end
+      object Label2: TLabel
+        AlignWithMargins = True
+        Left = 210
+        Top = 25
+        Width = 470
+        Height = 51
+        Align = alClient
+        Alignment = taCenter
+        BiDiMode = bdLeftToRight
+        Caption = 'ATIVADO!'
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -21
+        Font.Name = 'Segoe UI'
+        Font.Style = [fsBold]
+        ParentBiDiMode = False
+        ParentFont = False
+        Layout = tlCenter
+        ExplicitLeft = 274
+        ExplicitTop = 28
+        ExplicitWidth = 127
+      end
+      object Button1: TButton
+        AlignWithMargins = True
+        Left = 4
+        Top = 25
+        Width = 97
+        Height = 44
+        Margins.Bottom = 10
+        Align = alLeft
+        Caption = 'Ativar'
+        TabOrder = 0
+        ExplicitLeft = 18
+        ExplicitTop = 28
+        ExplicitHeight = 29
+      end
+      object Button2: TButton
+        AlignWithMargins = True
+        Left = 107
+        Top = 25
+        Width = 97
+        Height = 44
+        Margins.Bottom = 10
+        Align = alLeft
+        Caption = 'Desativar'
+        TabOrder = 1
+        ExplicitTop = 28
+      end
+    end
+  end
+end

@@ -1,0 +1,151 @@
+object MTRemitente: TMTRemitente
+  Left = 0
+  Top = 0
+  BorderStyle = bsNone
+  Caption = 'MTRemitente'
+  ClientHeight = 607
+  ClientWidth = 736
+  Color = clBtnFace
+  Font.Charset = ANSI_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -16
+  Font.Name = 'Segoe UI'
+  Font.Style = []
+  FormStyle = fsStayOnTop
+  OldCreateOrder = False
+  Position = poDesktopCenter
+  Scaled = False
+  ScreenSnap = True
+  OnShow = FormShow
+  PixelsPerInch = 96
+  TextHeight = 21
+  object Panel1: TPanel
+    Left = 0
+    Top = 0
+    Width = 736
+    Height = 607
+    Align = alClient
+    TabOrder = 0
+    ExplicitLeft = -8
+    ExplicitWidth = 853
+    ExplicitHeight = 266
+    object Label1: TLabel
+      Left = 8
+      Top = 51
+      Width = 101
+      Height = 21
+      Caption = 'CNPJ Emitente'
+    end
+    object Label2: TLabel
+      Left = 264
+      Top = 51
+      Width = 203
+      Height = 21
+      Caption = 'Diretorio do Cerfificado (PFX)'
+    end
+    object Label3: TLabel
+      Left = 8
+      Top = 113
+      Width = 89
+      Height = 21
+      Caption = 'Tipo de Nota'
+    end
+    object DBTextmtremitente: TDBText
+      AlignWithMargins = True
+      Left = 4
+      Top = 4
+      Width = 728
+      Height = 28
+      Align = alTop
+      Alignment = taCenter
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -24
+      Font.Name = 'Segoe UI Semibold'
+      Font.Style = [fsBold]
+      ParentFont = False
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 716
+    end
+    object Label4: TLabel
+      Left = 264
+      Top = 113
+      Width = 122
+      Height = 21
+      Caption = 'Senha Certificado'
+    end
+    object cmbmtremitente: TComboBox
+      Left = 8
+      Top = 78
+      Width = 209
+      Height = 29
+      Style = csDropDownList
+      TabOrder = 0
+      OnChange = cmbmtremitenteChange
+    end
+    object editmtrcertificado: TEdit
+      Left = 264
+      Top = 78
+      Width = 243
+      Height = 29
+      TabOrder = 1
+    end
+    object btnmtrbuscar: TButton
+      Left = 513
+      Top = 78
+      Width = 58
+      Height = 29
+      Caption = 'Buscar'
+      TabOrder = 2
+    end
+    object cmbmtrmodelo: TComboBox
+      Left = 8
+      Top = 140
+      Width = 209
+      Height = 29
+      Style = csDropDownList
+      TabOrder = 3
+    end
+    object Button1: TButton
+      AlignWithMargins = True
+      Left = 599
+      Top = 122
+      Width = 116
+      Height = 47
+      Margins.Top = 100
+      Caption = 'Confirmar'
+      TabOrder = 4
+    end
+    object Button2: TButton
+      AlignWithMargins = True
+      Left = 599
+      Top = 51
+      Width = 116
+      Height = 47
+      Margins.Top = 100
+      Caption = 'Cancelar'
+      TabOrder = 5
+      OnClick = Button2Click
+    end
+    object editmtrsenhacertificado: TEdit
+      Left = 264
+      Top = 140
+      Width = 243
+      Height = 29
+      TabOrder = 6
+    end
+    object ListView1: TListView
+      Left = 1
+      Top = 224
+      Width = 734
+      Height = 382
+      Align = alBottom
+      Checkboxes = True
+      Columns = <>
+      FullDrag = True
+      GridLines = True
+      TabOrder = 7
+    end
+  end
+end
