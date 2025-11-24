@@ -346,7 +346,10 @@ object Datamodule1: TDatamodule1
       '-- ************************************************************'
       
         '-- CORRE'#199#195'O DA ESTRUTURA PARA NFE_XML (CLIENTES) - Vers'#227'o Corrig' +
-        'ida'
+        'ida e Otimizada'
+      
+        '-- Este script '#233' compat'#237'vel com SQL Server, conforme sua prefer'#234 +
+        'ncia.'
       '-- ************************************************************'
       ''
       '-- 1. CFOP: Garante que a coluna CFOP esteja presente (INT)'
@@ -357,9 +360,12 @@ object Datamodule1: TDatamodule1
       ')'
       'BEGIN'
       '    ALTER TABLE dbo.NFE_XML ADD CFOP INT NULL;'
-      'END;'
+      'END'
       ''
-      '-- 2. RejeicaoMotivo: Ajusta o tamanho para VARCHAR(255)'
+      ''
+      
+        '-- 2. RejeicaoMotivo: Ajusta o tamanho para VARCHAR(255) ou cria' +
+        ' se n'#227'o existir.'
       'IF EXISTS ('
       '    SELECT 1'
       '    FROM sys.columns '
@@ -368,25 +374,56 @@ object Datamodule1: TDatamodule1
         '.NFE_XML'#39')'
       ')'
       'BEGIN'
+      '    -- Se existir, altera o tipo para garantir o tamanho'
       
         '    ALTER TABLE dbo.NFE_XML ALTER COLUMN RejeicaoMotivo VARCHAR(' +
         '255) NULL;'
       'END'
       'ELSE'
       'BEGIN'
+      '    -- Se n'#227'o existir, cria a coluna'
       
         '    ALTER TABLE dbo.NFE_XML ADD RejeicaoMotivo VARCHAR(255) NULL' +
         ';'
-      'END;'
+      'END'
+      ''
+      ''
+      '-- 3. XMLInutilizacao: Ajusta/cria a coluna para VARCHAR(MAX)'
       ''
       
-        '-- 3. AJUSTES DE TIPO DE DADOS (TEXT para VARCHAR(MAX) ou NVARCH' +
-        'AR(MAX))'
-      ''
-      '-- 3.1. XMLGeracao - de TEXT/VARCHAR(MAX) para NVARCHAR(MAX)'
+        '-- NOTA: O bloco original continha uma l'#243'gica incorreta aqui. A ' +
+        'coluna XMLInutilizacao'
       
-        '-- NOTA: O bloco abaixo verifica se a coluna existe antes de ten' +
-        'tar alter'#225'-la.'
+        '-- foi tratada em dois pontos distintos com IF/ELSE desconectado' +
+        's, e um bloco'
+      '-- IF EXISTS ficou sem o END do ALTER TABLE. Corrigido para:'
+      'IF EXISTS ('
+      '    SELECT 1'
+      '    FROM sys.columns '
+      
+        '    WHERE name = '#39'XMLInutilizacao'#39' AND object_id = OBJECT_ID('#39'db' +
+        'o.NFE_XML'#39')'
+      ')'
+      'BEGIN'
+      '    -- Se existir, garante que seja VARCHAR(MAX)'
+      
+        '    ALTER TABLE dbo.NFE_XML ALTER COLUMN XMLInutilizacao VARCHAR' +
+        '(MAX) NULL;'
+      'END'
+      'ELSE'
+      'BEGIN'
+      '    -- Se n'#227'o existir, cria a coluna'
+      
+        '    ALTER TABLE dbo.NFE_XML ADD XMLInutilizacao VARCHAR(MAX) NUL' +
+        'L;'
+      'END'
+      ''
+      ''
+      
+        '-- 4. AJUSTES DE TIPO DE DADOS PARA NVARCHAR(MAX) (Melhor para X' +
+        'ML/Unicode)'
+      ''
+      '-- 4.1. XMLGeracao - para NVARCHAR(MAX)'
       'IF EXISTS ('
       '    SELECT 1'
       '    FROM sys.columns '
@@ -396,19 +433,16 @@ object Datamodule1: TDatamodule1
       ')'
       'BEGIN'
       
-        '    -- Se a coluna j'#225' existir, tenta alterar o tipo, se necess'#225'r' +
-        'io'
-      
         '    ALTER TABLE dbo.NFE_XML ALTER COLUMN XMLGeracao NVARCHAR(MAX' +
         ') NULL;'
       'END'
       'ELSE'
       'BEGIN'
-      '    -- Se a coluna n'#227'o existir, cria-a como NVARCHAR(MAX)'
       '    ALTER TABLE dbo.NFE_XML ADD XMLGeracao NVARCHAR(MAX) NULL;'
-      'END;'
+      'END'
       ''
-      '-- 3.2. XMLTransmissao - de TEXT/VARCHAR(MAX) para NVARCHAR(MAX)'
+      ''
+      '-- 4.2. XMLTransmissao - para NVARCHAR(MAX)'
       'IF EXISTS ('
       '    SELECT 1'
       '    FROM sys.columns '
@@ -426,11 +460,10 @@ object Datamodule1: TDatamodule1
       
         '    ALTER TABLE dbo.NFE_XML ADD XMLTransmissao NVARCHAR(MAX) NUL' +
         'L;'
-      'END;'
+      'END'
       ''
-      
-        '-- 3.3. XMLCancelamento - de TEXT/VARCHAR(MAX) para NVARCHAR(MAX' +
-        ')'
+      ''
+      '-- 4.3. XMLCancelamento - para NVARCHAR(MAX)'
       'IF EXISTS ('
       '    SELECT 1'
       '    FROM sys.columns '
@@ -448,31 +481,12 @@ object Datamodule1: TDatamodule1
       
         '    ALTER TABLE dbo.NFE_XML ADD XMLCancelamento NVARCHAR(MAX) NU' +
         'LL;'
-      'END;'
-      ''
-      '-- 3.4. XMLInutilizacao - de TEXT/VARCHAR para VARCHAR(MAX)'
-      'IF EXISTS ('
-      '    SELECT 1'
-      '    FROM sys.columns '
-      
-        '    WHERE name = '#39'XMLInutilizacao'#39' AND object_id = OBJECT_ID('#39'db' +
-        'o.NFE_XML'#39')'
-      ')'
-      'BEGIN'
-      '    -- Mantido como VARCHAR(MAX) conforme sua estrutura'
-      
-        '    ALTER TABLE dbo.NFE_XML ALTER COLUMN XMLInutilizacao VARCHAR' +
-        '(MAX) NULL;'
       'END'
-      'ELSE'
-      'BEGIN'
+      ''
+      ''
       
-        '    ALTER TABLE dbo.NFE_XML ADD XMLInutilizacao VARCHAR(MAX) NUL' +
-        'L;'
-      'END;'
-      ''
-      ''
-      '-- 4. CRIA'#199#195'O DA COLUNA '#39'chavecorreta'#39' (NOVO REQUISITO)'
+        '-- 5. CRIA'#199#195'O DA COLUNA '#39'chavecorreta'#39' (VARCHAR(44) para Chave d' +
+        'a NFe)'
       'IF NOT EXISTS ('
       '    SELECT 1'
       '    FROM sys.columns '
@@ -482,12 +496,12 @@ object Datamodule1: TDatamodule1
       ')'
       'BEGIN'
       '    ALTER TABLE dbo.NFE_XML ADD chavecorreta VARCHAR(44) NULL;'
-      'END;'
+      'END'
       ''
       ''
-      '-- 5. CRIA'#199#195'O DE COLUNAS AUSENTES'
+      '-- 6. CRIA'#199#195'O DE COLUNAS AUSENTES'
       ''
-      '-- 5.1. ST_Retorno (INT)'
+      '-- 6.1. ST_Retorno (INT)'
       'IF NOT EXISTS ('
       '    SELECT 1'
       '    FROM sys.columns '
@@ -497,9 +511,10 @@ object Datamodule1: TDatamodule1
       ')'
       'BEGIN'
       '    ALTER TABLE dbo.NFE_XML ADD ST_Retorno INT NULL;'
-      'END;'
+      'END'
       ''
-      '-- 5.2. Data_Rejeicao (DATETIME)'
+      ''
+      '-- 6.2. Data_Rejeicao (DATETIME)'
       'IF NOT EXISTS ('
       '    SELECT 1'
       '    FROM sys.columns '
@@ -509,9 +524,10 @@ object Datamodule1: TDatamodule1
       ')'
       'BEGIN'
       '    ALTER TABLE dbo.NFE_XML ADD Data_Rejeicao DATETIME NULL;'
-      'END;'
+      'END'
       ''
-      '-- 5.3. Rejeicao (VARCHAR(MAX))'
+      ''
+      '-- 6.3. Rejeicao (VARCHAR(MAX))'
       'IF NOT EXISTS ('
       '    SELECT 1'
       '    FROM sys.columns '
@@ -521,7 +537,8 @@ object Datamodule1: TDatamodule1
       ')'
       'BEGIN'
       '    ALTER TABLE dbo.NFE_XML ADD Rejeicao VARCHAR(MAX) NULL;'
-      'END;'
+      'END'
+      ''
       ''
       '-- ************************************************************'
       '-- FIM DAS CORRE'#199#213'ES NA TABELA NFE_XML'

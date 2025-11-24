@@ -1,7 +1,7 @@
 object frmmenu: Tfrmmenu
   Left = 0
   Top = 0
-  Caption = 'ServXML 2.13'
+  Caption = 'ServXML 2.14'
   ClientHeight = 882
   ClientWidth = 1287
   Color = clBtnFace
@@ -598,7 +598,7 @@ object frmmenu: Tfrmmenu
     TabOrder = 1
     object btnexportar: TButton
       AlignWithMargins = True
-      Left = 557
+      Left = 683
       Top = 16
       Width = 120
       Height = 54
@@ -616,10 +616,11 @@ object frmmenu: Tfrmmenu
       ParentFont = False
       TabOrder = 0
       OnClick = btnexportarClick
+      ExplicitLeft = 557
     end
     object btnemail: TButton
       AlignWithMargins = True
-      Left = 837
+      Left = 963
       Top = 16
       Width = 120
       Height = 54
@@ -637,6 +638,7 @@ object frmmenu: Tfrmmenu
       ParentFont = False
       TabOrder = 1
       OnClick = btnemailClick
+      ExplicitLeft = 837
     end
     object btnconfig: TButton
       AlignWithMargins = True
@@ -661,7 +663,7 @@ object frmmenu: Tfrmmenu
     end
     object btnconsultasefaz: TButton
       AlignWithMargins = True
-      Left = 277
+      Left = 403
       Top = 16
       Width = 120
       Height = 54
@@ -679,10 +681,11 @@ object frmmenu: Tfrmmenu
       ParentFont = False
       TabOrder = 3
       OnClick = btnconsultasefazClick
+      ExplicitLeft = 277
     end
     object btnimprimir: TButton
       AlignWithMargins = True
-      Left = 697
+      Left = 823
       Top = 16
       Width = 120
       Height = 54
@@ -700,10 +703,11 @@ object frmmenu: Tfrmmenu
       ParentFont = False
       TabOrder = 4
       OnClick = btnimprimirClick
+      ExplicitLeft = 697
     end
     object btnbaixaxml: TBitBtn
       AlignWithMargins = True
-      Left = 417
+      Left = 543
       Top = 16
       Width = 120
       Height = 54
@@ -715,6 +719,7 @@ object frmmenu: Tfrmmenu
       Caption = 'Baixar XML'
       TabOrder = 5
       OnClick = btnbaixaxmlClick
+      ExplicitLeft = 417
     end
     object btnatualizabanco: TButton
       AlignWithMargins = True
@@ -725,7 +730,7 @@ object frmmenu: Tfrmmenu
       Margins.Top = 15
       Margins.Bottom = 15
       Align = alLeft
-      Caption = 'Atualizar Banco'
+      Caption = 'Corrigir Dados'
       Font.Charset = ANSI_CHARSET
       Font.Color = clWindowText
       Font.Height = -13
@@ -734,6 +739,28 @@ object frmmenu: Tfrmmenu
       ParentFont = False
       TabOrder = 6
       OnClick = btnatualizabancoClick
+      ExplicitLeft = 112
+      ExplicitTop = 14
+    end
+    object btntabelas: TButton
+      AlignWithMargins = True
+      Left = 270
+      Top = 16
+      Width = 120
+      Height = 54
+      Margins.Top = 15
+      Margins.Bottom = 15
+      Align = alLeft
+      Caption = 'Criar Tabelas'
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Segoe UI Semibold'
+      Font.Style = [fsBold]
+      ParentFont = False
+      TabOrder = 7
+      OnClick = btntabelasClick
+      ExplicitLeft = 144
     end
   end
   object opcoes: TPageControl

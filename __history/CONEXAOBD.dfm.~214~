@@ -2,13 +2,14 @@ object Datamodule1: TDatamodule1
   OldCreateOrder = False
   OnCreate = DataModuleCreate
   Height = 703
-  Width = 1030
+  Width = 1109
   object ConDados: TUniConnection
     ProviderName = 'SQL Server'
     Port = 1433
     Database = 'Servsic'
     Username = 'sa'
     Server = '.\base'
+    Connected = True
     ConnectDialog = UniConnectDialog1
     LoginPrompt = False
     Left = 24
@@ -50,8 +51,111 @@ object Datamodule1: TDatamodule1
   end
   object QRYBUSCAXML: TUniQuery
     Connection = ConDados
+    SQL.Strings = (
+      'SELECT'
+      '    x.codnota, '
+      '    x.codemitente, '
+      '    x.data_emissao, '
+      '    x.numnota AS Num_Nota_Fiscal, '
+      '    x.serie AS Serie, '
+      '    x.pedido, '
+      '    x.status, '
+      '    x.xmlchave, '
+      '    C.Valor_Total_Nota AS Valor, -- Coluna da NFE_CAB [cite: 1]'
+      '    x.Tipo_Amb, '
+      '    x.Num_Mod_Doc '
+      'FROM'
+      '    nfe_xml x'
+      
+        '-- Une NFE_XML (x) com NFE_CAB (C) pelo CodNota e CodEmitente [c' +
+        'ite: 1642]'
+      'JOIN '
+      
+        '    NFE_CAB C ON C.CodNota = x.CodNota AND C.CodEmitente = x.Cod' +
+        'Emitente '
+      'WHERE'
+      '    x.Data_Emissao BETWEEN :DataInicio AND :DataFim -- '
+      '  AND '
+      
+        '    x.Status = '#39'T'#39' -- Filtra apenas registros que foram transmit' +
+        'idos/autorizados '
+      '  AND '
+      
+        '    (x.XMLTransmissao LIKE '#39'%<cStat>100</cStat>%'#39' OR x.XMLTransm' +
+        'issao LIKE '#39'%<cStat>150</cStat>%'#39') -- Filtro de autoriza'#231#227'o/dene' +
+        'ga'#231#227'o '
+      '  AND '
+      
+        '    x.CodEmitente = :CodEmitente -- Filtro obrigat'#243'rio de emiten' +
+        'te [cite: 1546]'
+      '  AND '
+      '    x.Tipo_Amb = 1 -- Tipo Ambiente fixo em 1 (Produ'#231#227'o) '
+      
+        '-- As cl'#225'usulas abaixo s'#227'o adicionadas dinamicamente se o usu'#225'ri' +
+        'o selecionou filtros de modelo e s'#233'rie:'
+      '/*'
+      '  AND x.Num_Mod_Doc = :Modelo'
+      '  AND x.Serie = :Serie'
+      '*/'
+      'ORDER BY '
+      '    x.NumNota')
     Left = 168
     Top = 136
+    ParamData = <
+      item
+        DataType = ftUnknown
+        Name = 'DataInicio'
+        Value = Null
+      end
+      item
+        DataType = ftUnknown
+        Name = 'DataFim'
+        Value = Null
+      end
+      item
+        DataType = ftUnknown
+        Name = 'CodEmitente'
+        Value = Null
+      end>
+    object QRYBUSCAXMLcodnota: TIntegerField
+      FieldName = 'codnota'
+      Required = True
+    end
+    object QRYBUSCAXMLcodemitente: TIntegerField
+      FieldName = 'codemitente'
+    end
+    object QRYBUSCAXMLdata_emissao: TDateTimeField
+      FieldName = 'data_emissao'
+    end
+    object QRYBUSCAXMLNum_Nota_Fiscal: TIntegerField
+      FieldName = 'Num_Nota_Fiscal'
+    end
+    object QRYBUSCAXMLSerie: TStringField
+      FieldName = 'Serie'
+      FixedChar = True
+      Size = 1
+    end
+    object QRYBUSCAXMLpedido: TIntegerField
+      FieldName = 'pedido'
+    end
+    object QRYBUSCAXMLstatus: TStringField
+      FieldName = 'status'
+      Size = 10
+    end
+    object QRYBUSCAXMLxmlchave: TStringField
+      FieldName = 'xmlchave'
+      Size = 44
+    end
+    object QRYBUSCAXMLValor: TFloatField
+      FieldName = 'Valor'
+      ReadOnly = True
+    end
+    object QRYBUSCAXMLTipo_Amb: TIntegerField
+      FieldName = 'Tipo_Amb'
+    end
+    object QRYBUSCAXMLNum_Mod_Doc: TIntegerField
+      FieldName = 'Num_Mod_Doc'
+    end
   end
   object DSQRYBUSCAXML: TDataSource
     DataSet = QRYBUSCAXML
@@ -243,7 +347,10 @@ object Datamodule1: TDatamodule1
       '-- ************************************************************'
       
         '-- CORRE'#199#195'O DA ESTRUTURA PARA NFE_XML (CLIENTES) - Vers'#227'o Corrig' +
-        'ida'
+        'ida e Otimizada'
+      
+        '-- Este script '#233' compat'#237'vel com SQL Server, conforme sua prefer'#234 +
+        'ncia.'
       '-- ************************************************************'
       ''
       '-- 1. CFOP: Garante que a coluna CFOP esteja presente (INT)'
@@ -254,9 +361,12 @@ object Datamodule1: TDatamodule1
       ')'
       'BEGIN'
       '    ALTER TABLE dbo.NFE_XML ADD CFOP INT NULL;'
-      'END;'
+      'END'
       ''
-      '-- 2. RejeicaoMotivo: Ajusta o tamanho para VARCHAR(255)'
+      ''
+      
+        '-- 2. RejeicaoMotivo: Ajusta o tamanho para VARCHAR(255) ou cria' +
+        ' se n'#227'o existir.'
       'IF EXISTS ('
       '    SELECT 1'
       '    FROM sys.columns '
@@ -265,25 +375,56 @@ object Datamodule1: TDatamodule1
         '.NFE_XML'#39')'
       ')'
       'BEGIN'
+      '    -- Se existir, altera o tipo para garantir o tamanho'
       
         '    ALTER TABLE dbo.NFE_XML ALTER COLUMN RejeicaoMotivo VARCHAR(' +
         '255) NULL;'
       'END'
       'ELSE'
       'BEGIN'
+      '    -- Se n'#227'o existir, cria a coluna'
       
         '    ALTER TABLE dbo.NFE_XML ADD RejeicaoMotivo VARCHAR(255) NULL' +
         ';'
-      'END;'
+      'END'
+      ''
+      ''
+      '-- 3. XMLInutilizacao: Ajusta/cria a coluna para VARCHAR(MAX)'
       ''
       
-        '-- 3. AJUSTES DE TIPO DE DADOS (TEXT para VARCHAR(MAX) ou NVARCH' +
-        'AR(MAX))'
-      ''
-      '-- 3.1. XMLGeracao - de TEXT/VARCHAR(MAX) para NVARCHAR(MAX)'
+        '-- NOTA: O bloco original continha uma l'#243'gica incorreta aqui. A ' +
+        'coluna XMLInutilizacao'
       
-        '-- NOTA: O bloco abaixo verifica se a coluna existe antes de ten' +
-        'tar alter'#225'-la.'
+        '-- foi tratada em dois pontos distintos com IF/ELSE desconectado' +
+        's, e um bloco'
+      '-- IF EXISTS ficou sem o END do ALTER TABLE. Corrigido para:'
+      'IF EXISTS ('
+      '    SELECT 1'
+      '    FROM sys.columns '
+      
+        '    WHERE name = '#39'XMLInutilizacao'#39' AND object_id = OBJECT_ID('#39'db' +
+        'o.NFE_XML'#39')'
+      ')'
+      'BEGIN'
+      '    -- Se existir, garante que seja VARCHAR(MAX)'
+      
+        '    ALTER TABLE dbo.NFE_XML ALTER COLUMN XMLInutilizacao VARCHAR' +
+        '(MAX) NULL;'
+      'END'
+      'ELSE'
+      'BEGIN'
+      '    -- Se n'#227'o existir, cria a coluna'
+      
+        '    ALTER TABLE dbo.NFE_XML ADD XMLInutilizacao VARCHAR(MAX) NUL' +
+        'L;'
+      'END'
+      ''
+      ''
+      
+        '-- 4. AJUSTES DE TIPO DE DADOS PARA NVARCHAR(MAX) (Melhor para X' +
+        'ML/Unicode)'
+      ''
+      '-- 4.1. XMLGeracao - para NVARCHAR(MAX)'
       'IF EXISTS ('
       '    SELECT 1'
       '    FROM sys.columns '
@@ -293,19 +434,16 @@ object Datamodule1: TDatamodule1
       ')'
       'BEGIN'
       
-        '    -- Se a coluna j'#225' existir, tenta alterar o tipo, se necess'#225'r' +
-        'io'
-      
         '    ALTER TABLE dbo.NFE_XML ALTER COLUMN XMLGeracao NVARCHAR(MAX' +
         ') NULL;'
       'END'
       'ELSE'
       'BEGIN'
-      '    -- Se a coluna n'#227'o existir, cria-a como NVARCHAR(MAX)'
       '    ALTER TABLE dbo.NFE_XML ADD XMLGeracao NVARCHAR(MAX) NULL;'
-      'END;'
+      'END'
       ''
-      '-- 3.2. XMLTransmissao - de TEXT/VARCHAR(MAX) para NVARCHAR(MAX)'
+      ''
+      '-- 4.2. XMLTransmissao - para NVARCHAR(MAX)'
       'IF EXISTS ('
       '    SELECT 1'
       '    FROM sys.columns '
@@ -323,11 +461,10 @@ object Datamodule1: TDatamodule1
       
         '    ALTER TABLE dbo.NFE_XML ADD XMLTransmissao NVARCHAR(MAX) NUL' +
         'L;'
-      'END;'
+      'END'
       ''
-      
-        '-- 3.3. XMLCancelamento - de TEXT/VARCHAR(MAX) para NVARCHAR(MAX' +
-        ')'
+      ''
+      '-- 4.3. XMLCancelamento - para NVARCHAR(MAX)'
       'IF EXISTS ('
       '    SELECT 1'
       '    FROM sys.columns '
@@ -345,31 +482,12 @@ object Datamodule1: TDatamodule1
       
         '    ALTER TABLE dbo.NFE_XML ADD XMLCancelamento NVARCHAR(MAX) NU' +
         'LL;'
-      'END;'
-      ''
-      '-- 3.4. XMLInutilizacao - de TEXT/VARCHAR para VARCHAR(MAX)'
-      'IF EXISTS ('
-      '    SELECT 1'
-      '    FROM sys.columns '
-      
-        '    WHERE name = '#39'XMLInutilizacao'#39' AND object_id = OBJECT_ID('#39'db' +
-        'o.NFE_XML'#39')'
-      ')'
-      'BEGIN'
-      '    -- Mantido como VARCHAR(MAX) conforme sua estrutura'
-      
-        '    ALTER TABLE dbo.NFE_XML ALTER COLUMN XMLInutilizacao VARCHAR' +
-        '(MAX) NULL;'
       'END'
-      'ELSE'
-      'BEGIN'
+      ''
+      ''
       
-        '    ALTER TABLE dbo.NFE_XML ADD XMLInutilizacao VARCHAR(MAX) NUL' +
-        'L;'
-      'END;'
-      ''
-      ''
-      '-- 4. CRIA'#199#195'O DA COLUNA '#39'chavecorreta'#39' (NOVO REQUISITO)'
+        '-- 5. CRIA'#199#195'O DA COLUNA '#39'chavecorreta'#39' (VARCHAR(44) para Chave d' +
+        'a NFe)'
       'IF NOT EXISTS ('
       '    SELECT 1'
       '    FROM sys.columns '
@@ -379,12 +497,12 @@ object Datamodule1: TDatamodule1
       ')'
       'BEGIN'
       '    ALTER TABLE dbo.NFE_XML ADD chavecorreta VARCHAR(44) NULL;'
-      'END;'
+      'END'
       ''
       ''
-      '-- 5. CRIA'#199#195'O DE COLUNAS AUSENTES'
+      '-- 6. CRIA'#199#195'O DE COLUNAS AUSENTES'
       ''
-      '-- 5.1. ST_Retorno (INT)'
+      '-- 6.1. ST_Retorno (INT)'
       'IF NOT EXISTS ('
       '    SELECT 1'
       '    FROM sys.columns '
@@ -394,9 +512,10 @@ object Datamodule1: TDatamodule1
       ')'
       'BEGIN'
       '    ALTER TABLE dbo.NFE_XML ADD ST_Retorno INT NULL;'
-      'END;'
+      'END'
       ''
-      '-- 5.2. Data_Rejeicao (DATETIME)'
+      ''
+      '-- 6.2. Data_Rejeicao (DATETIME)'
       'IF NOT EXISTS ('
       '    SELECT 1'
       '    FROM sys.columns '
@@ -406,9 +525,10 @@ object Datamodule1: TDatamodule1
       ')'
       'BEGIN'
       '    ALTER TABLE dbo.NFE_XML ADD Data_Rejeicao DATETIME NULL;'
-      'END;'
+      'END'
       ''
-      '-- 5.3. Rejeicao (VARCHAR(MAX))'
+      ''
+      '-- 6.3. Rejeicao (VARCHAR(MAX))'
       'IF NOT EXISTS ('
       '    SELECT 1'
       '    FROM sys.columns '
@@ -418,7 +538,8 @@ object Datamodule1: TDatamodule1
       ')'
       'BEGIN'
       '    ALTER TABLE dbo.NFE_XML ADD Rejeicao VARCHAR(MAX) NULL;'
-      'END;'
+      'END'
+      ''
       ''
       '-- ************************************************************'
       '-- FIM DAS CORRE'#199#213'ES NA TABELA NFE_XML'
@@ -548,7 +669,7 @@ object Datamodule1: TDatamodule1
     PrintOptions.Printer = 'Padr'#227'o'
     PrintOptions.PrintOnSheet = 0
     ReportOptions.CreateDate = 45904.715523645800000000
-    ReportOptions.LastChange = 45904.715523645800000000
+    ReportOptions.LastChange = 45960.512685671300000000
     ScriptLanguage = 'PascalScript'
     ScriptText.Strings = (
       'begin'
@@ -556,7 +677,11 @@ object Datamodule1: TDatamodule1
       'end.')
     Left = 888
     Top = 512
-    Datasets = <>
+    Datasets = <
+      item
+        DataSet = frxdsNotas
+        DataSetName = 'frxDBDataset1'
+      end>
     Variables = <>
     Style = <>
     object Data: TfrxDataPage
@@ -585,14 +710,260 @@ object Datamodule1: TDatamodule1
           Width = 718.110700000000000000
           Height = 37.795300000000000000
           Font.Charset = ANSI_CHARSET
-          Font.Color = clBlack
+          Font.Color = clWhite
           Font.Height = -27
-          Font.Name = 'Segoe UI Semibold'
+          Font.Name = 'Segoe UI'
           Font.Style = [fsBold]
           Frame.Typ = []
+          Fill.BackColor = clWindowFrame
           HAlign = haCenter
           Memo.UTF8W = (
             'Rela'#231#227'o de Documentos Fiscais')
+          ParentFont = False
+        end
+      end
+      object MasterData1: TfrxMasterData
+        FillType = ftBrush
+        Frame.Typ = []
+        Height = 26.456710000000000000
+        Top = 117.165430000000000000
+        Width = 718.110700000000000000
+        DataSet = frxdsNotas
+        DataSetName = 'frxDBDataset1'
+        RowCount = 0
+        object Memo2: TfrxMemoView
+          Align = baLeft
+          AllowVectorExport = True
+          Width = 113.385900000000000000
+          Height = 18.897650000000000000
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clBlack
+          Font.Height = -13
+          Font.Name = 'Segoe UI Semibold'
+          Font.Style = [fsBold]
+          Frame.Typ = []
+          Memo.UTF8W = (
+            'Data')
+          ParentFont = False
+        end
+        object Memo6: TfrxMemoView
+          Align = baLeft
+          AllowVectorExport = True
+          Left = 113.385900000000000000
+          Width = 75.590600000000000000
+          Height = 18.897650000000000000
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clBlack
+          Font.Height = -13
+          Font.Name = 'Segoe UI Semibold'
+          Font.Style = [fsBold]
+          Frame.Typ = []
+          Memo.UTF8W = (
+            'Chave')
+          ParentFont = False
+        end
+      end
+      object DetailData1: TfrxDetailData
+        FillType = ftBrush
+        Frame.Typ = []
+        Height = 56.692950000000000000
+        Top = 166.299320000000000000
+        Width = 718.110700000000000000
+        DataSet = frxdsNotas
+        DataSetName = 'frxDBDataset1'
+        RowCount = 0
+        object frxDBDataset1data_emissao: TfrxMemoView
+          IndexTag = 1
+          Align = baLeft
+          AllowVectorExport = True
+          Top = 3.779530000000000000
+          Width = 113.385900000000000000
+          Height = 18.897650000000000000
+          DataField = 'data_emissao'
+          DataSet = frxdsNotas
+          DataSetName = 'frxDBDataset1'
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clBlack
+          Font.Height = -13
+          Font.Name = 'Segoe UI Semibold'
+          Font.Style = [fsBold]
+          Frame.Typ = []
+          Memo.UTF8W = (
+            '[frxDBDataset1."data_emissao"]')
+          ParentFont = False
+        end
+        object frxDBDataset1Num_Nota_Fiscal: TfrxMemoView
+          IndexTag = 1
+          Align = baLeft
+          AllowVectorExport = True
+          Left = 41.574830000000000000
+          Top = 30.236240000000000000
+          Width = 147.401670000000000000
+          Height = 18.897650000000000000
+          DataField = 'Num_Nota_Fiscal'
+          DataSet = frxdsNotas
+          DataSetName = 'frxDBDataset1'
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clBlack
+          Font.Height = -13
+          Font.Name = 'Segoe UI Semibold'
+          Font.Style = [fsBold]
+          Frame.Typ = []
+          Memo.UTF8W = (
+            '[frxDBDataset1."Num_Nota_Fiscal"]')
+          ParentFont = False
+        end
+        object frxDBDataset1Serie: TfrxMemoView
+          IndexTag = 1
+          Align = baLeft
+          AllowVectorExport = True
+          Left = 226.771800000000000000
+          Top = 30.236240000000000000
+          Width = 113.385900000000000000
+          Height = 18.897650000000000000
+          DataField = 'Serie'
+          DataSet = frxdsNotas
+          DataSetName = 'frxDBDataset1'
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clBlack
+          Font.Height = -13
+          Font.Name = 'Segoe UI Semibold'
+          Font.Style = [fsBold]
+          Frame.Typ = []
+          Memo.UTF8W = (
+            '[frxDBDataset1."Serie"]')
+          ParentFont = False
+        end
+        object frxDBDataset1Num_Mod_Doc: TfrxMemoView
+          IndexTag = 1
+          Align = baLeft
+          AllowVectorExport = True
+          Left = 393.071120000000000000
+          Top = 30.236240000000000000
+          Width = 136.063080000000000000
+          Height = 18.897650000000000000
+          DataField = 'Num_Mod_Doc'
+          DataSet = frxdsNotas
+          DataSetName = 'frxDBDataset1'
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clBlack
+          Font.Height = -13
+          Font.Name = 'Segoe UI Semibold'
+          Font.Style = [fsBold]
+          Frame.Typ = []
+          Memo.UTF8W = (
+            '[frxDBDataset1."Num_Mod_Doc"]')
+          ParentFont = False
+        end
+        object frxDBDataset1xmlchave: TfrxMemoView
+          IndexTag = 1
+          Align = baWidth
+          AllowVectorExport = True
+          Left = 113.385900000000000000
+          Top = 3.779530000000000000
+          Width = 604.724800000000000000
+          Height = 18.897650000000000000
+          DataField = 'xmlchave'
+          DataSet = frxdsNotas
+          DataSetName = 'frxDBDataset1'
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clBlack
+          Font.Height = -13
+          Font.Name = 'Segoe UI Semibold'
+          Font.Style = [fsBold]
+          Frame.Typ = []
+          Memo.UTF8W = (
+            '[frxDBDataset1."xmlchave"]')
+          ParentFont = False
+        end
+        object frxDBDataset1Valor: TfrxMemoView
+          IndexTag = 1
+          Align = baLeft
+          AllowVectorExport = True
+          Left = 570.709030000000000000
+          Top = 30.236240000000000000
+          Width = 105.826840000000000000
+          Height = 18.897650000000000000
+          DataField = 'Valor'
+          DataSet = frxdsNotas
+          DataSetName = 'frxDBDataset1'
+          DisplayFormat.FormatStr = '%2.2m'
+          DisplayFormat.Kind = fkNumeric
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clBlack
+          Font.Height = -13
+          Font.Name = 'Segoe UI Semibold'
+          Font.Style = [fsBold]
+          Frame.Typ = []
+          Memo.UTF8W = (
+            '[frxDBDataset1."Valor"]')
+          ParentFont = False
+        end
+        object Memo3: TfrxMemoView
+          Align = baLeft
+          AllowVectorExport = True
+          Top = 30.236240000000000000
+          Width = 41.574830000000000000
+          Height = 18.897650000000000000
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clBlack
+          Font.Height = -13
+          Font.Name = 'Segoe UI Semibold'
+          Font.Style = [fsBold]
+          Frame.Typ = []
+          Memo.UTF8W = (
+            'Nota:')
+          ParentFont = False
+        end
+        object Memo4: TfrxMemoView
+          Align = baLeft
+          AllowVectorExport = True
+          Left = 188.976500000000000000
+          Top = 30.236240000000000000
+          Width = 37.795300000000000000
+          Height = 18.897650000000000000
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clBlack
+          Font.Height = -13
+          Font.Name = 'Segoe UI Semibold'
+          Font.Style = [fsBold]
+          Frame.Typ = []
+          Memo.UTF8W = (
+            'Serie:')
+          ParentFont = False
+        end
+        object Memo5: TfrxMemoView
+          Align = baLeft
+          AllowVectorExport = True
+          Left = 340.157700000000000000
+          Top = 30.236240000000000000
+          Width = 52.913420000000000000
+          Height = 18.897650000000000000
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clBlack
+          Font.Height = -13
+          Font.Name = 'Segoe UI Semibold'
+          Font.Style = [fsBold]
+          Frame.Typ = []
+          Memo.UTF8W = (
+            'Modelo:')
+          ParentFont = False
+        end
+        object Memo7: TfrxMemoView
+          Align = baLeft
+          AllowVectorExport = True
+          Left = 529.134200000000000000
+          Top = 30.236240000000000000
+          Width = 41.574830000000000000
+          Height = 18.897650000000000000
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clBlack
+          Font.Height = -13
+          Font.Name = 'Segoe UI Semibold'
+          Font.Style = [fsBold]
+          Frame.Typ = []
+          Memo.UTF8W = (
+            'Valor:')
           ParentFont = False
         end
       end
@@ -602,17 +973,17 @@ object Datamodule1: TDatamodule1
     UserName = 'frxDBDataset1'
     CloseDataSource = False
     FieldAliases.Strings = (
-      'CodigoEmitente=CodigoEmitente'
-      'NumeroNota=NumeroNota'
-      'StatusXML=StatusXML'
-      'StatusRetornoNF=StatusRetornoNF'
-      'ModeloDocumento=ModeloDocumento'
+      'codnota=codnota'
+      'codemitente=codemitente'
+      'data_emissao=data_emissao'
+      'Num_Nota_Fiscal=Num_Nota_Fiscal'
       'Serie=Serie'
-      'DataEmissao=DataEmissao'
-      'ChaveAcesso=ChaveAcesso'
-      'ValorTotalNota=ValorTotalNota'
-      'RazaoSocialDestinatario=RazaoSocialDestinatario'
-      'CNPJCPTDestinatario=CNPJCPTDestinatario')
+      'pedido=pedido'
+      'status=status'
+      'xmlchave=xmlchave'
+      'Valor=Valor'
+      'Tipo_Amb=Tipo_Amb'
+      'Num_Mod_Doc=Num_Mod_Doc')
     DataSource = DSQRYBUSCAXML
     BCDToCurrency = False
     Left = 888
@@ -725,5 +1096,15 @@ object Datamodule1: TDatamodule1
     object CDSCHAVESCORRETASserie: TStringField
       FieldName = 'serie'
     end
+  end
+  object QRYNAOUSADOSPORDATA: TUniQuery
+    Connection = ConDados
+    Left = 408
+    Top = 440
+  end
+  object QRYNCM: TUniQuery
+    Connection = ConDados
+    Left = 536
+    Top = 552
   end
 end

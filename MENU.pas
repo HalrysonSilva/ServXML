@@ -180,7 +180,8 @@ type
     Panel20: TPanel;
     DBGridPENDENTES: TDBGrid;
     btnlistanaousada: TButton;
-    Button1: TButton;  // Não estava na lista de componentes, mas mantenho para a próxima etapa
+    Button1: TButton;
+    btntabelas: TButton;  // Não estava na lista de componentes, mas mantenho para a próxima etapa
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure CriarTabelaSERVXML;
@@ -281,6 +282,7 @@ type
      procedure CriarEstruturaCDSCorretas;
     procedure btnlistanaousadaClick(Sender: TObject);
     procedure Button1Click(Sender: TObject);
+    procedure btntabelasClick(Sender: TObject);
 
   private
     { Private declarations }
@@ -392,10 +394,16 @@ end;
 procedure Tfrmmenu.CORRIGIRDADOS;
 begin
   try
+    // Tenta executar a query
     DataModule1.QRYCORRIGEDADOS.ExecSQL;
+
+    // Se a execução for bem-sucedida, exibe a mensagem de sucesso
+    ShowMessage('Tabelas Corrigidas!');
+
   except
+    // Se ocorrer um erro durante a execução, exibe a mensagem de erro
     on E: Exception do
-      ShowMessage('Erro ao executar a query QRYCORRIGEDADOS: ' + E.Message);
+      ShowMessage('Erro ao executar a correção de dados (QRYCORRIGEDADOS): ' + E.Message);
   end;
 end;
 
@@ -2033,6 +2041,11 @@ end;
 
 
 
+procedure Tfrmmenu.btntabelasClick(Sender: TObject);
+begin
+corrigirdados;
+end;
+
 procedure Tfrmmenu.ExportarXMLsMesAnterior;
 var
   PastaBase, PastaNFE, PastaNFCE: String;
@@ -2603,7 +2616,7 @@ begin
     // B. Correção Inicial de Dados
     EsperaForm.Label1.Caption := 'Corrigindo dados gerais...';
     Application.ProcessMessages;
-    corrigirdados; // A próxima linha só será executada após esta concluir.
+    // A próxima linha só será executada após esta concluir.
 
     // C. Atualização e Migração
     EsperaForm.Label1.Caption := 'Atualizando registros e forçando migração XML...';

@@ -1,7 +1,7 @@
 object frmmenu: Tfrmmenu
   Left = 0
   Top = 0
-  Caption = 'ServXML 2.12'
+  Caption = 'ServXML 2.14'
   ClientHeight = 882
   ClientWidth = 1287
   Color = clBtnFace
@@ -598,7 +598,7 @@ object frmmenu: Tfrmmenu
     TabOrder = 1
     object btnexportar: TButton
       AlignWithMargins = True
-      Left = 557
+      Left = 683
       Top = 16
       Width = 120
       Height = 54
@@ -616,10 +616,11 @@ object frmmenu: Tfrmmenu
       ParentFont = False
       TabOrder = 0
       OnClick = btnexportarClick
+      ExplicitLeft = 557
     end
     object btnemail: TButton
       AlignWithMargins = True
-      Left = 837
+      Left = 963
       Top = 16
       Width = 120
       Height = 54
@@ -637,6 +638,7 @@ object frmmenu: Tfrmmenu
       ParentFont = False
       TabOrder = 1
       OnClick = btnemailClick
+      ExplicitLeft = 837
     end
     object btnconfig: TButton
       AlignWithMargins = True
@@ -661,7 +663,7 @@ object frmmenu: Tfrmmenu
     end
     object btnconsultasefaz: TButton
       AlignWithMargins = True
-      Left = 277
+      Left = 403
       Top = 16
       Width = 120
       Height = 54
@@ -679,10 +681,11 @@ object frmmenu: Tfrmmenu
       ParentFont = False
       TabOrder = 3
       OnClick = btnconsultasefazClick
+      ExplicitLeft = 277
     end
     object btnimprimir: TButton
       AlignWithMargins = True
-      Left = 697
+      Left = 823
       Top = 16
       Width = 120
       Height = 54
@@ -700,10 +703,11 @@ object frmmenu: Tfrmmenu
       ParentFont = False
       TabOrder = 4
       OnClick = btnimprimirClick
+      ExplicitLeft = 697
     end
     object btnbaixaxml: TBitBtn
       AlignWithMargins = True
-      Left = 417
+      Left = 543
       Top = 16
       Width = 120
       Height = 54
@@ -715,6 +719,7 @@ object frmmenu: Tfrmmenu
       Caption = 'Baixar XML'
       TabOrder = 5
       OnClick = btnbaixaxmlClick
+      ExplicitLeft = 417
     end
     object btnatualizabanco: TButton
       AlignWithMargins = True
@@ -725,7 +730,7 @@ object frmmenu: Tfrmmenu
       Margins.Top = 15
       Margins.Bottom = 15
       Align = alLeft
-      Caption = 'Atualizar Banco'
+      Caption = 'Corrigir Dados'
       Font.Charset = ANSI_CHARSET
       Font.Color = clWindowText
       Font.Height = -13
@@ -734,6 +739,28 @@ object frmmenu: Tfrmmenu
       ParentFont = False
       TabOrder = 6
       OnClick = btnatualizabancoClick
+      ExplicitLeft = 112
+      ExplicitTop = 14
+    end
+    object btntabelas: TButton
+      AlignWithMargins = True
+      Left = 270
+      Top = 16
+      Width = 120
+      Height = 54
+      Margins.Top = 15
+      Margins.Bottom = 15
+      Align = alLeft
+      Caption = 'Criar Tabelas'
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Segoe UI Semibold'
+      Font.Style = [fsBold]
+      ParentFont = False
+      TabOrder = 7
+      OnClick = btntabelasClick
+      ExplicitLeft = 144
     end
   end
   object opcoes: TPageControl
@@ -741,19 +768,15 @@ object frmmenu: Tfrmmenu
     Top = 185
     Width = 1287
     Height = 611
-    ActivePage = Pendentes
+    ActivePage = Emitidas
     Align = alClient
     TabOrder = 2
     object Emitidas: TTabSheet
       Caption = 'Emitidas'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object Label8: TLabel
         Left = 0
         Top = 0
-        Width = 139
+        Width = 1279
         Height = 25
         Align = alTop
         Alignment = taCenter
@@ -767,12 +790,13 @@ object frmmenu: Tfrmmenu
         ParentColor = False
         ParentFont = False
         Transparent = True
+        ExplicitWidth = 139
       end
       object LABELTOTAL: TLabel
         AlignWithMargins = True
         Left = 3
         Top = 512
-        Width = 35
+        Width = 1273
         Height = 21
         Align = alBottom
         Caption = 'Total'
@@ -782,12 +806,13 @@ object frmmenu: Tfrmmenu
         Font.Name = 'Segoe UI Semibold'
         Font.Style = [fsBold]
         ParentFont = False
+        ExplicitWidth = 35
       end
       object labelvaloremitido: TLabel
         AlignWithMargins = True
         Left = 3
         Top = 539
-        Width = 163
+        Width = 1273
         Height = 37
         Align = alBottom
         Caption = 'Valor Emitido'
@@ -800,6 +825,7 @@ object frmmenu: Tfrmmenu
         ParentColor = False
         ParentFont = False
         Transparent = True
+        ExplicitWidth = 163
       end
       object dbgridvendas: TDBGrid
         AlignWithMargins = True
@@ -939,7 +965,7 @@ object frmmenu: Tfrmmenu
           object btnveriinutiliza: TButton
             AlignWithMargins = True
             Left = 4
-            Top = 142
+            Top = 188
             Width = 157
             Height = 40
             Align = alTop
@@ -952,6 +978,23 @@ object frmmenu: Tfrmmenu
             ParentFont = False
             TabOrder = 3
             OnClick = btnveriinutilizaClick
+          end
+          object Button1: TButton
+            AlignWithMargins = True
+            Left = 4
+            Top = 142
+            Width = 157
+            Height = 40
+            Align = alTop
+            Caption = 'Corrigir Chaves'
+            Font.Charset = ANSI_CHARSET
+            Font.Color = clWindowText
+            Font.Height = -13
+            Font.Name = 'Segoe UI Semibold'
+            Font.Style = [fsBold]
+            ParentFont = False
+            TabOrder = 4
+            OnClick = Button1Click
           end
         end
         object Panel20: TPanel
@@ -967,7 +1010,7 @@ object frmmenu: Tfrmmenu
             Width = 687
             Height = 474
             Align = alClient
-            DataSource = Datamodule1.DSVENDASPENDENTES
+            DataSource = Datamodule1.DSQRYPSQPENDENTE
             Font.Charset = ANSI_CHARSET
             Font.Color = clWindowText
             Font.Height = -13
@@ -1029,10 +1072,6 @@ object frmmenu: Tfrmmenu
     object consultasefaz: TTabSheet
       Caption = 'Consulta Sefaz'
       ImageIndex = 5
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object Panel15: TPanel
         Left = 0
         Top = 0
@@ -1050,7 +1089,7 @@ object frmmenu: Tfrmmenu
           object Label28: TLabel
             Left = 1
             Top = 1
-            Width = 39
+            Width = 680
             Height = 25
             Align = alTop
             Alignment = taCenter
@@ -1061,15 +1100,17 @@ object frmmenu: Tfrmmenu
             Font.Name = 'Segoe UI Semibold'
             Font.Style = [fsBold]
             ParentFont = False
+            ExplicitWidth = 39
           end
           object Label30: TLabel
             AlignWithMargins = True
             Left = 4
             Top = 525
-            Width = 90
+            Width = 674
             Height = 17
             Align = alBottom
             Caption = 'Chave da Nota'
+            ExplicitWidth = 90
           end
           object DBGridconsultasefaz: TDBGrid
             AlignWithMargins = True
@@ -1107,29 +1148,32 @@ object frmmenu: Tfrmmenu
           object Label31: TLabel
             AlignWithMargins = True
             Left = 4
-            Top = 295
-            Width = 46
+            Top = 112
+            Width = 149
             Height = 17
-            Align = alBottom
+            Align = alTop
             Caption = 'Modelo'
+            ExplicitWidth = 46
           end
           object Label32: TLabel
             AlignWithMargins = True
             Left = 4
-            Top = 241
-            Width = 29
+            Top = 58
+            Width = 149
             Height = 17
-            Align = alBottom
+            Align = alTop
             Caption = 'S'#233'rie'
+            ExplicitWidth = 29
           end
           object Label33: TLabel
             AlignWithMargins = True
             Left = 4
-            Top = 187
-            Width = 70
+            Top = 4
+            Width = 149
             Height = 17
-            Align = alBottom
+            Align = alTop
             Caption = 'Numera'#231#227'o'
+            ExplicitWidth = 70
           end
           object btnconsultalista: TBitBtn
             AlignWithMargins = True
@@ -1156,10 +1200,10 @@ object frmmenu: Tfrmmenu
           object btnbuscachave: TBitBtn
             AlignWithMargins = True
             Left = 4
-            Top = 395
+            Top = 212
             Width = 149
             Height = 40
-            Align = alBottom
+            Align = alTop
             Caption = 'Consultar Chave'
             TabOrder = 2
             OnClick = btnbuscachaveClick
@@ -1178,10 +1222,10 @@ object frmmenu: Tfrmmenu
           object btngerachave: TBitBtn
             AlignWithMargins = True
             Left = 4
-            Top = 349
+            Top = 166
             Width = 149
             Height = 40
-            Align = alBottom
+            Align = alTop
             Caption = 'Gerar Chave'
             TabOrder = 4
             OnClick = btngerachaveClick
@@ -1189,30 +1233,30 @@ object frmmenu: Tfrmmenu
           object Editmdlnota: TEdit
             AlignWithMargins = True
             Left = 4
-            Top = 318
+            Top = 135
             Width = 149
             Height = 25
-            Align = alBottom
+            Align = alTop
             TabOrder = 5
             StyleElements = []
           end
           object Editserie: TEdit
             AlignWithMargins = True
             Left = 4
-            Top = 264
+            Top = 81
             Width = 149
             Height = 25
-            Align = alBottom
+            Align = alTop
             TabOrder = 6
             StyleElements = []
           end
           object Editnumnota: TEdit
             AlignWithMargins = True
             Left = 4
-            Top = 210
+            Top = 27
             Width = 149
             Height = 25
-            Align = alBottom
+            Align = alTop
             TabOrder = 7
             StyleElements = []
           end
@@ -1228,7 +1272,7 @@ object frmmenu: Tfrmmenu
         object Label29: TLabel
           Left = 1
           Top = 1
-          Width = 35
+          Width = 436
           Height = 25
           Align = alTop
           Alignment = taCenter
@@ -1239,6 +1283,7 @@ object frmmenu: Tfrmmenu
           Font.Name = 'Segoe UI Semibold'
           Font.Style = [fsBold]
           ParentFont = False
+          ExplicitWidth = 35
         end
         object MEMOCONSULTA: TMemo
           AlignWithMargins = True
@@ -1262,10 +1307,6 @@ object frmmenu: Tfrmmenu
     object Consulta: TTabSheet
       Caption = 'Consulta Local'
       ImageIndex = 2
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object Panel5: TPanel
         Left = 0
         Top = 0
@@ -1277,7 +1318,7 @@ object frmmenu: Tfrmmenu
           AlignWithMargins = True
           Left = 4
           Top = 29
-          Width = 70
+          Width = 161
           Height = 17
           Align = alTop
           Alignment = taCenter
@@ -1288,12 +1329,13 @@ object frmmenu: Tfrmmenu
           Font.Name = 'Segoe UI Semibold'
           Font.Style = [fsBold]
           ParentFont = False
+          ExplicitWidth = 70
         end
         object Label12: TLabel
           AlignWithMargins = True
           Left = 4
           Top = 83
-          Width = 46
+          Width = 161
           Height = 17
           Align = alTop
           Alignment = taCenter
@@ -1304,12 +1346,13 @@ object frmmenu: Tfrmmenu
           Font.Name = 'Segoe UI Semibold'
           Font.Style = [fsBold]
           ParentFont = False
+          ExplicitWidth = 46
         end
         object Label11: TLabel
           AlignWithMargins = True
           Left = 4
           Top = 137
-          Width = 121
+          Width = 161
           Height = 17
           Align = alTop
           Alignment = taCenter
@@ -1320,11 +1363,12 @@ object frmmenu: Tfrmmenu
           Font.Name = 'Segoe UI Semibold'
           Font.Style = [fsBold]
           ParentFont = False
+          ExplicitWidth = 121
         end
         object Label25: TLabel
           Left = 1
           Top = 1
-          Width = 68
+          Width = 167
           Height = 25
           Align = alTop
           Alignment = taCenter
@@ -1338,6 +1382,7 @@ object frmmenu: Tfrmmenu
           ParentColor = False
           ParentFont = False
           Transparent = True
+          ExplicitWidth = 68
         end
         object editconsulta: TEdit
           AlignWithMargins = True
@@ -1469,7 +1514,7 @@ object frmmenu: Tfrmmenu
         object Label13: TLabel
           Left = 1
           Top = 1
-          Width = 189
+          Width = 1108
           Height = 25
           Align = alTop
           Alignment = taCenter
@@ -1483,12 +1528,13 @@ object frmmenu: Tfrmmenu
           ParentColor = False
           ParentFont = False
           Transparent = True
+          ExplicitWidth = 189
         end
         object labeltotalconsulta: TLabel
           AlignWithMargins = True
           Left = 4
           Top = 554
-          Width = 35
+          Width = 1102
           Height = 21
           Align = alBottom
           Caption = 'Total'
@@ -1498,6 +1544,7 @@ object frmmenu: Tfrmmenu
           Font.Name = 'Segoe UI Semibold'
           Font.Style = [fsBold]
           ParentFont = False
+          ExplicitWidth = 35
         end
         object DBGridNOTASPERDIDAS: TDBGrid
           AlignWithMargins = True
@@ -1520,10 +1567,6 @@ object frmmenu: Tfrmmenu
     object Inutilizar: TTabSheet
       Caption = 'Inutilizar'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object Panel3: TPanel
         Left = 0
         Top = 0
@@ -1534,7 +1577,7 @@ object frmmenu: Tfrmmenu
         object Label5: TLabel
           Left = 1
           Top = 1
-          Width = 174
+          Width = 661
           Height = 25
           Align = alTop
           Alignment = taCenter
@@ -1548,12 +1591,13 @@ object frmmenu: Tfrmmenu
           ParentColor = False
           ParentFont = False
           Transparent = True
+          ExplicitWidth = 174
         end
         object labelfaltantes: TLabel
           AlignWithMargins = True
           Left = 4
           Top = 554
-          Width = 4
+          Width = 655
           Height = 21
           Align = alBottom
           Font.Charset = ANSI_CHARSET
@@ -1562,6 +1606,7 @@ object frmmenu: Tfrmmenu
           Font.Name = 'Segoe UI Semibold'
           Font.Style = [fsBold]
           ParentFont = False
+          ExplicitWidth = 4
         end
         object DBgridfaltante: TDBGrid
           AlignWithMargins = True
@@ -1606,7 +1651,7 @@ object frmmenu: Tfrmmenu
           object btninufaltante: TButton
             AlignWithMargins = True
             Left = 4
-            Top = 188
+            Top = 234
             Width = 157
             Height = 40
             Align = alTop
@@ -1623,7 +1668,7 @@ object frmmenu: Tfrmmenu
           object btnxmllista: TButton
             AlignWithMargins = True
             Left = 4
-            Top = 280
+            Top = 326
             Width = 157
             Height = 40
             Align = alTop
@@ -1640,7 +1685,7 @@ object frmmenu: Tfrmmenu
           object btnconsultinu: TButton
             AlignWithMargins = True
             Left = 4
-            Top = 234
+            Top = 280
             Width = 157
             Height = 40
             Align = alTop
@@ -1657,7 +1702,7 @@ object frmmenu: Tfrmmenu
           object btnimportar: TButton
             AlignWithMargins = True
             Left = 4
-            Top = 50
+            Top = 96
             Width = 157
             Height = 40
             Align = alTop
@@ -1674,7 +1719,7 @@ object frmmenu: Tfrmmenu
           object btnlimpalista: TButton
             AlignWithMargins = True
             Left = 4
-            Top = 96
+            Top = 142
             Width = 157
             Height = 40
             Align = alTop
@@ -1691,7 +1736,7 @@ object frmmenu: Tfrmmenu
           object btnlimpalog: TButton
             AlignWithMargins = True
             Left = 4
-            Top = 142
+            Top = 188
             Width = 157
             Height = 40
             Align = alTop
@@ -1705,6 +1750,23 @@ object frmmenu: Tfrmmenu
             TabOrder = 6
             OnClick = btnlimpalogClick
           end
+          object btnlistanaousada: TButton
+            AlignWithMargins = True
+            Left = 4
+            Top = 50
+            Width = 157
+            Height = 40
+            Align = alTop
+            Caption = 'Verificar por Data'
+            Font.Charset = ANSI_CHARSET
+            Font.Color = clWindowText
+            Font.Height = -13
+            Font.Name = 'Segoe UI Semibold'
+            Font.Style = [fsBold]
+            ParentFont = False
+            TabOrder = 7
+            OnClick = btnlistanaousadaClick
+          end
         end
       end
       object Panel4: TPanel
@@ -1717,7 +1779,7 @@ object frmmenu: Tfrmmenu
         object Label6: TLabel
           Left = 1
           Top = 1
-          Width = 35
+          Width = 614
           Height = 25
           Align = alTop
           Alignment = taCenter
@@ -1731,6 +1793,7 @@ object frmmenu: Tfrmmenu
           ParentColor = False
           ParentFont = False
           Transparent = True
+          ExplicitWidth = 35
         end
         object memoemail: TMemo
           AlignWithMargins = True
@@ -1756,10 +1819,6 @@ object frmmenu: Tfrmmenu
     object Corrigirnota: TTabSheet
       Caption = 'Corrigir Venda'
       ImageIndex = 3
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object Panel8: TPanel
         Left = 0
         Top = 0
@@ -1770,7 +1829,7 @@ object frmmenu: Tfrmmenu
         object Label23: TLabel
           Left = 1
           Top = 26
-          Width = 47
+          Width = 231
           Height = 17
           Align = alTop
           Alignment = taCenter
@@ -1781,11 +1840,12 @@ object frmmenu: Tfrmmenu
           Font.Name = 'Segoe UI Semibold'
           Font.Style = [fsBold]
           ParentFont = False
+          ExplicitWidth = 47
         end
         object Label24: TLabel
           Left = 1
           Top = 1
-          Width = 147
+          Width = 231
           Height = 25
           Align = alTop
           Alignment = taCenter
@@ -1799,6 +1859,7 @@ object frmmenu: Tfrmmenu
           ParentColor = False
           ParentFont = False
           Transparent = True
+          ExplicitWidth = 147
         end
         object brnconsultavenda: TButton
           AlignWithMargins = True
@@ -1833,7 +1894,6 @@ object frmmenu: Tfrmmenu
           ParentFont = False
           TabOrder = 1
           OnClick = btnlimpavendaClick
-          ExplicitTop = 215
         end
         object EDITPESQPEDIDO: TEdit
           AlignWithMargins = True
@@ -1896,7 +1956,7 @@ object frmmenu: Tfrmmenu
         object Label14: TLabel
           Left = 1
           Top = 1
-          Width = 253
+          Width = 708
           Height = 25
           Align = alTop
           Alignment = taCenter
@@ -1910,11 +1970,12 @@ object frmmenu: Tfrmmenu
           ParentColor = False
           ParentFont = False
           Transparent = True
+          ExplicitWidth = 253
         end
         object labelvalordiver: TLabel
           Left = 1
           Top = 553
-          Width = 44
+          Width = 708
           Height = 25
           Align = alBottom
           Caption = 'Valor'
@@ -1924,14 +1985,16 @@ object frmmenu: Tfrmmenu
           Font.Name = 'Segoe UI Semibold'
           Font.Style = [fsBold]
           ParentFont = False
+          ExplicitWidth = 44
         end
         object Labeltotaldiver: TLabel
           Left = 1
           Top = 536
-          Width = 108
+          Width = 708
           Height = 17
           Align = alBottom
           Caption = 'Total de Registros'
+          ExplicitWidth = 108
         end
         object dbgridvendaspendente: TDBGrid
           Left = 1
@@ -1961,7 +2024,7 @@ object frmmenu: Tfrmmenu
         object Label22: TLabel
           Left = 1
           Top = 1
-          Width = 87
+          Width = 149
           Height = 25
           Align = alTop
           Alignment = taCenter
@@ -1975,6 +2038,7 @@ object frmmenu: Tfrmmenu
           ParentColor = False
           ParentFont = False
           Transparent = True
+          ExplicitWidth = 87
         end
         object DBGridsequencia: TDBGrid
           Left = 1
@@ -2002,7 +2066,7 @@ object frmmenu: Tfrmmenu
           AlignWithMargins = True
           Left = 4
           Top = 83
-          Width = 70
+          Width = 177
           Height = 17
           Align = alTop
           Alignment = taCenter
@@ -2013,12 +2077,13 @@ object frmmenu: Tfrmmenu
           Font.Name = 'Segoe UI Semibold'
           Font.Style = [fsBold]
           ParentFont = False
+          ExplicitWidth = 70
         end
         object Label21: TLabel
           AlignWithMargins = True
           Left = 4
           Top = 29
-          Width = 29
+          Width = 177
           Height = 17
           Align = alTop
           Alignment = taCenter
@@ -2029,12 +2094,13 @@ object frmmenu: Tfrmmenu
           Font.Name = 'Segoe UI Semibold'
           Font.Style = [fsBold]
           ParentFont = False
+          ExplicitWidth = 29
         end
         object Label20: TLabel
           AlignWithMargins = True
           Left = 4
           Top = 283
-          Width = 145
+          Width = 177
           Height = 17
           Align = alTop
           Alignment = taCenter
@@ -2045,12 +2111,13 @@ object frmmenu: Tfrmmenu
           Font.Name = 'Segoe UI Semibold'
           Font.Style = [fsBold]
           ParentFont = False
+          ExplicitWidth = 145
         end
         object Label18: TLabel
           AlignWithMargins = True
           Left = 4
           Top = 160
-          Width = 70
+          Width = 177
           Height = 17
           Align = alTop
           Alignment = taCenter
@@ -2061,12 +2128,13 @@ object frmmenu: Tfrmmenu
           Font.Name = 'Segoe UI Semibold'
           Font.Style = [fsBold]
           ParentFont = False
+          ExplicitWidth = 70
         end
         object Label17: TLabel
           AlignWithMargins = True
           Left = 4
           Top = 229
-          Width = 29
+          Width = 177
           Height = 17
           Align = alTop
           Alignment = taCenter
@@ -2077,12 +2145,13 @@ object frmmenu: Tfrmmenu
           Font.Name = 'Segoe UI Semibold'
           Font.Style = [fsBold]
           ParentFont = False
+          ExplicitWidth = 29
         end
         object Label16: TLabel
           AlignWithMargins = True
           Left = 4
           Top = 106
-          Width = 146
+          Width = 177
           Height = 17
           Align = alTop
           Alignment = taCenter
@@ -2096,11 +2165,12 @@ object frmmenu: Tfrmmenu
           ParentColor = False
           ParentFont = False
           Transparent = True
+          ExplicitWidth = 146
         end
         object Label19: TLabel
           Left = 1
           Top = 1
-          Width = 149
+          Width = 183
           Height = 25
           Align = alTop
           Alignment = taCenter
@@ -2114,6 +2184,7 @@ object frmmenu: Tfrmmenu
           ParentColor = False
           ParentFont = False
           Transparent = True
+          ExplicitWidth = 149
         end
         object BTNALTERARNUMNFCE: TButton
           AlignWithMargins = True
@@ -2262,13 +2333,15 @@ object frmmenu: Tfrmmenu
     Aggregates = <>
     AggregatesActive = True
     Params = <>
-    Left = 808
+    Left = 840
+    Top = 8
   end
   object DSCDSQUEBRA: TDataSource
     DataSet = CDSQUEBRA
     Left = 616
   end
   object OpenDialog1: TOpenDialog
-    Left = 848
+    Left = 912
+    Top = 8
   end
 end

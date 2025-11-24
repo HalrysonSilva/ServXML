@@ -180,7 +180,8 @@ type
     Panel20: TPanel;
     DBGridPENDENTES: TDBGrid;
     btnlistanaousada: TButton;
-    Button1: TButton;  // Não estava na lista de componentes, mas mantenho para a próxima etapa
+    Button1: TButton;
+    Button2: TButton;  // Não estava na lista de componentes, mas mantenho para a próxima etapa
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure CriarTabelaSERVXML;
@@ -2573,44 +2574,10 @@ end;
 
 
 procedure Tfrmmenu.btnalteraxmlClick(Sender: TObject);
-var
-  EsperaForm: TfrmEspera;
+
 begin
-  // 1. INICIALIZAÇÃO E EXIBIÇÃO DO FORM DE ESPERA
-  EsperaForm := TfrmEspera.Create(Self);
-  try
-    EsperaForm.Position := poScreenCenter;
-    EsperaForm.Label1.Caption := 'Processando e Corrigindo XMLs no Banco de Dados...';
-    EsperaForm.Show;
-    Application.ProcessMessages;
-
-    // --- 2. EXECUÇÃO DA TAREFA PESADA ---
-     AtualizarChavesCorretas;
-    // PASSO 1: CORREÇÃO DE CHAVES INCONSISTENTES (ERRO 613)
-    // Isso garante que a Chave de Acesso no XML e no BD estejam sincronizadas antes de modificar o XML.
-    EsperaForm.Label1.Caption := '1/2: Corrigindo Chaves de Acesso Inconsistentes (613)...';
-    Application.ProcessMessages;
-
-
-    // PASSO 2: CORREÇÃO GERAL DO XML E SALVAMENTO (Remoção de tags, ajuste de NCM/PIX, etc.)
-    EsperaForm.Label1.Caption := '2/2: Corrigindo Estrutura e Campos do XML (dhEmi, NCM, etc.)...';
-    Application.ProcessMessages;
 
     ModificarESalvarXMLGeracao;
-
-
-  finally
-    // 3. FINALIZAÇÃO E LIMPEZA
-    if Assigned(EsperaForm) then
-    begin
-      EsperaForm.Close;
-      EsperaForm.Free;
-    end;
-  end;
-
-  // Após a correção, recarregamos a lista para refletir os ajustes.
-  ConsultarVendasPendentes;
-  ShowMessage('✅ Correção de XMLs concluída. Notas prontas para o reenvio.');
 end;
 
 
@@ -2627,27 +2594,37 @@ begin
     EsperaForm.Show;
     Application.ProcessMessages; // Força a exibição imediata do form.
 
-    EsperaForm.Label1.Caption := 'Corrigindo dados...';
+    // --- 2. Execução das ações de banco (Execução Síncrona e Sequencial) ---
+
+    // A. Criação da Tabela
+    EsperaForm.Label1.Caption := 'Criando tabela SERVXML...';
     Application.ProcessMessages;
+    CriarTabelaSERVXML; // A próxima linha só será executada após esta concluir.
 
-
-
-
-    // 2. Execução das ações de banco
-    EsperaForm.Label1.Caption := 'Atualizando registros...';
+    // B. Correção Inicial de Dados
+    EsperaForm.Label1.Caption := 'Corrigindo dados gerais...';
     Application.ProcessMessages;
-   CriarTabelaSERVXML;
-   corrigirdados;
-   ForcarMigracaoXMLTemp;
-   UPDATEBANCO;
-   CorrigirPendenciasBaseadoEmServxml;
-   ExecutarUpdateNotasFiscais;
-  
+    corrigirdados; // A próxima linha só será executada após esta concluir.
 
+    // C. Atualização e Migração
+    EsperaForm.Label1.Caption := 'Atualizando registros e forçando migração XML...';
+    Application.ProcessMessages;
+    UPDATEBANCO;
+    ForcarMigracaoXMLTemp;
 
+    // D. Correção de Pendências
+    EsperaForm.Label1.Caption := 'Corrigindo pendências baseado em SERVXML...';
+    Application.ProcessMessages;
+    CorrigirPendenciasBaseadoEmServxml;
 
+    // E. Execução Final de Update
+    EsperaForm.Label1.Caption := 'Finalizando atualização de Notas Fiscais...';
+    Application.ProcessMessages;
+    ExecutarUpdateNotasFiscais;
 
-
+    // F. Finalização (Opcional, para indicar que acabou antes de fechar)
+    EsperaForm.Label1.Caption := 'Atualizações concluídas!';
+    Application.ProcessMessages;
 
   finally
     // 3. Fecha e libera o Form de Espera
@@ -2655,7 +2632,6 @@ begin
       FreeAndNil(EsperaForm);
   end;
 end;
-
 
 
 procedure Tfrmmenu.btnbuscarClick(Sender: TObject);
@@ -5290,8 +5266,18 @@ end;
 
 
 
+
+
+
+
+
+
+
+
+
 procedure Tfrmmenu.ModificarESalvarXMLGeracao;
 var
+  EsperaForm: TFRMESPERA; // Variável para o formulário de espera
   XMLGeracao: string;
   NumNota: string;
   CodNotaAtual: Integer;
@@ -5308,219 +5294,250 @@ var
   PosFimDetPag: Integer;
   Rejeicao: string;
 
-  // Variáveis para correção de NCM (Rejeição 805) - Agora declaradas corretamente
+  // Variáveis para correção de NCM
   PosInicioNCM, PosFimNCM, PosCursor, I: Integer;
-  NCM_Antigo: string;
+  NCM_Na_Nota: string; // NCM encontrado no XML
+  NCM_Status_Valido: Boolean; // Resultado da consulta no banco
   NumItem: Integer;
-  NCM_Específico_Encontrado: Boolean;
 
-  // Variáveis para correção de PIX (Bloco 6) - Agora declaradas corretamente
+  // Variáveis para correção de PIX (Bloco 6)
   PosInicioPix, PosFimDetPagPix, PosCardPix: Integer;
   sDetPagPix: string;
 
-  const
-    // Constantes NCM
-    NCM_INVALIDOS_ESPECIFICOS: array[0..0] of string = ('38089198'); // Adicione mais NCMs problemáticos aqui
-    NCM_CORRETO_GENERICO = '00000000';
-    // Constante PIX
-    BLOCO_CARD_PIX = '<card><tpIntegra>2</tpIntegra></card>'; // tpIntegra=2: Pagamento no estabelecimento
+const
+  NCM_CORRETO_GENERICO = '00000000';
+  BLOCO_CARD_PIX = '<card><tpIntegra>2</tpIntegra></card>';
 
 begin
-  logpendentes.Lines.Clear;
-
-  if not DataModule1.QRYPSQPENDENTE.Active or DataModule1.QRYPSQPENDENTE.IsEmpty then
-  begin
-    logpendentes.Lines.Add('❌ Lista de notas pendentes vazia. Nada para modificar.');
-    Exit;
-  end;
-
-  logpendentes.Lines.Add('🔄 Modificando e salvando Nota no Banco de Dados...');
+  // 1. INICIALIZAÇÃO DA TELA DE ESPERA
+  EsperaForm := TFRMESPERA.Create(Self);
+  EsperaForm.Label1.Caption := 'Aguarde... Modificando XMLs em lote.';
+  EsperaForm.Show;
   Application.ProcessMessages;
 
-  DataModule1.QRYPSQPENDENTE.DisableControls;
-  DataModule1.QRYPSQPENDENTE.First;
+  try
+    logpendentes.Lines.Clear;
 
-  while not DataModule1.QRYPSQPENDENTE.Eof do
-  begin
-    XMLGeracao    := DataModule1.QRYPSQPENDENTE.FieldByName('XMLGeracao').AsString;
-    NumNota       := DataModule1.QRYPSQPENDENTE.FieldByName('NumNota').AsString;
-    CodNotaAtual  := DataModule1.QRYPSQPENDENTE.FieldByName('CodNota').AsInteger;
-    Rejeicao      := DataModule1.QRYPSQPENDENTE.FieldByName('RejeicaoMotivo').AsString;
-
-    XMLGeracao := Trim(XMLGeracao);
-    if XMLGeracao <> '' then
+    if not DataModule1.QRYPSQPENDENTE.Active or DataModule1.QRYPSQPENDENTE.IsEmpty then
     begin
-      sXMLAjustado := XMLGeracao;
+      logpendentes.Lines.Add('❌ Lista de notas pendentes vazia. Nada para modificar.');
+      Exit;
+    end;
 
-      // 1. Remover assinatura (para permitir a re-assinatura)
-      PosInicioSignature := Pos('<Signature', sXMLAjustado);
-      PosFimSignature := Pos('</Signature>', sXMLAjustado);
-      if (PosInicioSignature > 0) and (PosFimSignature > 0) then
+    logpendentes.Lines.Add('🔄 Modificando e salvando Nota no Banco de Dados...');
+    Application.ProcessMessages;
+
+    DataModule1.QRYPSQPENDENTE.DisableControls;
+    DataModule1.QRYPSQPENDENTE.First;
+
+    // 2. PREPARAÇÃO DA QUERY DE NCM (Executada dentro do loop)
+    with DataModule1.QRYNCM do
+    begin
+      // A query deve buscar o NCM (CODIGO) e verificar sua vigência.
+      // O campo fimVigencia deve ser NULL ou maior que a data atual.
+      SQL.Text := 'SELECT CODIGO FROM NFe_NCM WHERE CODIGO = :pNCM AND (fimVigencia IS NULL OR fimVigencia >= CAST(GETDATE() AS DATE))';
+    end;
+
+    while not DataModule1.QRYPSQPENDENTE.Eof do
+    begin
+      // 3. ATUALIZAÇÃO DO STATUS E COLETA DE DADOS
+      XMLGeracao := DataModule1.QRYPSQPENDENTE.FieldByName('XMLGeracao').AsString;
+      NumNota := DataModule1.QRYPSQPENDENTE.FieldByName('NumNota').AsString;
+      CodNotaAtual := DataModule1.QRYPSQPENDENTE.FieldByName('CodNota').AsInteger;
+      Rejeicao := DataModule1.QRYPSQPENDENTE.FieldByName('RejeicaoMotivo').AsString;
+
+      EsperaForm.Label1.Caption := Format('Corrigindo Nota %s...', [NumNota]);
+      Application.ProcessMessages;
+
+      XMLGeracao := Trim(XMLGeracao);
+      if XMLGeracao <> '' then
       begin
-        sXMLAjustado := Copy(sXMLAjustado, 1, PosInicioSignature - 1) +
-                        Copy(sXMLAjustado, PosFimSignature + Length('</Signature>'), Length(sXMLAjustado));
-        logpendentes.Lines.Add(Format('✂️ Nota %s: Assinatura removida.', [NumNota]));
-      end;
+        sXMLAjustado := XMLGeracao;
 
-      // 2. Ajustar data/hora de emissão para o momento atual
-      DataAtual := Now;
-      NovaDataHoraSimples := FormatDateTime('yyyy-mm-dd', DataAtual) + 'T' + FormatDateTime('hh:nn:ss', DataAtual);
-      PosInicioData := Pos('<dhEmi>', sXMLAjustado);
-      if PosInicioData > 0 then
-      begin
-        PosInicioData := PosInicioData + Length('<dhEmi>');
-        ConteudoAntigo := Copy(sXMLAjustado, PosInicioData, 19);
-        sXMLAjustado := StringReplace(sXMLAjustado, ConteudoAntigo, NovaDataHoraSimples, [rfReplaceAll]);
-        logpendentes.Lines.Add(Format('🔧 Nota %s: Data/Hora ajustada para %s.', [NumNota, NovaDataHoraSimples]));
-      end;
+        // ... (Seções 1 a 4: Assinatura, Data/Hora, tpEmis e Contingência) ...
 
-      // 3. Ajustar tipo de emissão para 1 (Normal)
-      PosInicioTpEmis := Pos('<tpEmis>', sXMLAjustado);
-      if PosInicioTpEmis > 0 then
-      begin
-        PosInicioTpEmis := PosInicioTpEmis + Length('<tpEmis>');
-        TpEmisAntigo := Copy(sXMLAjustado, PosInicioTpEmis, 1);
-        sXMLAjustado := StringReplace(sXMLAjustado, '<tpEmis>' + TpEmisAntigo, '<tpEmis>1', [rfReplaceAll]);
-        if TpEmisAntigo <> '1' then
-          logpendentes.Lines.Add(Format('🔧 Nota %s: Tipo Emissão alterado de %s para 1 (Normal).', [NumNota, TpEmisAntigo]));
-      end;
-
-      // 4. Remover Justificativa e Data de Contingência (campos de Contingência)
-      PosInicioXJust := Pos('<xJust>', sXMLAjustado);
-      PosFimXJust := Pos('</xJust>', sXMLAjustado);
-      if (PosInicioXJust > 0) and (PosFimXJust > 0) then
-      begin
-        sXMLAjustado := Copy(sXMLAjustado, 1, PosInicioXJust - 1) +
-                        Copy(sXMLAjustado, PosFimXJust + Length('</xJust>'), Length(sXMLAjustado));
-        logpendentes.Lines.Add(Format('🧹 Nota %s: Justificativa (xJust) removida.', [NumNota]));
-      end;
-
-      PosInicioDhCont := Pos('<dhCont>', sXMLAjustado);
-      PosFimDhCont := Pos('</dhCont>', sXMLAjustado);
-      if (PosInicioDhCont > 0) and (PosFimDhCont > 0) then
-      begin
-        sXMLAjustado := Copy(sXMLAjustado, 1, PosInicioDhCont - 1) +
-                        Copy(sXMLAjustado, PosFimDhCont + Length('</dhCont>'), Length(sXMLAjustado));
-        logpendentes.Lines.Add(Format('🧹 Nota %s: Data de Contingência (dhCont) removida.', [NumNota]));
-      end;
-
-      // 5. CORREÇÃO NCM (Rejeição 805): Ajustar NCMs inválidos ou descontinuados para '00000000'
-      PosCursor := 1;
-      NumItem := 1;
-      while (PosCursor > 0) do
-      begin
-        PosInicioNCM := PosEx('<NCM>', sXMLAjustado, PosCursor);
-        PosFimNCM := PosEx('</NCM>', sXMLAjustado, PosCursor);
-
-        if (PosInicioNCM > 0) and (PosFimNCM > 0) then
+        // 1. Remover assinatura (para permitir a re-assinatura)
+        PosInicioSignature := Pos('<Signature', sXMLAjustado);
+        PosFimSignature := Pos('</Signature>', sXMLAjustado);
+        if (PosInicioSignature > 0) and (PosFimSignature > 0) then
         begin
-          PosInicioNCM := PosInicioNCM + Length('<NCM>');
-          NCM_Antigo := Copy(sXMLAjustado, PosInicioNCM, PosFimNCM - PosInicioNCM);
-          NCM_Antigo := Trim(NCM_Antigo);
+          sXMLAjustado := Copy(sXMLAjustado, 1, PosInicioSignature - 1) +
+            Copy(sXMLAjustado, PosFimSignature + Length('</Signature>'), Length(sXMLAjustado));
+          logpendentes.Lines.Add(Format('✂️ Nota %s: Assinatura removida.', [NumNota]));
+        end;
 
-          NCM_Específico_Encontrado := False;
-          for I := Low(NCM_INVALIDOS_ESPECIFICOS) to High(NCM_INVALIDOS_ESPECIFICOS) do
+        // 2. Ajustar data/hora de emissão para o momento atual
+        DataAtual := Now;
+        NovaDataHoraSimples := FormatDateTime('yyyy-mm-dd', DataAtual) + 'T' + FormatDateTime('hh:nn:ss', DataAtual);
+        PosInicioData := Pos('<dhEmi>', sXMLAjustado);
+        if PosInicioData > 0 then
+        begin
+          PosInicioData := PosInicioData + Length('<dhEmi>');
+          ConteudoAntigo := Copy(sXMLAjustado, PosInicioData, 19);
+          sXMLAjustado := StringReplace(sXMLAjustado, ConteudoAntigo, NovaDataHoraSimples, [rfReplaceAll]);
+          logpendentes.Lines.Add(Format('🔧 Nota %s: Data/Hora ajustada para %s.', [NumNota, NovaDataHoraSimples]));
+        end;
+
+        // 3. Ajustar tipo de emissão para 1 (Normal)
+        PosInicioTpEmis := Pos('<tpEmis>', sXMLAjustado);
+        if PosInicioTpEmis > 0 then
+        begin
+          PosInicioTpEmis := PosInicioTpEmis + Length('<tpEmis>');
+          TpEmisAntigo := Copy(sXMLAjustado, PosInicioTpEmis, 1);
+          sXMLAjustado := StringReplace(sXMLAjustado, '<tpEmis>' + TpEmisAntigo, '<tpEmis>1', [rfReplaceAll]);
+          if TpEmisAntigo <> '1' then
+            logpendentes.Lines.Add(Format('🔧 Nota %s: Tipo Emissão alterado de %s para 1 (Normal).', [NumNota, TpEmisAntigo]));
+        end;
+
+        // 4. Remover Justificativa e Data de Contingência (campos de Contingência)
+        PosInicioXJust := Pos('<xJust>', sXMLAjustado);
+        PosFimXJust := Pos('</xJust>', sXMLAjustado);
+        if (PosInicioXJust > 0) and (PosFimXJust > 0) then
+        begin
+          sXMLAjustado := Copy(sXMLAjustado, 1, PosInicioXJust - 1) +
+            Copy(sXMLAjustado, PosFimXJust + Length('</xJust>'), Length(sXMLAjustado));
+          logpendentes.Lines.Add(Format('🧹 Nota %s: Justificativa (xJust) removida.', [NumNota]));
+        end;
+
+        PosInicioDhCont := Pos('<dhCont>', sXMLAjustado);
+        PosFimDhCont := Pos('</dhCont>', sXMLAjustado);
+        if (PosInicioDhCont > 0) and (PosFimDhCont > 0) then
+        begin
+          sXMLAjustado := Copy(sXMLAjustado, 1, PosInicioDhCont - 1) +
+            Copy(sXMLAjustado, PosFimDhCont + Length('</dhCont>'), Length(sXMLAjustado));
+          logpendentes.Lines.Add(Format('🧹 Nota %s: Data de Contingência (dhCont) removida.', [NumNota]));
+        end;
+
+
+        // 5. CORREÇÃO NCM: Busca NCMs no XML e valida contra a tabela NFe_NCM
+        PosCursor := 1;
+        NumItem := 1;
+        while (PosCursor > 0) do
+        begin
+          PosInicioNCM := PosEx('<NCM>', sXMLAjustado, PosCursor);
+          PosFimNCM := PosEx('</NCM>', sXMLAjustado, PosCursor);
+
+          if (PosInicioNCM > 0) and (PosFimNCM > 0) then
           begin
-            if NCM_Antigo = NCM_INVALIDOS_ESPECIFICOS[I] then
+            PosInicioNCM := PosInicioNCM + Length('<NCM>');
+            NCM_Na_Nota := Copy(sXMLAjustado, PosInicioNCM, PosFimNCM - PosInicioNCM);
+            NCM_Na_Nota := Trim(NCM_Na_Nota);
+
+            // VALIDAÇÃO NO BANCO DE DADOS (QRYNCM)
+            NCM_Status_Valido := False;
+
+            if Length(NCM_Na_Nota) = 8 then
             begin
-              NCM_Específico_Encontrado := True;
-              Break;
+              DataModule1.QRYNCM.Close;
+              DataModule1.QRYNCM.ParamByName('pNCM').AsString := NCM_Na_Nota;
+              DataModule1.QRYNCM.Open;
+
+              // Se a query retornou 1 registro, o NCM é válido e vigente
+              NCM_Status_Valido := not DataModule1.QRYNCM.IsEmpty;
+              DataModule1.QRYNCM.Close;
             end;
-          end;
 
-          // Critério de Correção: NCM com menos de 8 dígitos, vazio OU NCM específico na lista
-          if (Length(NCM_Antigo) <> 8) or (NCM_Antigo = '') or NCM_Específico_Encontrado then
-          begin
-            sXMLAjustado := StringReplace(sXMLAjustado,
-                                          '<NCM>' + NCM_Antigo + '</NCM>',
-                                          '<NCM>' + NCM_CORRETO_GENERICO + '</NCM>',
-                                          []); // Sem rfReplaceAll
-            logpendentes.Lines.Add(Format('🛠️ Nota %s: NCM do item %d corrigido de "%s" para "%s" (Genérico).',
-                                          [NumNota, NumItem, NCM_Antigo, NCM_CORRETO_GENERICO]));
-          end;
-
-          PosCursor := PosFimNCM + Length('</NCM>');
-          Inc(NumItem);
-        end
-        else
-          PosCursor := 0;
-      end;
-
-      // 6. CORREÇÃO PIX MULTI-PAGAMENTO: Adicionar <card> para tPag=17 (PIX) se ausente no bloco
-      PosInicioPix := 1;
-      while PosInicioPix > 0 do
-      begin
-        // 6a. Encontra o início do bloco PIX
-        PosInicioPix := PosEx('<tPag>17</tPag>', sXMLAjustado, PosInicioPix);
-
-        if PosInicioPix > 0 then
-        begin
-          // 6b. Encontra o fechamento do bloco </detPag> APÓS o início do PIX
-          PosFimDetPagPix := PosEx('</detPag>', sXMLAjustado, PosInicioPix);
-
-          if (PosFimDetPagPix > 0) then
-          begin
-            // 6c. Isola a substring do bloco de pagamento PIX para verificar a existência do <card>
-            sDetPagPix := Copy(sXMLAjustado, PosInicioPix, PosFimDetPagPix + Length('</detPag>') - PosInicioPix);
-
-            // 6d. Verifica se a tag <card> JÁ existe dentro DESTE bloco PIX
-            PosCardPix := Pos('<card>', sDetPagPix);
-
-            if PosCardPix = 0 then // Se NÃO encontrou <card> no bloco PIX
+            // Critério de Correção: NCM não tem 8 dígitos OU falhou na validação do banco
+            if (Length(NCM_Na_Nota) <> 8) or (not NCM_Status_Valido) then
             begin
-              // Substitui o padrão de fechamento </vPag></detPag> pelo padrão corrigido
-              // Nota: Usa-se o StringReplace em todo o sXMLAjustado para cobrir o caso,
-              // mas a checagem no sub-bloco é que garante a correção necessária.
               sXMLAjustado := StringReplace(sXMLAjustado,
-                                            '</vPag></detPag>',
-                                            '</vPag>' + BLOCO_CARD_PIX + '</detPag>',
-                                            [rfReplaceAll]);
+                '<NCM>' + NCM_Na_Nota + '</NCM>',
+                '<NCM>' + NCM_CORRETO_GENERICO + '</NCM>',
+                []); // Sem rfReplaceAll
 
-              logpendentes.Lines.Add(Format('🛠️ Nota %s: Bloco <card> adicionado para pagamento PIX (tPag=17).', [NumNota]));
+              logpendentes.Lines.Add(Format('🛠️ Nota %s: NCM do item %d corrigido de "%s" para "%s" (INVÁLIDO/EXTINTO).',
+                [NumNota, NumItem, NCM_Na_Nota, NCM_CORRETO_GENERICO]));
             end;
-            // Move o cursor de busca para APÓS o bloco PIX atual para buscar o próximo
-            PosInicioPix := PosFimDetPagPix + Length('</detPag>');
+
+            PosCursor := PosFimNCM + Length('</NCM>');
+            Inc(NumItem);
           end
           else
-             PosInicioPix := 0; // Se não encontrou </detPag> após o PIX, sai do loop
+            PosCursor := 0;
         end;
-      end;
 
-      // 7. Salvar XML ajustado no SQL Server (Utilizando transação)
-      try
-        DataModule1.ConDados.StartTransaction;
-        with DataModule1.QRYupdatebanco do
+        // 6. CORREÇÃO PIX MULTI-PAGAMENTO
+        PosInicioPix := 1;
+        while PosInicioPix > 0 do
         begin
-          Close;
-          SQL.Clear;
-          SQL.Text := 'UPDATE NFE_XML SET XMLGeracao = :pXMLGeracao WHERE CodNota = :pCodNota';
-          ParamByName('pXMLGeracao').AsString := sXMLAjustado;
-          ParamByName('pCodNota').AsInteger := CodNotaAtual;
-          ExecSQL;
-        end;
-        DataModule1.ConDados.Commit;
-        logpendentes.Lines.Add(Format('💾 Nota %s: Atualizada, XML corrigido.', [NumNota]));
-      except
-        on E: Exception do
-        begin
-          DataModule1.ConDados.Rollback;
-          logpendentes.Lines.Add(Format('❌ Erro CRÍTICO ao atualizar XMLGeracao no BD (CodNota %d): %s',
-            [CodNotaAtual, E.Message]));
-        end;
-      end;
+          PosInicioPix := PosEx('<tPag>17</tPag>', sXMLAjustado, PosInicioPix);
 
-    end
-    else
-      logpendentes.Lines.Add(Format('⚠️ XMLGeracao vazio para nota %s. Pulando...', [NumNota]));
+          if PosInicioPix > 0 then
+          begin
+            PosFimDetPagPix := PosEx('</detPag>', sXMLAjustado, PosInicioPix);
 
-    DataModule1.QRYPSQPENDENTE.Next;
-    Application.ProcessMessages;
+            if (PosFimDetPagPix > 0) then
+            begin
+              sDetPagPix := Copy(sXMLAjustado, PosInicioPix, PosFimDetPagPix + Length('</detPag>') - PosInicioPix);
+              PosCardPix := Pos('<card>', sDetPagPix);
+
+              if PosCardPix = 0 then // Se NÃO encontrou <card> no bloco PIX
+              begin
+                sXMLAjustado := StringReplace(sXMLAjustado,
+                  '</vPag></detPag>',
+                  '</vPag>' + BLOCO_CARD_PIX + '</detPag>',
+                  [rfReplaceAll]);
+
+                logpendentes.Lines.Add(Format('🛠️ Nota %s: Bloco <card> adicionado para pagamento PIX (tPag=17).', [NumNota]));
+              end;
+              PosInicioPix := PosFimDetPagPix + Length('</detPag>');
+            end
+            else
+              PosInicioPix := 0;
+          end;
+        end;
+
+        // 7. Salvar XML ajustado no SQL Server (Utilizando transação)
+        try
+          DataModule1.ConDados.StartTransaction;
+          with DataModule1.QRYupdatebanco do
+          begin
+            Close;
+            SQL.Clear;
+            SQL.Text := 'UPDATE NFE_XML SET XMLGeracao = :pXMLGeracao WHERE CodNota = :pCodNota';
+            ParamByName('pXMLGeracao').AsString := sXMLAjustado;
+            ParamByName('pCodNota').AsInteger := CodNotaAtual;
+            ExecSQL;
+          end;
+          DataModule1.ConDados.Commit;
+          logpendentes.Lines.Add(Format('💾 Nota %s: Atualizada, XML corrigido.', [NumNota]));
+        except
+          on E: Exception do
+          begin
+            DataModule1.ConDados.Rollback;
+            logpendentes.Lines.Add(Format('❌ Erro CRÍTICO ao atualizar XMLGeracao no BD (CodNota %d): %s',
+              [CodNotaAtual, E.Message]));
+          end;
+        end;
+
+      end
+      else
+        logpendentes.Lines.Add(Format('⚠️ XMLGeracao vazio para nota %s. Pulando...', [NumNota]));
+
+      DataModule1.QRYPSQPENDENTE.Next;
+      Application.ProcessMessages;
+    end;
+
+    DataModule1.QRYPSQPENDENTE.EnableControls;
+    ConsultarVendasPendentes;
+    logpendentes.Lines.Add('✅ Modificação de XMLs concluída. Notas prontas para o reenvio.');
+
+  finally
+    // 8. FINALIZAÇÃO DA TELA DE ESPERA
+    if Assigned(EsperaForm) then
+    begin
+      EsperaForm.Hide;
+      EsperaForm.Free;
+    end;
   end;
-
-  DataModule1.QRYPSQPENDENTE.EnableControls;
-  ConsultarVendasPendentes;
-  logpendentes.Lines.Add('✅ Modificação de XMLs concluída. Notas prontas para o reenvio.');
 end;
+
+
+
+
+
+
+
 
 
 
